@@ -1,9 +1,9 @@
 package rcs
 
 import (
-	"bufio"
 	"bytes"
 	_ "embed"
+	"github.com/google/go-cmp/cmp"
 	"io"
 	"reflect"
 	"strings"
@@ -41,9 +41,9 @@ func TestParseFile(t *testing.T) {
 	}
 }
 
-func TestParseHead(t *testing.T) {
+func TestParseHeaderHead(t *testing.T) {
 	type args struct {
-		s   *bufio.Scanner
+		s   *Scanner
 		pos *Pos
 	}
 	tests := []struct {
@@ -55,7 +55,7 @@ func TestParseHead(t *testing.T) {
 		{
 			name: "Test header of testinput.go,v",
 			args: args{
-				s:   bufio.NewScanner(bytes.NewReader(testinputv)),
+				s:   NewScanner(bytes.NewReader(testinputv)),
 				pos: &Pos{},
 			},
 			want:    "1.6",
@@ -64,13 +64,61 @@ func TestParseHead(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHead(tt.args.s, tt.args.pos)
+			got, err := ParseHeaderHead(tt.args.s, tt.args.pos, false)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseHead() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("ParseHead() got = %v, want %v", got, tt.want)
+				t.Errorf("ParseHeaderHead() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseHeader(t *testing.T) {
+	type args struct {
+		s   *Scanner
+		pos *Pos
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *File
+		wantErr bool
+	}{
+		{
+			name: "Test header of testinput.go,v",
+			args: args{
+				s:   NewScanner(bytes.NewReader(testinputv)),
+				pos: &Pos{},
+			},
+			want: &File{
+				Head:    "1.6",
+				Comment: "# ",
+				Access:  true,
+				Symbols: true,
+				Locks: []*Lock{
+					&Lock{
+						User:     "arran",
+						Revision: "1.6",
+						Strict:   true,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &File{}
+			err := ParseHeader(tt.args.s, tt.args.pos, f)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if diff := cmp.Diff(tt.want, f); diff != "" {
+				t.Errorf("ParseHeader() Diff: %s", diff)
 			}
 		})
 	}
@@ -110,7 +158,7 @@ func TestPos_String(t *testing.T) {
 
 func TestScanNewLine(t *testing.T) {
 	type args struct {
-		s   *bufio.Scanner
+		s   *Scanner
 		pos *Pos
 	}
 	tests := []struct {
@@ -121,7 +169,7 @@ func TestScanNewLine(t *testing.T) {
 		{
 			name: "Scans a unix new line",
 			args: args{
-				s:   bufio.NewScanner(strings.NewReader("\n")),
+				s:   NewScanner(strings.NewReader("\n")),
 				pos: &Pos{},
 			},
 			wantErr: false,
@@ -129,7 +177,7 @@ func TestScanNewLine(t *testing.T) {
 		{
 			name: "Scans a windows new line",
 			args: args{
-				s:   bufio.NewScanner(strings.NewReader("\r\n")),
+				s:   NewScanner(strings.NewReader("\r\n")),
 				pos: &Pos{},
 			},
 			wantErr: false,
@@ -137,7 +185,7 @@ func TestScanNewLine(t *testing.T) {
 		{
 			name: "Fails to scan nothing",
 			args: args{
-				s:   bufio.NewScanner(strings.NewReader("")),
+				s:   NewScanner(strings.NewReader("")),
 				pos: &Pos{},
 			},
 			wantErr: true,
@@ -145,7 +193,7 @@ func TestScanNewLine(t *testing.T) {
 		{
 			name: "Fails to scan non new line data",
 			args: args{
-				s:   bufio.NewScanner(strings.NewReader("asdfasdfasdf")),
+				s:   NewScanner(strings.NewReader("asdfasdfasdf")),
 				pos: &Pos{},
 			},
 			wantErr: true,
@@ -162,7 +210,7 @@ func TestScanNewLine(t *testing.T) {
 
 func TestScanStrings(t *testing.T) {
 	type args struct {
-		s    *bufio.Scanner
+		s    *Scanner
 		pos  *Pos
 		strs []string
 	}
@@ -176,7 +224,7 @@ func TestScanStrings(t *testing.T) {
 			name:     "Scans a word before a space",
 			expected: "This",
 			args: args{
-				s:    bufio.NewScanner(strings.NewReader("This is a word")),
+				s:    NewScanner(strings.NewReader("This is a word")),
 				pos:  &Pos{},
 				strs: []string{"This"},
 			},
@@ -197,7 +245,7 @@ func TestScanStrings(t *testing.T) {
 
 func TestScanUntilNewLine(t *testing.T) {
 	type args struct {
-		s   *bufio.Scanner
+		s   *Scanner
 		pos *Pos
 	}
 	tests := []struct {
@@ -210,7 +258,7 @@ func TestScanUntilNewLine(t *testing.T) {
 			name:     "Scans a word before a space",
 			expected: "This is",
 			args: args{
-				s:   bufio.NewScanner(strings.NewReader("This is\n a word")),
+				s:   NewScanner(strings.NewReader("This is\n a word")),
 				pos: &Pos{},
 			},
 			wantErr: false,
@@ -219,7 +267,7 @@ func TestScanUntilNewLine(t *testing.T) {
 			name:     "No new line no result",
 			expected: "",
 			args: args{
-				s:   bufio.NewScanner(strings.NewReader("This is a word")),
+				s:   NewScanner(strings.NewReader("This is a word")),
 				pos: &Pos{},
 			},
 			wantErr: true,
@@ -239,7 +287,7 @@ func TestScanUntilNewLine(t *testing.T) {
 
 func TestScanUntilStrings(t *testing.T) {
 	type args struct {
-		s    *bufio.Scanner
+		s    *Scanner
 		pos  *Pos
 		strs []string
 	}
@@ -253,7 +301,7 @@ func TestScanUntilStrings(t *testing.T) {
 			name:     "Scans until a word",
 			expected: "This is a ",
 			args: args{
-				s:    bufio.NewScanner(strings.NewReader("This is a word")),
+				s:    NewScanner(strings.NewReader("This is a word")),
 				pos:  &Pos{},
 				strs: []string{"word"},
 			},
@@ -274,7 +322,7 @@ func TestScanUntilStrings(t *testing.T) {
 
 func TestScanWhiteSpace(t *testing.T) {
 	type args struct {
-		s       *bufio.Scanner
+		s       *Scanner
 		pos     *Pos
 		minimum int
 	}
@@ -288,7 +336,7 @@ func TestScanWhiteSpace(t *testing.T) {
 			name:     "Scans until a word",
 			expected: " ",
 			args: args{
-				s:       bufio.NewScanner(strings.NewReader(" word")),
+				s:       NewScanner(strings.NewReader(" word")),
 				pos:     &Pos{},
 				minimum: 1,
 			},
@@ -298,7 +346,7 @@ func TestScanWhiteSpace(t *testing.T) {
 			name:     "Minimum fails it",
 			expected: "",
 			args: args{
-				s:       bufio.NewScanner(strings.NewReader(" word")),
+				s:       NewScanner(strings.NewReader(" word")),
 				pos:     &Pos{},
 				minimum: 2,
 			},
