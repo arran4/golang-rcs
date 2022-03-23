@@ -1,6 +1,7 @@
-project_name: golangrcs
+project_name: golang-rcs
 builds:
   -
+    id: "list-heads"
     binary: "list-heads"
     dir: cmd/list-heads
     env:
@@ -17,6 +18,7 @@ builds:
       - 6
       - 7
   -
+    id: "normalize-revisions"
     binary: "normalize-revisions"
     dir: cmd/normalize-revisions
     env:
