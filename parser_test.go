@@ -1,14 +1,15 @@
 package rcs
 
 import (
-	"bufio"
 	"bytes"
 	_ "embed"
+	"errors"
+	"fmt"
 	"github.com/google/go-cmp/cmp"
 	"io"
-	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -53,8 +54,7 @@ func TestParseFile(t *testing.T) {
 
 func TestParseHeaderHead(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
@@ -65,8 +65,7 @@ func TestParseHeaderHead(t *testing.T) {
 		{
 			name: "Test header of testinput.go,v",
 			args: args{
-				s:   NewScanner(bytes.NewReader(testinputv)),
-				pos: &Pos{},
+				s: NewScanner(bytes.NewReader(testinputv)),
 			},
 			want:    "1.6",
 			wantErr: false,
@@ -88,8 +87,7 @@ func TestParseHeaderHead(t *testing.T) {
 
 func TestParseHeader(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
@@ -100,8 +98,7 @@ func TestParseHeader(t *testing.T) {
 		{
 			name: "Test header of testinput.go,v",
 			args: args{
-				s:   NewScanner(bytes.NewReader(testinputv)),
-				pos: &Pos{},
+				s: NewScanner(bytes.NewReader(testinputv)),
 			},
 			want: &File{
 				Head:    "1.6",
@@ -109,7 +106,7 @@ func TestParseHeader(t *testing.T) {
 				Access:  true,
 				Symbols: true,
 				Locks: []*Lock{
-					&Lock{
+					{
 						User:     "arran",
 						Revision: "1.6",
 						Strict:   true,
@@ -136,8 +133,7 @@ func TestParseHeader(t *testing.T) {
 
 func TestScanNewLine(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
@@ -147,32 +143,28 @@ func TestScanNewLine(t *testing.T) {
 		{
 			name: "Scans a unix new Line",
 			args: args{
-				s:   NewScanner(strings.NewReader("\n")),
-				pos: &Pos{},
+				s: NewScanner(strings.NewReader("\n")),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Scans a windows new Line",
 			args: args{
-				s:   NewScanner(strings.NewReader("\r\n")),
-				pos: &Pos{},
+				s: NewScanner(strings.NewReader("\r\n")),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Fails to scan nothing",
 			args: args{
-				s:   NewScanner(strings.NewReader("")),
-				pos: &Pos{},
+				s: NewScanner(strings.NewReader("")),
 			},
 			wantErr: true,
 		},
 		{
 			name: "Fails to scan non new Line data",
 			args: args{
-				s:   NewScanner(strings.NewReader("asdfasdfasdf")),
-				pos: &Pos{},
+				s: NewScanner(strings.NewReader("asdfasdfasdf")),
 			},
 			wantErr: true,
 		},
@@ -189,7 +181,6 @@ func TestScanNewLine(t *testing.T) {
 func TestScanStrings(t *testing.T) {
 	type args struct {
 		s    *Scanner
-		pos  *Pos
 		strs []string
 	}
 	tests := []struct {
@@ -203,7 +194,6 @@ func TestScanStrings(t *testing.T) {
 			expected: "This",
 			args: args{
 				s:    NewScanner(strings.NewReader("This is a word")),
-				pos:  &Pos{},
 				strs: []string{"This"},
 			},
 			wantErr: false,
@@ -223,8 +213,7 @@ func TestScanStrings(t *testing.T) {
 
 func TestScanUntilNewLine(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name     string
@@ -236,8 +225,7 @@ func TestScanUntilNewLine(t *testing.T) {
 			name:     "Scans a word before a space",
 			expected: "This is",
 			args: args{
-				s:   NewScanner(strings.NewReader("This is\n a word")),
-				pos: &Pos{},
+				s: NewScanner(strings.NewReader("This is\n a word")),
 			},
 			wantErr: false,
 		},
@@ -245,8 +233,7 @@ func TestScanUntilNewLine(t *testing.T) {
 			name:     "No new Line no result",
 			expected: "",
 			args: args{
-				s:   NewScanner(strings.NewReader("This is a word")),
-				pos: &Pos{},
+				s: NewScanner(strings.NewReader("This is a word")),
 			},
 			wantErr: true,
 		},
@@ -266,7 +253,6 @@ func TestScanUntilNewLine(t *testing.T) {
 func TestScanUntilStrings(t *testing.T) {
 	type args struct {
 		s    *Scanner
-		pos  *Pos
 		strs []string
 	}
 	tests := []struct {
@@ -280,7 +266,6 @@ func TestScanUntilStrings(t *testing.T) {
 			expected: "This is a ",
 			args: args{
 				s:    NewScanner(strings.NewReader("This is a word")),
-				pos:  &Pos{},
 				strs: []string{"word"},
 			},
 			wantErr: false,
@@ -301,7 +286,6 @@ func TestScanUntilStrings(t *testing.T) {
 func TestScanWhiteSpace(t *testing.T) {
 	type args struct {
 		s       *Scanner
-		pos     *Pos
 		minimum int
 	}
 	tests := []struct {
@@ -315,7 +299,6 @@ func TestScanWhiteSpace(t *testing.T) {
 			expected: " ",
 			args: args{
 				s:       NewScanner(strings.NewReader(" word")),
-				pos:     &Pos{},
 				minimum: 1,
 			},
 			wantErr: false,
@@ -325,7 +308,6 @@ func TestScanWhiteSpace(t *testing.T) {
 			expected: "",
 			args: args{
 				s:       NewScanner(strings.NewReader(" word")),
-				pos:     &Pos{},
 				minimum: 2,
 			},
 			wantErr: true,
@@ -344,40 +326,41 @@ func TestScanWhiteSpace(t *testing.T) {
 }
 
 func TestIsNotFound(t *testing.T) {
-	type args struct {
-		err error
-	}
 	tests := []struct {
 		name string
-		args args
+		err  error
 		want bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "random error isn't",
+			err:  errors.New("hi"),
+			want: false,
+		},
+		{
+			name: "ScanNotFound error is",
+			err:  ScanNotFound([]string{"123", "123"}),
+			want: true,
+		},
+		{
+			name: "Nested ScanNotFound error is",
+			err:  fmt.Errorf("hi: %w", ScanNotFound([]string{"123", "123"})),
+			want: true,
+		},
+		{
+			name: "ScanUntilNotFound error is",
+			err:  ScanUntilNotFound("sadf"),
+			want: true,
+		},
+		{
+			name: "Nested ScanUntilNotFound error is",
+			err:  fmt.Errorf("hi: %w", ScanUntilNotFound("123")),
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsNotFound(tt.args.err); got != tt.want {
+			if got := IsNotFound(tt.err); got != tt.want {
 				t.Errorf("IsNotFound() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestNewScanner(t *testing.T) {
-	type args struct {
-		r io.Reader
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Scanner
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewScanner(tt.args.r); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewScanner() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -385,8 +368,7 @@ func TestNewScanner(t *testing.T) {
 
 func TestParseAtQuotedString(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
@@ -394,7 +376,30 @@ func TestParseAtQuotedString(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Base @ String",
+			args: args{
+				s: NewScanner(strings.NewReader("@# @")),
+			},
+			want:    "# ",
+			wantErr: false,
+		},
+		{
+			name: "Double @@ For literal",
+			args: args{
+				s: NewScanner(strings.NewReader("@ @@ @")),
+			},
+			want:    " @ ",
+			wantErr: false,
+		},
+		{
+			name: "New lines are fine",
+			args: args{
+				s: NewScanner(strings.NewReader("@Hello\nyou@")),
+			},
+			want:    "Hello\nyou",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -412,8 +417,7 @@ func TestParseAtQuotedString(t *testing.T) {
 
 func TestParseDescription(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
@@ -421,7 +425,12 @@ func TestParseDescription(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:    "Simple description",
+			args:    args{NewScanner(strings.NewReader("desc\n@This is a test file.\n@\n\n\n"))},
+			want:    "This is a test file.\n",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -437,58 +446,9 @@ func TestParseDescription(t *testing.T) {
 	}
 }
 
-func TestParseFile1(t *testing.T) {
-	type args struct {
-		r io.Reader
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *File
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseFile(tt.args.r)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseFile() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseFile() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestParseHeader1(t *testing.T) {
-	type args struct {
-		s   *Scanner
-		pos *Pos
-		f   *File
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := ParseHeader(tt.args.s, tt.args.f); (err != nil) != tt.wantErr {
-				t.Errorf("ParseHeader() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestParseHeaderComment(t *testing.T) {
 	type args struct {
 		s                *Scanner
-		pos              *Pos
 		havePropertyName bool
 	}
 	tests := []struct {
@@ -497,13 +457,51 @@ func TestParseHeaderComment(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Simple comment line need prop name",
+			args: args{
+				s:                NewScanner(strings.NewReader("comment\t@# @;\n\n")),
+				havePropertyName: false,
+			},
+			want:    "# ",
+			wantErr: false,
+		},
+		{
+			name: "Simple comment line already have prop line",
+			args: args{
+				s:                NewScanner(strings.NewReader("\t@# @;\n\n")),
+				havePropertyName: true,
+			},
+			want:    "# ",
+			wantErr: false,
+		},
+		{
+			name: "Simple comment line need prop name",
+			args: args{
+				s:                NewScanner(strings.NewReader("comment\t@# @;\n\n")),
+				havePropertyName: true,
+			},
+			want:    "# ",
+			wantErr: true,
+		},
+		{
+			name: "Simple comment line already have prop line",
+			args: args{
+				s:                NewScanner(strings.NewReader("\t@# @;\n\n")),
+				havePropertyName: false,
+			},
+			want:    "# ",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseHeaderComment(tt.args.s, tt.args.havePropertyName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderComment() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
 				return
 			}
 			if got != tt.want {
@@ -513,38 +511,9 @@ func TestParseHeaderComment(t *testing.T) {
 	}
 }
 
-func TestParseHeaderHead1(t *testing.T) {
-	type args struct {
-		s        *Scanner
-		pos      *Pos
-		haveHead bool
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderHead(tt.args.s, tt.args.haveHead)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("ParseHeaderHead() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestParseHeaderLocks(t *testing.T) {
 	type args struct {
 		s                *Scanner
-		pos              *Pos
 		havePropertyName bool
 	}
 	tests := []struct {
@@ -553,7 +522,21 @@ func TestParseHeaderLocks(t *testing.T) {
 		want    []*Lock
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Single lock",
+			args: args{
+				s:                NewScanner(strings.NewReader("\n\tarran:1.6; strict;\ncomment\t@# @;")),
+				havePropertyName: true,
+			},
+			want: []*Lock{
+				{
+					User:     "arran",
+					Revision: "1.6",
+					Strict:   true,
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -562,8 +545,8 @@ func TestParseHeaderLocks(t *testing.T) {
 				t.Errorf("ParseHeaderLocks() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseHeaderLocks() got = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Errorf("ParseHeaderLocks() %s", diff)
 			}
 		})
 	}
@@ -571,8 +554,7 @@ func TestParseHeaderLocks(t *testing.T) {
 
 func TestParseLockLine(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
@@ -580,7 +562,18 @@ func TestParseLockLine(t *testing.T) {
 		want    *Lock
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Just a lock",
+			args: args{
+				s: NewScanner(strings.NewReader("arran:1.6; strict;\ncomment\t@# @;")),
+			},
+			want: &Lock{
+				User:     "arran",
+				Revision: "1.6",
+				Strict:   true,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -589,8 +582,8 @@ func TestParseLockLine(t *testing.T) {
 				t.Errorf("ParseLockLine() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseLockLine() got = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Errorf("ParseLockLine() %s", diff)
 			}
 		})
 	}
@@ -599,7 +592,6 @@ func TestParseLockLine(t *testing.T) {
 func TestParseMultiLineText(t *testing.T) {
 	type args struct {
 		s                *Scanner
-		pos              *Pos
 		havePropertyName bool
 		propertyName     string
 	}
@@ -609,7 +601,26 @@ func TestParseMultiLineText(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Desc again - doesn't have prop",
+			args: args{
+				s:                NewScanner(strings.NewReader("desc\n@This is a test file.\n@\n\n\n")),
+				havePropertyName: false,
+				propertyName:     "desc",
+			},
+			want:    "This is a test file.\n",
+			wantErr: false,
+		},
+		{
+			name: "Desc again - has prop",
+			args: args{
+				s:                NewScanner(strings.NewReader("\n@This is a test file.\n@\n\n\n")),
+				havePropertyName: true,
+				propertyName:     "desc",
+			},
+			want:    "This is a test file.\n",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -628,7 +639,6 @@ func TestParseMultiLineText(t *testing.T) {
 func TestParseProperty(t *testing.T) {
 	type args struct {
 		s                *Scanner
-		pos              *Pos
 		havePropertyName bool
 		propertyName     string
 		line             bool
@@ -639,13 +649,48 @@ func TestParseProperty(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "A property without a line we know/have the prop already",
+			args: args{
+				s:                NewScanner(strings.NewReader("\tasdf;")),
+				havePropertyName: true,
+				propertyName:     "test123",
+				line:             false,
+			},
+			want:    "asdf",
+			wantErr: false,
+		},
+		{
+			name: "A property with a line we know/have the prop already",
+			args: args{
+				s:                NewScanner(strings.NewReader("test123\tasdf;\n")),
+				havePropertyName: false,
+				propertyName:     "test123",
+				line:             true,
+			},
+			want:    "asdf",
+			wantErr: false,
+		},
+		{
+			name: "A property without a line we know/have the prop already but we want a line",
+			args: args{
+				s:                NewScanner(strings.NewReader("\tasdf;")),
+				havePropertyName: true,
+				propertyName:     "test123",
+				line:             true,
+			},
+			want:    "asdf",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseProperty(tt.args.s, tt.args.havePropertyName, tt.args.propertyName, tt.args.line)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseProperty() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
 				return
 			}
 			if got != tt.want {
@@ -657,84 +702,54 @@ func TestParseProperty(t *testing.T) {
 
 func TestParseRevisionContent(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    *RevisionContent
-		want1   bool
-		wantErr bool
+		name     string
+		args     args
+		wantRC   *RevisionContent
+		wantMore bool
+		wantErr  bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "1.1 first and last parse",
+			args: args{
+				s: NewScanner(strings.NewReader("1.2\nlog\n@New version\n@\ntext\n@a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n@\n\n\n1.1\nlog\n@Initial revision\n@\ntext\n@d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n@\n")),
+			},
+			wantRC: &RevisionContent{
+				Revision: "1.2",
+				Log:      "New version\n",
+				Text:     "a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n",
+			},
+			wantMore: true,
+			wantErr:  false,
+		},
+		{
+			name: "1.2 first but not last parse",
+			args: args{
+				s: NewScanner(strings.NewReader("1.1\nlog\n@Initial revision\n@\ntext\n@d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n@\n")),
+			},
+			wantRC: &RevisionContent{
+				Revision: "1.1",
+				Log:      "Initial revision\n",
+				Text:     "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
+			},
+			wantMore: false,
+			wantErr:  false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := ParseRevisionContent(tt.args.s)
+			gotRC, gotMore, err := ParseRevisionContent(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseRevisionContent() got = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(gotRC, tt.wantRC); diff != "" {
+				t.Errorf("ParseRevisionContent() %s", diff)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("ParseRevisionContent() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
-func TestParseRevisionContentLog(t *testing.T) {
-	type args struct {
-		s   *Scanner
-		pos *Pos
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionContentLog(tt.args.s)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseRevisionContentLog() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("ParseRevisionContentLog() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestParseRevisionContentText(t *testing.T) {
-	type args struct {
-		s   *Scanner
-		pos *Pos
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionContentText(tt.args.s)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseRevisionContentText() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("ParseRevisionContentText() got = %v, want %v", got, tt.want)
+			if gotMore != tt.wantMore {
+				t.Errorf("ParseRevisionContent() gotMore = %v, want %v", gotMore, tt.wantMore)
 			}
 		})
 	}
@@ -742,26 +757,43 @@ func TestParseRevisionContentText(t *testing.T) {
 
 func TestParseRevisionContents(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    []*RevisionContent
+		wantRcs []*RevisionContent
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "1.2 first but not last parse",
+			args: args{
+				s: NewScanner(strings.NewReader("1.2\nlog\n@New version\n@\ntext\n@a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n@\n\n\n1.1\nlog\n@Initial revision\n@\ntext\n@d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n@\n")),
+			},
+			wantRcs: []*RevisionContent{
+				{
+					Revision: "1.2",
+					Log:      "New version\n",
+					Text:     "a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n",
+				},
+				{
+					Revision: "1.1",
+					Log:      "Initial revision\n",
+					Text:     "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionContents(tt.args.s)
+			gotRcs, err := ParseRevisionContents(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContents() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseRevisionContents() got = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(gotRcs, tt.wantRcs); diff != "" {
+				t.Errorf("ParseRevisionContents() %s", diff)
 			}
 		})
 	}
@@ -769,30 +801,44 @@ func TestParseRevisionContents(t *testing.T) {
 
 func TestParseRevisionHeader(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    *RevisionHead
-		want1   bool
-		wantErr bool
+		name     string
+		args     args
+		wantRH   *RevisionHead
+		wantNext bool
+		wantErr  bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Revision string 6",
+			args: args{
+				s: NewScanner(strings.NewReader("1.6\ndate\t2022.03.23.02.22.51;\tauthor arran;\tstate Exp;\nbranches;\nnext\t1.5;\n\n\n")),
+			},
+			wantRH: &RevisionHead{
+				Revision:     "1.6",
+				Date:         time.Date(2022, 3, 23, 2, 22, 51, 0, time.UTC),
+				Author:       "arran",
+				State:        "Exp",
+				Branches:     []string{},
+				NextRevision: "1.5",
+			},
+			wantNext: false,
+			wantErr:  false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := ParseRevisionHeader(tt.args.s)
+			gotRH, gotNext, err := ParseRevisionHeader(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeader() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseRevisionHeader() got = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(gotRH, tt.wantRH); diff != "" {
+				t.Errorf("ParseRevisionHeader() %s", diff)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("ParseRevisionHeader() got1 = %v, want %v", got1, tt.want1)
+			if gotNext != tt.wantNext {
+				t.Errorf("ParseRevisionHeader() gotNext = %v, want %v", gotNext, tt.wantNext)
 			}
 		})
 	}
@@ -800,20 +846,37 @@ func TestParseRevisionHeader(t *testing.T) {
 
 func TestParseRevisionHeaderBranches(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
-		rh  *RevisionHead
+		s                 *Scanner
+		rh                *RevisionHead
+		propertyNameKnown bool
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Basic branches parse",
+			args: args{
+				s:                 NewScanner(strings.NewReader("branches;\n")),
+				rh:                &RevisionHead{},
+				propertyNameKnown: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Basic branches parse - known",
+			args: args{
+				s:                 NewScanner(strings.NewReader(";\n")),
+				rh:                &RevisionHead{},
+				propertyNameKnown: true,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ParseRevisionHeaderBranches(tt.args.s, tt.args.rh); (err != nil) != tt.wantErr {
+			if err := ParseRevisionHeaderBranches(tt.args.s, tt.args.rh, tt.args.propertyNameKnown); (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaderBranches() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -823,7 +886,6 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 func TestParseRevisionHeaderDateLine(t *testing.T) {
 	type args struct {
 		s        *Scanner
-		pos      *Pos
 		haveHead bool
 		rh       *RevisionHead
 	}
@@ -831,13 +893,44 @@ func TestParseRevisionHeaderDateLine(t *testing.T) {
 		name    string
 		args    args
 		wantErr bool
+		wantRh  *RevisionHead
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Date Line",
+			args: args{
+				s:        NewScanner(strings.NewReader("date\t2022.03.23.02.22.51;\tauthor arran;\tstate Exp;\n")),
+				haveHead: false,
+				rh:       &RevisionHead{},
+			},
+			wantErr: false,
+			wantRh: &RevisionHead{
+				Date:   time.Date(2022, 3, 23, 2, 22, 51, 0, time.UTC),
+				Author: "arran",
+				State:  "Exp",
+			},
+		},
+		{
+			name: "Date Line with a head",
+			args: args{
+				s:        NewScanner(strings.NewReader("\t2022.03.23.02.22.51;\tauthor arran;\tstate Exp;\n")),
+				haveHead: true,
+				rh:       &RevisionHead{},
+			},
+			wantErr: false,
+			wantRh: &RevisionHead{
+				Date:   time.Date(2022, 3, 23, 2, 22, 51, 0, time.UTC),
+				Author: "arran",
+				State:  "Exp",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := ParseRevisionHeaderDateLine(tt.args.s, tt.args.haveHead, tt.args.rh); (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaderDateLine() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if diff := cmp.Diff(tt.args.rh, tt.wantRh); diff != "" {
+				t.Errorf("ParseRevisionHeader() %s", diff)
 			}
 		})
 	}
@@ -846,7 +939,6 @@ func TestParseRevisionHeaderDateLine(t *testing.T) {
 func TestParseRevisionHeaderNext(t *testing.T) {
 	type args struct {
 		s        *Scanner
-		pos      *Pos
 		haveHead bool
 	}
 	tests := []struct {
@@ -855,7 +947,15 @@ func TestParseRevisionHeaderNext(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Get Next with a head",
+			args: args{
+				s:        NewScanner(strings.NewReader("\t1.5;\n")),
+				haveHead: true,
+			},
+			want:    "1.5",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -873,16 +973,39 @@ func TestParseRevisionHeaderNext(t *testing.T) {
 
 func TestParseRevisionHeaders(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []*RevisionHead
-		wantErr bool
+		name      string
+		args      args
+		wantHeads []*RevisionHead
+		wantErr   bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "General parse",
+			args: args{
+				s: NewScanner(strings.NewReader("1.2\ndate\t2022.03.23.02.20.39;\tauthor arran;\tstate Exp;\nbranches;\nnext\t1.1;\n\n1.1\ndate\t2022.03.23.02.18.09;\tauthor arran;\tstate Exp;\nbranches;\nnext\t;\n\n\n")),
+			},
+			wantHeads: []*RevisionHead{
+				{
+					Revision:     "1.2",
+					Date:         time.Date(2022, 3, 23, 2, 20, 39, 0, time.UTC),
+					Author:       "arran",
+					State:        "Exp",
+					Branches:     []string{},
+					NextRevision: "1.1",
+				},
+				{
+					Revision:     "1.1",
+					Date:         time.Date(2022, 3, 23, 2, 18, 9, 0, time.UTC),
+					Author:       "arran",
+					State:        "Exp",
+					Branches:     []string{},
+					NextRevision: "",
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -891,8 +1014,8 @@ func TestParseRevisionHeaders(t *testing.T) {
 				t.Errorf("ParseRevisionHeaders() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseRevisionHeaders() got = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(got, tt.wantHeads); diff != "" {
+				t.Errorf("ParseRevisionHeader() %s", diff)
 			}
 		})
 	}
@@ -900,15 +1023,20 @@ func TestParseRevisionHeaders(t *testing.T) {
 
 func TestParseTerminatorFieldLine(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Happy path - unix",
+			args: args{
+				s: NewScanner(strings.NewReader(";\n")),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -919,42 +1047,22 @@ func TestParseTerminatorFieldLine(t *testing.T) {
 	}
 }
 
-func TestPos_String1(t *testing.T) {
-	type fields struct {
-		line   int
-		offset int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p := &Pos{
-				Line:   tt.fields.line,
-				Offset: tt.fields.offset,
-			}
-			if got := p.String(); got != tt.want {
-				t.Errorf("String() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestScanFieldTerminator(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Happy path",
+			args: args{
+				s: NewScanner(strings.NewReader(";")),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -965,85 +1073,40 @@ func TestScanFieldTerminator(t *testing.T) {
 	}
 }
 
-func TestScanNewLine1(t *testing.T) {
-	type args struct {
-		s   *Scanner
-		pos *Pos
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanNewLine(tt.args.s); (err != nil) != tt.wantErr {
-				t.Errorf("ScanNewLine() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestScanNotFound_Error(t *testing.T) {
-	tests := []struct {
-		name string
-		se   ScanNotFound
-		want string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.se.Error(); got != tt.want {
-				t.Errorf("Error() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestScanRunesUntil(t *testing.T) {
 	type args struct {
 		s       *Scanner
-		pos     *Pos
 		minimum int
 		until   func([]byte) bool
 		name    string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name     string
+		args     args
+		wantErr  bool
+		wantText string
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Happy path",
+			args: args{
+				s:       NewScanner(strings.NewReader("let's scan to ... here: ; but no further")),
+				minimum: 1,
+				until: func(i []byte) bool {
+					return bytes.EqualFold(i, []byte(";"))
+				},
+				name: ";",
+			},
+			wantText: "let's scan to ... here: ",
+			wantErr:  false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := ScanRunesUntil(tt.args.s, tt.args.minimum, tt.args.until, tt.args.name); (err != nil) != tt.wantErr {
 				t.Errorf("ScanRunesUntil() error = %v, wantErr %v", err, tt.wantErr)
 			}
-		})
-	}
-}
-
-func TestScanStrings1(t *testing.T) {
-	type args struct {
-		s    *Scanner
-		pos  *Pos
-		strs []string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
-				t.Errorf("ScanStrings() error = %v, wantErr %v", err, tt.wantErr)
+			if diff := cmp.Diff(tt.args.s.Text(), tt.wantText); diff != "" {
+				t.Errorf("ScanRunesUntil() %s", diff)
 			}
 		})
 	}
@@ -1051,225 +1114,30 @@ func TestScanStrings1(t *testing.T) {
 
 func TestScanUntilFieldTerminator(t *testing.T) {
 	type args struct {
-		s   *Scanner
-		pos *Pos
+		s *Scanner
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name     string
+		args     args
+		wantErr  bool
+		wantText string
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Happy path",
+			args: args{
+				s: NewScanner(strings.NewReader("let's scan to ... here: ; but no further")),
+			},
+			wantText: "let's scan to ... here: ",
+			wantErr:  false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := ScanUntilFieldTerminator(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ScanUntilFieldTerminator() error = %v, wantErr %v", err, tt.wantErr)
 			}
-		})
-	}
-}
-
-func TestScanUntilNewLine1(t *testing.T) {
-	type args struct {
-		s   *Scanner
-		pos *Pos
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanUntilNewLine(tt.args.s); (err != nil) != tt.wantErr {
-				t.Errorf("ScanUntilNewLine() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestScanUntilNotFound_Error(t *testing.T) {
-	tests := []struct {
-		name string
-		se   ScanUntilNotFound
-		want string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.se.Error(); got != tt.want {
-				t.Errorf("Error() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestScanUntilStrings1(t *testing.T) {
-	type args struct {
-		s    *Scanner
-		pos  *Pos
-		strs []string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanUntilStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
-				t.Errorf("ScanUntilStrings() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestScanWhiteSpace1(t *testing.T) {
-	type args struct {
-		s       *Scanner
-		pos     *Pos
-		minimum int
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanWhiteSpace(tt.args.s, tt.args.minimum); (err != nil) != tt.wantErr {
-				t.Errorf("ScanWhiteSpace() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestScanner_LastScan(t *testing.T) {
-	type fields struct {
-		Scanner  *bufio.Scanner
-		sf       bufio.SplitFunc
-		lastScan bool
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Scanner{
-				Scanner:  tt.fields.Scanner,
-				sf:       tt.fields.sf,
-				lastScan: tt.fields.lastScan,
-			}
-			if got := s.LastScan(); got != tt.want {
-				t.Errorf("LastScan() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestScanner_Scan(t *testing.T) {
-	type fields struct {
-		Scanner  *bufio.Scanner
-		sf       bufio.SplitFunc
-		lastScan bool
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Scanner{
-				Scanner:  tt.fields.Scanner,
-				sf:       tt.fields.sf,
-				lastScan: tt.fields.lastScan,
-			}
-			if got := s.Scan(); got != tt.want {
-				t.Errorf("Scan() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestScanner_Split(t *testing.T) {
-	type fields struct {
-		Scanner  *bufio.Scanner
-		sf       bufio.SplitFunc
-		lastScan bool
-	}
-	type args struct {
-		split bufio.SplitFunc
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			//s := &Scanner{
-			//	Scanner:  tt.fields.Scanner,
-			//	sf:       tt.fields.sf,
-			//	lastScan: tt.fields.lastScan,
-			//}
-		})
-	}
-}
-
-func TestScanner_scannerWrapper(t *testing.T) {
-	type fields struct {
-		Scanner  *bufio.Scanner
-		sf       bufio.SplitFunc
-		lastScan bool
-	}
-	type args struct {
-		data []byte
-		eof  bool
-	}
-	tests := []struct {
-		name        string
-		fields      fields
-		args        args
-		wantAdvance int
-		wantToken   []byte
-		wantErr     bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Scanner{
-				Scanner:  tt.fields.Scanner,
-				sf:       tt.fields.sf,
-				lastScan: tt.fields.lastScan,
-			}
-			gotAdvance, gotToken, err := s.scannerWrapper(tt.args.data, tt.args.eof)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("scannerWrapper() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if gotAdvance != tt.wantAdvance {
-				t.Errorf("scannerWrapper() gotAdvance = %v, want %v", gotAdvance, tt.wantAdvance)
-			}
-			if !reflect.DeepEqual(gotToken, tt.wantToken) {
-				t.Errorf("scannerWrapper() gotToken = %v, want %v", gotToken, tt.wantToken)
+			if diff := cmp.Diff(tt.args.s.Text(), tt.wantText); diff != "" {
+				t.Errorf("ScanUntilFieldTerminator() %s", diff)
 			}
 		})
 	}

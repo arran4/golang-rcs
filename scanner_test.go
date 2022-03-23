@@ -2,6 +2,8 @@ package rcs
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"io"
+	"reflect"
 	"testing"
 )
 
@@ -102,6 +104,34 @@ func TestPos_String(t *testing.T) {
 			}
 			if got := p.String(); got != tt.want {
 				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewScanner(t *testing.T) {
+	type args struct {
+		r io.Reader
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Scanner
+	}{
+		{
+			name: "Set the pos correctly",
+			args: args{},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewScanner(tt.args.r)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewScanner() = %v, wantHeads %v", got, tt.want)
+			}
+			if got.pos.Line != 1 {
+				t.Errorf("Wrong line number")
 			}
 		})
 	}

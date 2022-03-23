@@ -192,7 +192,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, error) {
 		nt := s.Text()
 		switch nt {
 		case "branches":
-			if err := ParseRevisionHeaderBranches(s, rh); err != nil {
+			if err := ParseRevisionHeaderBranches(s, rh, true); err != nil {
 				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "date":
@@ -272,7 +272,12 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	}
 }
 
-func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead) error {
+func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName bool) error {
+	if !havePropertyName {
+		if err := ScanStrings(s, "branches"); err != nil {
+			return err
+		}
+	}
 	rh.Branches = []string{}
 	err := ParseTerminatorFieldLine(s)
 	return err
@@ -411,7 +416,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 	for {
 		if err := ScanStrings(s, "\t", "author", "state"); err != nil {
 			if IsNotFound(err) {
-				return nil
+				break
 			}
 			return err
 		}
@@ -434,7 +439,10 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 			return fmt.Errorf("unknown token: %s", nt)
 		}
 	}
-
+	if err := ScanNewLine(s); err != nil {
+		return err
+	}
+	return nil
 }
 
 func ParseRevisionHeaderNext(s *Scanner, haveHead bool) (string, error) {
@@ -482,7 +490,7 @@ func ParseTerminatorFieldLine(s *Scanner) error {
 
 func ScanWhiteSpace(s *Scanner, minimum int) error {
 	return ScanRunesUntil(s, minimum, func(i []byte) bool {
-		return unicode.IsSpace(bytes.Runes(i)[0])
+		return !unicode.IsSpace(bytes.Runes(i)[0])
 	}, "whitespace")
 }
 
@@ -505,7 +513,7 @@ func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name strin
 			if a == 0 && t == nil {
 				return 0, nil, nil
 			}
-			if !until(t) {
+			if until(t) {
 				if minimum > 0 && minimum > adv {
 					break
 				}
@@ -551,7 +559,9 @@ func IsNotFound(err error) bool {
 	case ScanUntilNotFound, ScanNotFound:
 		return true
 	}
-	return errors.Is(err, ScanNotFound(nil)) || errors.Is(err, ScanUntilNotFound(""))
+	e1 := ScanNotFound([]string{})
+	e2 := ScanUntilNotFound("")
+	return errors.As(err, &e1) || errors.As(err, &e2)
 }
 
 func ScanStrings(s *Scanner, strs ...string) (err error) {
