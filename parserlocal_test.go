@@ -6,11 +6,12 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"io/fs"
 	"path"
+	"strings"
 	"testing"
 )
 
 var (
-	//go:embed "testdata/local/*,v"
+	//go:embed "testdata/local/*"
 	localTests embed.FS
 )
 
@@ -21,6 +22,9 @@ func TestParseLocalFiles(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 	for _, tt := range d {
+		if !strings.HasSuffix(tt.Name(), ",v") {
+			continue
+		}
 		t.Run(tt.Name(), func(t *testing.T) {
 			b, err := fs.ReadFile(localTests, path.Join(dir, tt.Name()))
 			if err != nil {
