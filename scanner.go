@@ -30,8 +30,13 @@ func (s *Scanner) Split(split bufio.SplitFunc) {
 func (s *Scanner) scannerWrapper(data []byte, eof bool) (advance int, token []byte, err error) {
 	return s.sf(data, eof)
 }
+
 func (s *Scanner) Scan() bool {
 	s.lastScan = s.Scanner.Scan()
+	return s.lastScan
+}
+
+func (s *Scanner) LastScan() bool {
 	return s.lastScan
 }
 
