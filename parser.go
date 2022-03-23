@@ -179,7 +179,7 @@ func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, 
 		return "", fmt.Errorf("quote string: %w", err)
 	}
 	if scanEndNewline {
-		if err = ScanNewLine(s); err != nil {
+		if err = ScanNewLine(s, true); err != nil {
 			return "", fmt.Errorf("end new line: %w", err)
 		}
 	}
@@ -253,7 +253,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, error) {
 	if rh.Revision == "" {
 		return nil, false, fmt.Errorf("revsion empty")
 	}
-	if err := ScanNewLine(s); err != nil {
+	if err := ScanNewLine(s, false); err != nil {
 		return nil, false, err
 	}
 	for {
@@ -309,7 +309,7 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	if rh.Revision == "" {
 		return nil, false, fmt.Errorf("revsion empty")
 	}
-	if err := ScanNewLine(s); err != nil {
+	if err := ScanNewLine(s, false); err != nil {
 		return nil, false, err
 	}
 	for {
@@ -430,7 +430,7 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 			return nil, fmt.Errorf("unknown token: %s", nt)
 		}
 	}
-	if err := ScanNewLine(s); err != nil {
+	if err := ScanNewLine(s, false); err != nil {
 		return nil, err
 	}
 	return locks, nil
@@ -510,7 +510,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 			return fmt.Errorf("unknown token: %s", nt)
 		}
 	}
-	if err := ScanNewLine(s); err != nil {
+	if err := ScanNewLine(s, false); err != nil {
 		return err
 	}
 	return nil
@@ -553,7 +553,7 @@ func ParseTerminatorFieldLine(s *Scanner) error {
 	if err := ScanFieldTerminator(s); err != nil {
 		return err
 	}
-	if err := ScanNewLine(s); err != nil {
+	if err := ScanNewLine(s, false); err != nil {
 		return err
 	}
 	return nil
@@ -609,7 +609,10 @@ func ScanFieldTerminator(s *Scanner) error {
 	return ScanStrings(s, ";")
 }
 
-func ScanNewLine(s *Scanner) error {
+func ScanNewLine(s *Scanner, orEof bool) error {
+	if orEof {
+		return ScanStrings(s, "\r\n", "\n", "")
+	}
 	return ScanStrings(s, "\r\n", "\n")
 }
 
@@ -638,8 +641,11 @@ func IsNotFound(err error) bool {
 func ScanStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		for _, ss := range strs {
+			if len(ss) == 0 && atEOF && len(data) == 0 {
+				return 0, []byte{}, nil
+			}
 			i := len(ss)
-			if i > len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
+			if i >= len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
 				return 0, nil, nil
 			}
 			if bytes.HasPrefix(data, []byte(ss)) {

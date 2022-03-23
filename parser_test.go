@@ -14,23 +14,33 @@ import (
 var (
 	//go:embed "testdata/testinput.go,v"
 	testinputv []byte
+	//go:embed "testdata/testinput1.go,v"
+	testinputv1 []byte
 )
 
 func TestParseFile(t *testing.T) {
 	tests := []struct {
 		name    string
-		r       []byte
+		r       string
+		b       []byte
 		wantErr bool
 	}{
 		{
 			name:    "Test parse of testinput.go,v",
-			r:       testinputv,
+			r:       string(testinputv),
+			b:       testinputv,
+			wantErr: false,
+		},
+		{
+			name:    "Test parse of testinput1.go,v - add a new line for the missing one",
+			r:       string(testinputv1) + "\n",
+			b:       testinputv1,
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseFile(bytes.NewReader(tt.r))
+			got, err := ParseFile(bytes.NewReader(tt.b))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -173,7 +183,7 @@ func TestScanNewLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanNewLine(tt.args.s); (err != nil) != tt.wantErr {
+			if err := ScanNewLine(tt.args.s, false); (err != nil) != tt.wantErr {
 				t.Errorf("ScanNewLine() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
