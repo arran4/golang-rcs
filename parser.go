@@ -377,7 +377,7 @@ func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
 func ParseAtQuotedString(s *Scanner) (string, error) {
 	sb := &strings.Builder{}
 	if err := ScanStrings(s, "@"); err != nil {
-		return "", err
+		return "", fmt.Errorf("open quote: %v", err)
 	}
 	for {
 		if err := ScanUntilStrings(s, "@"); err != nil {
@@ -643,6 +643,8 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 		for _, ss := range strs {
 			if len(ss) == 0 && atEOF && len(data) == 0 {
 				return 0, []byte{}, nil
+			} else if len(ss) == 0 {
+				continue
 			}
 			i := len(ss)
 			if i >= len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
@@ -669,8 +671,14 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		for o := 0; o < len(data); o++ {
 			for _, ss := range strs {
+				if len(ss) == 0 && atEOF {
+					rs := data[:o]
+					return o, rs, nil
+				} else if len(ss) == 0 {
+					continue
+				}
 				i := len(ss)
-				if i > len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
+				if i >= len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
 					return 0, nil, nil
 				}
 				if bytes.HasPrefix(data[o:], []byte(ss)) {
@@ -679,8 +687,11 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 				}
 			}
 		}
-		err = ScanNotFound(strs)
-		return 0, []byte{}, nil
+		if atEOF {
+			err = ScanNotFound(strs)
+			return 0, []byte{}, nil
+		}
+		return 0, nil, nil
 	})
 	if s.Err() != nil {
 		return s.Err()
