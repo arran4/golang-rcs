@@ -90,21 +90,21 @@ func (f *File) String() string {
 		sb.WriteString("\n\t")
 		sb.WriteString(lock.String())
 	}
-	sb.WriteString(fmt.Sprintf("\n"))
+	sb.WriteString("\n")
 	sb.WriteString(fmt.Sprintf("comment\t%s;\n", AtQuote(f.Comment)))
-	sb.WriteString(fmt.Sprintf("\n"))
-	sb.WriteString(fmt.Sprintf("\n"))
+	sb.WriteString("\n")
+	sb.WriteString("\n")
 	for _, head := range f.RevisionHeads {
 		sb.WriteString(head.String())
-		sb.WriteString(fmt.Sprintf("\n"))
+		sb.WriteString("\n")
 	}
-	sb.WriteString(fmt.Sprintf("\n"))
-	sb.WriteString(fmt.Sprintf("desc\n"))
+	sb.WriteString("\n")
+	sb.WriteString("desc\n")
 	sb.WriteString(fmt.Sprintf("%s\n", AtQuote(f.Description)))
 
 	for _, content := range f.RevisionContents {
-		sb.WriteString(fmt.Sprintf("\n"))
-		sb.WriteString(fmt.Sprintf("\n"))
+		sb.WriteString("\n")
+		sb.WriteString("\n")
 		sb.WriteString(content.String())
 	}
 	return sb.String()
