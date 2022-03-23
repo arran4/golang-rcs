@@ -2,7 +2,6 @@ package rcs
 
 import (
 	"github.com/google/go-cmp/cmp"
-	"reflect"
 	"testing"
 )
 
@@ -121,9 +120,6 @@ func TestNewScanner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewScanner(nil)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewScanner() = %v, wantHeads %v", got, tt.want)
-			}
 			if got.pos.Line != 1 {
 				t.Errorf("Wrong line number")
 			}
