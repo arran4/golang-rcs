@@ -72,8 +72,6 @@ Parsing:  file2.go,v
 ```
 Notice how revision 1.2 occurs at 14:00 while, revision 1.3 in file2 and 1.2 in file2 occur at the same time.
 
-It was my hypothesis that the error: `Child commit emitted before parent exists` when using `cvs-fast-export`
-
 The idea is this program will align the revision numbers to match: 
 ```
 > normalize-revisions file1.go,v file2.go,v 
@@ -88,7 +86,7 @@ Parsing:  file2.go,v
 1.1 on 2022-03-23 13:01:01 +1100 AEDT by arran
 ```
 
-And it should work. It's completely a guess. It could break the migration tool. Who knows.
+There is no real purpose or reason for doing this.
 
 # License 
 

@@ -57,13 +57,17 @@ func main() {
 	sort.Sort(DateSorter{dates})
 	dateToRevision := map[time.Time]string{}
 	for i, d := range dates {
-		dateToRevision[d] = fmt.Sprintf("1.%d", i)
+		r := fmt.Sprintf("1.%d", i)
+		dateToRevision[d] = r
+		fmt.Println("Updating date ", d.Format(rcs.DateFormat), " to revision: ", r)
 	}
 	for _, r := range rs {
+		fmt.Println("File", r.FN)
 		revisionToRevision := map[string]string{}
 		for _, rh := range r.Rcs.RevisionHeads {
 			s := dateToRevision[rh.Date]
 			revisionToRevision[rh.Revision] = s
+			fmt.Println("Updating date ", rh.Date.Format(rcs.DateFormat), " to revision: ", s, "from", rh.Revision)
 			rh.Revision = s
 		}
 		for _, rh := range r.Rcs.RevisionHeads {
@@ -79,6 +83,7 @@ func main() {
 }
 
 func WriteFile(fn string, file *rcs.File) {
+	fmt.Println("Saving: ", fn)
 	if err := ioutil.WriteFile(fn, []byte(file.String()), 0644); err != nil {
 		log.Panicf("Error saving file: %s: %s", fn, err)
 	}
