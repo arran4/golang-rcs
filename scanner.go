@@ -48,7 +48,9 @@ func (s *Scanner) LastScan() bool {
 func NewScanner(r io.Reader) *Scanner {
 	scanner := &Scanner{
 		Scanner: bufio.NewScanner(r),
-		pos:     &Pos{},
+		pos: &Pos{
+			Line: 1,
+		},
 	}
 	scanner.Scanner.Split(scanner.scannerWrapper)
 	return scanner
