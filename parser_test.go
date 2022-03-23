@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
-	"io"
 	"strings"
 	"testing"
 	"time"
@@ -20,18 +19,18 @@ var (
 func TestParseFile(t *testing.T) {
 	tests := []struct {
 		name    string
-		r       io.Reader
+		r       []byte
 		wantErr bool
 	}{
 		{
 			name:    "Test parse of testinput.go,v",
-			r:       bytes.NewReader(testinputv),
+			r:       testinputv,
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseFile(tt.r)
+			got, err := ParseFile(bytes.NewReader(tt.r))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -47,6 +46,9 @@ func TestParseFile(t *testing.T) {
 			}
 			if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
 				t.Errorf("RevisionContents: %s", diff)
+			}
+			if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
+				t.Errorf("String(): %s", diff)
 			}
 		})
 	}

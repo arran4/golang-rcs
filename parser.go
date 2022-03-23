@@ -11,10 +11,19 @@ import (
 	"unicode"
 )
 
+const DateFormat = "2006.01.02.15.04.05"
+
 type Lock struct {
 	User     string
 	Revision string
 	Strict   bool
+}
+
+func (l *Lock) String() string {
+	if l.Strict {
+		return fmt.Sprintf("%s:%s; strict;", l.User, l.Revision)
+	}
+	return fmt.Sprintf("%s:%s;", l.User, l.Revision)
 }
 
 type RevisionHead struct {
@@ -26,10 +35,31 @@ type RevisionHead struct {
 	NextRevision string
 }
 
+func (h *RevisionHead) String() string {
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("%s\n", h.Revision))
+	sb.WriteString(fmt.Sprintf("date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State))
+	sb.WriteString("branches;\n")
+	sb.WriteString(fmt.Sprintf("next\t%s;\n", h.NextRevision))
+	return sb.String()
+}
+
 type RevisionContent struct {
 	Revision string
 	Log      string
 	Text     string
+}
+
+func (c *RevisionContent) String() string {
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
+	sb.WriteString("log\n")
+	sb.WriteString(AtQuote(c.Log))
+	sb.WriteString("\n")
+	sb.WriteString("text\n")
+	sb.WriteString(AtQuote(c.Text))
+	sb.WriteString("\n")
+	return sb.String()
 }
 
 type File struct {
@@ -41,6 +71,47 @@ type File struct {
 	Locks            []*Lock
 	RevisionHeads    []*RevisionHead
 	RevisionContents []*RevisionContent
+}
+
+func (f *File) String() string {
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("head\t%s;\n", f.Head))
+	if f.Access {
+		sb.WriteString(fmt.Sprintf("access;\n"))
+	}
+	if f.Symbols {
+		sb.WriteString(fmt.Sprintf("symbols;\n"))
+	}
+	sb.WriteString(fmt.Sprintf("locks"))
+	if len(f.Locks) == 0 {
+		sb.WriteString(";")
+	}
+	for _, lock := range f.Locks {
+		sb.WriteString("\n\t")
+		sb.WriteString(lock.String())
+	}
+	sb.WriteString(fmt.Sprintf("\n"))
+	sb.WriteString(fmt.Sprintf("comment\t%s;\n", AtQuote(f.Comment)))
+	sb.WriteString(fmt.Sprintf("\n"))
+	sb.WriteString(fmt.Sprintf("\n"))
+	for _, head := range f.RevisionHeads {
+		sb.WriteString(head.String())
+		sb.WriteString(fmt.Sprintf("\n"))
+	}
+	sb.WriteString(fmt.Sprintf("\n"))
+	sb.WriteString(fmt.Sprintf("desc\n"))
+	sb.WriteString(fmt.Sprintf("%s\n", AtQuote(f.Description)))
+
+	for _, content := range f.RevisionContents {
+		sb.WriteString(fmt.Sprintf("\n"))
+		sb.WriteString(fmt.Sprintf("\n"))
+		sb.WriteString(content.String())
+	}
+	return sb.String()
+}
+
+func AtQuote(s string) string {
+	return "@" + strings.Replace(s, "@", "@@", -1) + "@"
 }
 
 func ParseFile(r io.Reader) (*File, error) {
@@ -408,7 +479,7 @@ func ParseLockLine(s *Scanner) (*Lock, error) {
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
 	if dateStr, err := ParseProperty(s, haveHead, "date", false); err != nil {
 		return err
-	} else if date, err := time.Parse("2006.01.02.15.04.05", dateStr); err != nil {
+	} else if date, err := time.Parse(DateFormat, dateStr); err != nil {
 		return err
 	} else {
 		rh.Date = date
