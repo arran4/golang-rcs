@@ -1,0 +1,2 @@
+*.go text eol=lf
+*.go,v text eol=lf
