@@ -77,12 +77,12 @@ func (f *File) String() string {
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("head\t%s;\n", f.Head))
 	if f.Access {
-		sb.WriteString(fmt.Sprintf("access;\n"))
+		sb.WriteString("access;\n")
 	}
 	if f.Symbols {
-		sb.WriteString(fmt.Sprintf("symbols;\n"))
+		sb.WriteString("symbols;\n")
 	}
-	sb.WriteString(fmt.Sprintf("locks"))
+	sb.WriteString("locks")
 	if len(f.Locks) == 0 {
 		sb.WriteString(";")
 	}
