@@ -43,126 +43,110 @@ type File struct {
 	RevisionContents []*RevisionContent
 }
 
-type Pos struct {
-	line   int
-	offset int
-}
-
-func (p *Pos) String() string {
-	return fmt.Sprintf("%d:%d", p.line, p.offset)
-}
-
 func ParseFile(r io.Reader) (*File, error) {
 	f := new(File)
 	s := NewScanner(r)
-	pos := &Pos{}
-	if err := ParseHeader(s, pos, f); err != nil {
-		return nil, err
+	s.pos.Line++
+	if err := ParseHeader(s, f); err != nil {
+		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	}
-	if rhs, err := ParseRevisionHeaders(s, pos); err != nil {
-		return nil, err
+	if rhs, err := ParseRevisionHeaders(s); err != nil {
+		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		f.RevisionHeads = rhs
 	}
-	if desc, err := ParseDescription(s, pos); err != nil {
-		return nil, err
+	if desc, err := ParseDescription(s); err != nil {
+		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		f.Description = desc
 	}
-	if rcs, err := ParseRevisionContents(s, pos); err != nil {
-		return nil, err
+	if rcs, err := ParseRevisionContents(s); err != nil {
+		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		f.RevisionContents = rcs
 	}
 	return f, nil
 }
 
-func ParseDescription(s *Scanner, pos *Pos) (string, error) {
-	d, err := ParseMultiLineText(s, pos, false, "desc")
+func ParseDescription(s *Scanner) (string, error) {
+	d, err := ParseMultiLineText(s, false, "desc", true)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("description tag: %s", err)
 	}
-	if err := ScanStrings(s, pos, "\n\n", "\r\n\r\n"); err != nil {
+	if err = ScanStrings(s, "\n\n", "\r\n\r\n"); err != nil {
+		return "", fmt.Errorf("description scan string: %s", err)
+	}
+	return d, nil
+}
+
+func ParseRevisionContentLog(s *Scanner) (string, error) {
+	d, err := ParseMultiLineText(s, true, "log", true)
+	if err != nil {
 		return "", err
 	}
 	return d, nil
 }
 
-func ParseRevisionContentLog(s *Scanner, pos *Pos) (string, error) {
-	d, err := ParseMultiLineText(s, pos, false, "log")
+func ParseRevisionContentText(s *Scanner) (string, error) {
+	d, err := ParseMultiLineText(s, true, "text", true)
 	if err != nil {
-		return "", err
-	}
-	if err := ScanStrings(s, pos, "\n", "\r\n"); err != nil {
 		return "", err
 	}
 	return d, nil
 }
 
-func ParseRevisionContentText(s *Scanner, pos *Pos) (string, error) {
-	d, err := ParseMultiLineText(s, pos, false, "text")
-	if err != nil {
-		return "", err
-	}
-	if err := ScanStrings(s, pos, "\n", "\r\n"); err != nil {
-		return "", err
-	}
-	return d, nil
-}
-
-func ParseMultiLineText(s *Scanner, pos *Pos, havePropertyName bool, propertyName string) (string, error) {
+func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, scanEndNewline bool) (string, error) {
 	p := propertyName
-	if !havePropertyName {
+	if havePropertyName {
 		p = ""
 	}
-	if err := ScanStrings(s, pos, p+"\n", p+"\r\n"); err != nil {
-		if IsNotFound(err) {
-			return "", err
-		}
+	if err := ScanStrings(s, p+"\n", p+"\r\n"); err != nil {
 		return "", err
 	}
-	d, err := ParseAtQuotedString(s, pos)
+	d, err := ParseAtQuotedString(s)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("quote string: %w", err)
 	}
-	if err := ScanNewLine(s, pos); err != nil {
-		return "", err
+	if scanEndNewline {
+		if err = ScanNewLine(s); err != nil {
+			return "", fmt.Errorf("end new line: %w", err)
+		}
 	}
 	return d, nil
 }
 
-func ParseHeader(s *Scanner, pos *Pos, f *File) error {
-	if head, err := ParseHeaderHead(s, pos, false); err != nil {
-		return fmt.Errorf("parsing %s: %w", pos, err)
+func ParseHeader(s *Scanner, f *File) error {
+	if head, err := ParseHeaderHead(s, false); err != nil {
+		return err
 	} else {
 		f.Head = head
 	}
 	for {
-		if err := ScanStrings(s, pos, "access", "symbols", "locks", "comment", "\n\n", "\r\n\r\n"); err != nil {
+		if err := ScanStrings(s, "access", "symbols", "locks", "comment", "\n\n", "\r\n\r\n"); err != nil {
 			return err
 		}
 		nt := s.Text()
 		switch nt {
 		case "access":
 			f.Access = true
-			err := ParseTerminatorFieldLine(s, pos)
+			err := ParseTerminatorFieldLine(s)
 			if err != nil {
-				return err
+				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "symbols":
 			f.Symbols = true
-			if err := ParseTerminatorFieldLine(s, pos); err != nil {
-				return err
+			if err := ParseTerminatorFieldLine(s); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "locks":
-			if locks, err := ParseHeaderLocks(s, pos, true); err != nil {
-				return fmt.Errorf("parsing %s: %w", pos, err)
+			if locks, err := ParseHeaderLocks(s, true); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Locks = locks
 			}
 		case "comment":
-			if comment, err := ParseHeaderComment(s, pos, true); err != nil {
-				return fmt.Errorf("parsing %s: %w", pos, err)
+			if comment, err := ParseHeaderComment(s, true); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Comment = comment
 			}
@@ -175,10 +159,10 @@ func ParseHeader(s *Scanner, pos *Pos, f *File) error {
 	}
 }
 
-func ParseRevisionHeaders(s *Scanner, pos *Pos) ([]*RevisionHead, error) {
+func ParseRevisionHeaders(s *Scanner) ([]*RevisionHead, error) {
 	var rhs []*RevisionHead
 	for {
-		if rh, next, err := ParseRevisionHeader(s, pos); err != nil {
+		if rh, next, err := ParseRevisionHeader(s); err != nil {
 			return nil, err
 		} else {
 			rhs = append(rhs, rh)
@@ -189,32 +173,35 @@ func ParseRevisionHeaders(s *Scanner, pos *Pos) ([]*RevisionHead, error) {
 	}
 }
 
-func ParseRevisionHeader(s *Scanner, pos *Pos) (*RevisionHead, bool, error) {
+func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, error) {
 	rh := &RevisionHead{}
-	if err := ScanUntilStrings(s, pos, "\r\n", "\n"); err != nil {
+	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 		return nil, false, err
 	}
 	rh.Revision = s.Text()
-	if err := ScanNewLine(s, pos); err != nil {
+	if rh.Revision == "" {
+		return nil, false, fmt.Errorf("revsion empty")
+	}
+	if err := ScanNewLine(s); err != nil {
 		return nil, false, err
 	}
 	for {
-		if err := ScanStrings(s, pos, "branches", "date", "next", "\n\n", "\r\n\r\n"); err != nil {
-			return nil, false, err
+		if err := ScanStrings(s, "branches", "date", "next", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+			return nil, false, fmt.Errorf("finding reivsion header field: %w", err)
 		}
 		nt := s.Text()
 		switch nt {
 		case "branches":
-			if err := ParseRevisionHeaderBranches(s, pos, rh); err != nil {
-				return nil, false, err
+			if err := ParseRevisionHeaderBranches(s, rh); err != nil {
+				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "date":
-			if err := ParseRevisionHeaderDateLine(s, pos, true, rh); err != nil {
-				return nil, false, err
+			if err := ParseRevisionHeaderDateLine(s, true, rh); err != nil {
+				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
-			if n, err := ParseRevisionHeaderNext(s, pos, true); err != nil {
-				return nil, false, err
+			if n, err := ParseRevisionHeaderNext(s, true); err != nil {
+				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.NextRevision = n
 			}
@@ -228,10 +215,10 @@ func ParseRevisionHeader(s *Scanner, pos *Pos) (*RevisionHead, bool, error) {
 	}
 }
 
-func ParseRevisionContents(s *Scanner, pos *Pos) ([]*RevisionContent, error) {
+func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
 	for {
-		if rc, next, err := ParseRevisionContent(s, pos); err != nil {
+		if rc, next, err := ParseRevisionContent(s); err != nil {
 			return nil, err
 		} else {
 			rcs = append(rcs, rc)
@@ -242,33 +229,36 @@ func ParseRevisionContents(s *Scanner, pos *Pos) ([]*RevisionContent, error) {
 	}
 }
 
-func ParseRevisionContent(s *Scanner, pos *Pos) (*RevisionContent, bool, error) {
+func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
-	if err := ScanUntilStrings(s, pos, "\r\n", "\n"); err != nil {
+	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 		return nil, false, err
 	}
 	rh.Revision = s.Text()
-	if err := ScanNewLine(s, pos); err != nil {
+	if rh.Revision == "" {
+		return nil, false, fmt.Errorf("revsion empty")
+	}
+	if err := ScanNewLine(s); err != nil {
 		return nil, false, err
 	}
 	for {
-		if err := ScanStrings(s, pos, "log", "text", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+		if err := ScanStrings(s, "log", "text", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+			if s.Bytes() != nil && len(s.Bytes()) == 0 {
+				return rh, false, nil
+			}
 			return nil, false, err
-		}
-		if !s.LastScan() {
-			return rh, false, nil
 		}
 		nt := s.Text()
 		switch nt {
 		case "log":
-			if s, err := ParseRevisionContentLog(s, pos); err != nil {
-				return nil, false, err
+			if s, err := ParseRevisionContentLog(s); err != nil {
+				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Log = s
 			}
 		case "text":
-			if s, err := ParseRevisionContentText(s, pos); err != nil {
-				return nil, false, err
+			if s, err := ParseRevisionContentText(s); err != nil {
+				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Text = s
 			}
@@ -282,70 +272,70 @@ func ParseRevisionContent(s *Scanner, pos *Pos) (*RevisionContent, bool, error) 
 	}
 }
 
-func ParseRevisionHeaderBranches(s *Scanner, pos *Pos, rh *RevisionHead) error {
+func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead) error {
 	rh.Branches = []string{}
-	err := ParseTerminatorFieldLine(s, pos)
+	err := ParseTerminatorFieldLine(s)
 	return err
 }
 
-func ParseHeaderComment(s *Scanner, pos *Pos, havePropertyName bool) (string, error) {
+func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
 	if !havePropertyName {
-		if err := ScanStrings(s, pos, "comment"); err != nil {
+		if err := ScanStrings(s, "comment"); err != nil {
 			return "", err
 		}
 	}
-	if err := ScanWhiteSpace(s, pos, 0); err != nil {
+	if err := ScanWhiteSpace(s, 0); err != nil {
 		return "", err
 	}
-	sr, err := ParseAtQuotedString(s, pos)
+	sr, err := ParseAtQuotedString(s)
 	if err != nil {
 		return "", err
 	}
-	if err := ParseTerminatorFieldLine(s, pos); err != nil {
+	if err := ParseTerminatorFieldLine(s); err != nil {
 		return "", err
 	}
 	return sr, nil
 
 }
 
-func ParseAtQuotedString(s *Scanner, pos *Pos) (string, error) {
+func ParseAtQuotedString(s *Scanner) (string, error) {
 	sb := &strings.Builder{}
-	if err := ScanStrings(s, pos, "@"); err != nil {
+	if err := ScanStrings(s, "@"); err != nil {
 		return "", err
 	}
 	for {
-		if err := ScanUntilStrings(s, pos, "@"); err != nil {
+		if err := ScanUntilStrings(s, "@"); err != nil {
 			return "", err
 		}
 		sb.WriteString(s.Text())
-		if err := ScanStrings(s, pos, "@@", "@"); err != nil {
+		if err := ScanStrings(s, "@@", "@"); err != nil {
 			return "", err
 		}
 		nt := s.Text()
 		switch nt {
 		case "@@":
 			if _, err := sb.WriteString("@"); err != nil {
-				return "", err
+				return "", fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "@":
 			return sb.String(), nil
 		default:
 			if _, err := sb.WriteString("@"); err != nil {
-				return "", err
+				return "", fmt.Errorf("token %#v: %w", nt, err)
 			}
 		}
 	}
 }
 
-func ParseHeaderLocks(s *Scanner, pos *Pos, havePropertyName bool) ([]*Lock, error) {
+func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 	if !havePropertyName {
-		if err := ScanStrings(s, pos, "locks"); err != nil {
+		if err := ScanStrings(s, "locks"); err != nil {
 			return nil, err
 		}
 	}
 	var locks []*Lock
 	for {
-		if err := ScanStrings(s, pos, "\n\t", "\r\n\t", " "); err != nil {
+		if err := ScanStrings(s, "\n\t", "\r\n\t", " "); err != nil {
 			if IsNotFound(err) {
 				break
 			}
@@ -354,7 +344,7 @@ func ParseHeaderLocks(s *Scanner, pos *Pos, havePropertyName bool) ([]*Lock, err
 		nt := s.Text()
 		switch nt {
 		case "\n\t", "\r\n\t":
-			if l, err := ParseLockLine(s, pos); err != nil {
+			if l, err := ParseLockLine(s); err != nil {
 				return nil, err
 			} else {
 				locks = append(locks, l)
@@ -364,30 +354,33 @@ func ParseHeaderLocks(s *Scanner, pos *Pos, havePropertyName bool) ([]*Lock, err
 			return nil, fmt.Errorf("unknown token: %s", nt)
 		}
 	}
-	if err := ScanNewLine(s, pos); err != nil {
+	if err := ScanNewLine(s); err != nil {
 		return nil, err
 	}
 	return locks, nil
 }
 
-func ParseLockLine(s *Scanner, pos *Pos) (*Lock, error) {
+func ParseLockLine(s *Scanner) (*Lock, error) {
 	l := &Lock{}
-	if err := ScanUntilStrings(s, pos, ":"); err != nil {
+	if err := ScanUntilStrings(s, ":"); err != nil {
 		return nil, err
 	}
 	l.User = s.Text()
-	if err := ScanStrings(s, pos, ":"); err != nil {
+	if err := ScanStrings(s, ":"); err != nil {
 		return nil, err
 	}
-	if err := ScanUntilFieldTerminator(s, pos); err != nil {
+	if err := ScanUntilFieldTerminator(s); err != nil {
 		return nil, err
 	}
 	l.Revision = s.Text()
-	if err := ScanFieldTerminator(s, pos); err != nil {
+	if l.Revision == "" {
+		return nil, fmt.Errorf("revsion empty")
+	}
+	if err := ScanFieldTerminator(s); err != nil {
 		return nil, err
 	}
 	for {
-		if err := ScanStrings(s, pos, " ", "strict"); err != nil {
+		if err := ScanStrings(s, " ", "strict"); err != nil {
 			if IsNotFound(err) {
 				return l, nil
 			}
@@ -397,7 +390,7 @@ func ParseLockLine(s *Scanner, pos *Pos) (*Lock, error) {
 		switch nt {
 		case "strict":
 			l.Strict = true
-			if err := ScanFieldTerminator(s, pos); err != nil {
+			if err := ScanFieldTerminator(s); err != nil {
 				return nil, err
 			}
 		case " ":
@@ -407,8 +400,8 @@ func ParseLockLine(s *Scanner, pos *Pos) (*Lock, error) {
 	}
 }
 
-func ParseRevisionHeaderDateLine(s *Scanner, pos *Pos, haveHead bool, rh *RevisionHead) error {
-	if dateStr, err := ParseProperty(s, pos, haveHead, "date", true); err != nil {
+func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
+	if dateStr, err := ParseProperty(s, haveHead, "date", false); err != nil {
 		return err
 	} else if date, err := time.Parse("2006.01.02.15.04.05", dateStr); err != nil {
 		return err
@@ -416,7 +409,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, pos *Pos, haveHead bool, rh *Revisi
 		rh.Date = date
 	}
 	for {
-		if err := ScanStrings(s, pos, "\t", "author", "state"); err != nil {
+		if err := ScanStrings(s, "\t", "author", "state"); err != nil {
 			if IsNotFound(err) {
 				return nil
 			}
@@ -425,14 +418,14 @@ func ParseRevisionHeaderDateLine(s *Scanner, pos *Pos, haveHead bool, rh *Revisi
 		nt := s.Text()
 		switch nt {
 		case "author":
-			if s, err := ParseProperty(s, pos, true, "author", false); err != nil {
-				return err
+			if s, err := ParseProperty(s, true, "author", false); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Author = s
 			}
 		case "state":
-			if s, err := ParseProperty(s, pos, true, "state", false); err != nil {
-				return err
+			if s, err := ParseProperty(s, true, "state", false); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.State = s
 			}
@@ -444,61 +437,64 @@ func ParseRevisionHeaderDateLine(s *Scanner, pos *Pos, haveHead bool, rh *Revisi
 
 }
 
-func ParseRevisionHeaderNext(s *Scanner, pos *Pos, haveHead bool) (string, error) {
-	return ParseProperty(s, pos, haveHead, "next", true)
+func ParseRevisionHeaderNext(s *Scanner, haveHead bool) (string, error) {
+	return ParseProperty(s, haveHead, "next", true)
 }
 
-func ParseHeaderHead(s *Scanner, pos *Pos, haveHead bool) (string, error) {
-	return ParseProperty(s, pos, haveHead, "head", true)
+func ParseHeaderHead(s *Scanner, haveHead bool) (string, error) {
+	return ParseProperty(s, haveHead, "head", true)
 }
 
-func ParseProperty(s *Scanner, pos *Pos, havePropertyName bool, propertyName string, line bool) (string, error) {
+func ParseProperty(s *Scanner, havePropertyName bool, propertyName string, line bool) (string, error) {
 	if !havePropertyName {
-		if err := ScanStrings(s, pos, propertyName); err != nil {
+		if err := ScanStrings(s, propertyName); err != nil {
 			return "", err
 		}
 	}
-	if err := ScanWhiteSpace(s, pos, 1); err != nil {
+	if err := ScanWhiteSpace(s, 1); err != nil {
 		return "", err
 	}
-	if err := ScanUntilFieldTerminator(s, pos); err != nil {
+	if err := ScanUntilFieldTerminator(s); err != nil {
 		return "", err
 	}
 	result := s.Text()
 	if line {
-		err := ParseTerminatorFieldLine(s, pos)
-		if err != nil {
+		if err := ParseTerminatorFieldLine(s); err != nil {
+			return "", err
+		}
+	} else {
+		if err := ScanFieldTerminator(s); err != nil {
 			return "", err
 		}
 	}
 	return result, nil
 }
 
-func ParseTerminatorFieldLine(s *Scanner, pos *Pos) error {
-	if err := ScanFieldTerminator(s, pos); err != nil {
+func ParseTerminatorFieldLine(s *Scanner) error {
+	if err := ScanFieldTerminator(s); err != nil {
 		return err
 	}
-	if err := ScanNewLine(s, pos); err != nil {
+	if err := ScanNewLine(s); err != nil {
 		return err
 	}
 	return nil
 }
 
-func ScanWhiteSpace(s *Scanner, pos *Pos, minimum int) error {
-	return ScanRunesUntil(s, pos, minimum, func(i []byte) bool {
+func ScanWhiteSpace(s *Scanner, minimum int) error {
+	return ScanRunesUntil(s, minimum, func(i []byte) bool {
 		return unicode.IsSpace(bytes.Runes(i)[0])
 	}, "whitespace")
 }
 
-func ScanUntilNewLine(s *Scanner, pos *Pos) error {
-	return ScanUntilStrings(s, pos, "\r\n", "\n")
+func ScanUntilNewLine(s *Scanner) error {
+	return ScanUntilStrings(s, "\r\n", "\n")
 }
 
-func ScanUntilFieldTerminator(s *Scanner, pos *Pos) error {
-	return ScanUntilStrings(s, pos, ";")
+func ScanUntilFieldTerminator(s *Scanner) error {
+	return ScanUntilStrings(s, ";")
 }
 
-func ScanRunesUntil(s *Scanner, pos *Pos, minimum int, until func([]byte) bool, name string) (err error) {
+func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		adv := 0
 		for {
@@ -514,7 +510,6 @@ func ScanRunesUntil(s *Scanner, pos *Pos, minimum int, until func([]byte) bool, 
 					break
 				}
 				f := data[:adv]
-				scanFound(f, adv, pos)
 				return adv, f, nil
 			}
 			adv += a
@@ -531,12 +526,12 @@ func ScanRunesUntil(s *Scanner, pos *Pos, minimum int, until func([]byte) bool, 
 	return
 }
 
-func ScanFieldTerminator(s *Scanner, pos *Pos) error {
-	return ScanStrings(s, pos, ";")
+func ScanFieldTerminator(s *Scanner) error {
+	return ScanStrings(s, ";")
 }
 
-func ScanNewLine(s *Scanner, pos *Pos) error {
-	return ScanStrings(s, pos, "\r\n", "\n")
+func ScanNewLine(s *Scanner) error {
+	return ScanStrings(s, "\r\n", "\n")
 }
 
 type ScanNotFound []string
@@ -559,7 +554,7 @@ func IsNotFound(err error) bool {
 	return errors.Is(err, ScanNotFound(nil)) || errors.Is(err, ScanUntilNotFound(""))
 }
 
-func ScanStrings(s *Scanner, pos *Pos, strs ...string) (err error) {
+func ScanStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		for _, ss := range strs {
 			i := len(ss)
@@ -568,7 +563,6 @@ func ScanStrings(s *Scanner, pos *Pos, strs ...string) (err error) {
 			}
 			if bytes.HasPrefix(data, []byte(ss)) {
 				rs := data[:i]
-				scanFound(rs, i, pos)
 				return i, rs, nil
 			}
 		}
@@ -584,7 +578,7 @@ func ScanStrings(s *Scanner, pos *Pos, strs ...string) (err error) {
 	return
 }
 
-func ScanUntilStrings(s *Scanner, pos *Pos, strs ...string) (err error) {
+func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		for o := 0; o < len(data); o++ {
 			for _, ss := range strs {
@@ -594,7 +588,6 @@ func ScanUntilStrings(s *Scanner, pos *Pos, strs ...string) (err error) {
 				}
 				if bytes.HasPrefix(data[o:], []byte(ss)) {
 					rs := data[:o]
-					scanFound(rs, o, pos)
 					return o, rs, nil
 				}
 			}
@@ -609,12 +602,4 @@ func ScanUntilStrings(s *Scanner, pos *Pos, strs ...string) (err error) {
 		return ScanNotFound(strs)
 	}
 	return err
-}
-
-func scanFound(found []byte, advance int, pos *Pos) {
-	if nlp := bytes.LastIndexByte(found, '\n'); nlp > -1 {
-		pos.offset = -nlp
-		pos.line += bytes.Count(found, []byte("\n"))
-	}
-	pos.offset += advance
 }

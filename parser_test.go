@@ -17,8 +17,6 @@ var (
 )
 
 func TestParseFile(t *testing.T) {
-	type args struct {
-	}
 	tests := []struct {
 		name    string
 		r       io.Reader
@@ -76,7 +74,7 @@ func TestParseHeaderHead(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderHead(tt.args.s, tt.args.pos, false)
+			got, err := ParseHeaderHead(tt.args.s, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -124,45 +122,13 @@ func TestParseHeader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &File{}
-			err := ParseHeader(tt.args.s, tt.args.pos, f)
+			err := ParseHeader(tt.args.s, f)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(tt.want, f); diff != "" {
 				t.Errorf("ParseHeader() Diff: %s", diff)
-			}
-		})
-	}
-}
-
-func TestPos_String(t *testing.T) {
-	type fields struct {
-		line   int
-		offset int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   string
-	}{
-		{
-			name: "test",
-			fields: fields{
-				line:   3,
-				offset: 34,
-			},
-			want: "3:34",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p := &Pos{
-				line:   tt.fields.line,
-				offset: tt.fields.offset,
-			}
-			if got := p.String(); got != tt.want {
-				t.Errorf("String() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -179,7 +145,7 @@ func TestScanNewLine(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Scans a unix new line",
+			name: "Scans a unix new Line",
 			args: args{
 				s:   NewScanner(strings.NewReader("\n")),
 				pos: &Pos{},
@@ -187,7 +153,7 @@ func TestScanNewLine(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Scans a windows new line",
+			name: "Scans a windows new Line",
 			args: args{
 				s:   NewScanner(strings.NewReader("\r\n")),
 				pos: &Pos{},
@@ -203,7 +169,7 @@ func TestScanNewLine(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Fails to scan non new line data",
+			name: "Fails to scan non new Line data",
 			args: args{
 				s:   NewScanner(strings.NewReader("asdfasdfasdf")),
 				pos: &Pos{},
@@ -213,7 +179,7 @@ func TestScanNewLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanNewLine(tt.args.s, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := ScanNewLine(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ScanNewLine() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -245,7 +211,7 @@ func TestScanStrings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanStrings(tt.args.s, tt.args.pos, tt.args.strs...); (err != nil) != tt.wantErr {
+			if err := ScanStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
 				t.Errorf("ScanStrings() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if got := tt.args.s.Text(); got != tt.expected {
@@ -276,7 +242,7 @@ func TestScanUntilNewLine(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:     "No new line no result",
+			name:     "No new Line no result",
 			expected: "",
 			args: args{
 				s:   NewScanner(strings.NewReader("This is a word")),
@@ -287,7 +253,7 @@ func TestScanUntilNewLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanUntilNewLine(tt.args.s, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := ScanUntilNewLine(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ScanUntilNewLine() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if got := tt.args.s.Text(); got != tt.expected {
@@ -322,7 +288,7 @@ func TestScanUntilStrings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanUntilStrings(tt.args.s, tt.args.pos, tt.args.strs...); (err != nil) != tt.wantErr {
+			if err := ScanUntilStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
 				t.Errorf("ScanUntilStrings() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if got := tt.args.s.Text(); got != tt.expected {
@@ -367,7 +333,7 @@ func TestScanWhiteSpace(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanWhiteSpace(tt.args.s, tt.args.pos, tt.args.minimum); (err != nil) != tt.wantErr {
+			if err := ScanWhiteSpace(tt.args.s, tt.args.minimum); (err != nil) != tt.wantErr {
 				t.Errorf("ScanWhiteSpace() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if got := tt.args.s.Text(); got != tt.expected {
@@ -432,7 +398,7 @@ func TestParseAtQuotedString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseAtQuotedString(tt.args.s, tt.args.pos)
+			got, err := ParseAtQuotedString(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseAtQuotedString() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -459,7 +425,7 @@ func TestParseDescription(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseDescription(tt.args.s, tt.args.pos)
+			got, err := ParseDescription(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseDescription() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -512,7 +478,7 @@ func TestParseHeader1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ParseHeader(tt.args.s, tt.args.pos, tt.args.f); (err != nil) != tt.wantErr {
+			if err := ParseHeader(tt.args.s, tt.args.f); (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeader() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -535,7 +501,7 @@ func TestParseHeaderComment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderComment(tt.args.s, tt.args.pos, tt.args.havePropertyName)
+			got, err := ParseHeaderComment(tt.args.s, tt.args.havePropertyName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderComment() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -563,7 +529,7 @@ func TestParseHeaderHead1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderHead(tt.args.s, tt.args.pos, tt.args.haveHead)
+			got, err := ParseHeaderHead(tt.args.s, tt.args.haveHead)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -591,7 +557,7 @@ func TestParseHeaderLocks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderLocks(tt.args.s, tt.args.pos, tt.args.havePropertyName)
+			got, err := ParseHeaderLocks(tt.args.s, tt.args.havePropertyName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderLocks() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -618,7 +584,7 @@ func TestParseLockLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseLockLine(tt.args.s, tt.args.pos)
+			got, err := ParseLockLine(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseLockLine() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -647,7 +613,7 @@ func TestParseMultiLineText(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseMultiLineText(tt.args.s, tt.args.pos, tt.args.havePropertyName, tt.args.propertyName)
+			got, err := ParseMultiLineText(tt.args.s, tt.args.havePropertyName, tt.args.propertyName, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseMultiLineText() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -677,7 +643,7 @@ func TestParseProperty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseProperty(tt.args.s, tt.args.pos, tt.args.havePropertyName, tt.args.propertyName, tt.args.line)
+			got, err := ParseProperty(tt.args.s, tt.args.havePropertyName, tt.args.propertyName, tt.args.line)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseProperty() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -705,7 +671,7 @@ func TestParseRevisionContent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := ParseRevisionContent(tt.args.s, tt.args.pos)
+			got, got1, err := ParseRevisionContent(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -735,7 +701,7 @@ func TestParseRevisionContentLog(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionContentLog(tt.args.s, tt.args.pos)
+			got, err := ParseRevisionContentLog(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContentLog() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -762,7 +728,7 @@ func TestParseRevisionContentText(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionContentText(tt.args.s, tt.args.pos)
+			got, err := ParseRevisionContentText(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContentText() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -789,7 +755,7 @@ func TestParseRevisionContents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionContents(tt.args.s, tt.args.pos)
+			got, err := ParseRevisionContents(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContents() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -817,7 +783,7 @@ func TestParseRevisionHeader(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := ParseRevisionHeader(tt.args.s, tt.args.pos)
+			got, got1, err := ParseRevisionHeader(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeader() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -847,7 +813,7 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ParseRevisionHeaderBranches(tt.args.s, tt.args.pos, tt.args.rh); (err != nil) != tt.wantErr {
+			if err := ParseRevisionHeaderBranches(tt.args.s, tt.args.rh); (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaderBranches() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -870,7 +836,7 @@ func TestParseRevisionHeaderDateLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ParseRevisionHeaderDateLine(tt.args.s, tt.args.pos, tt.args.haveHead, tt.args.rh); (err != nil) != tt.wantErr {
+			if err := ParseRevisionHeaderDateLine(tt.args.s, tt.args.haveHead, tt.args.rh); (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaderDateLine() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -893,7 +859,7 @@ func TestParseRevisionHeaderNext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionHeaderNext(tt.args.s, tt.args.pos, tt.args.haveHead)
+			got, err := ParseRevisionHeaderNext(tt.args.s, tt.args.haveHead)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaderNext() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -920,7 +886,7 @@ func TestParseRevisionHeaders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionHeaders(tt.args.s, tt.args.pos)
+			got, err := ParseRevisionHeaders(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaders() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -946,7 +912,7 @@ func TestParseTerminatorFieldLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ParseTerminatorFieldLine(tt.args.s, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := ParseTerminatorFieldLine(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ParseTerminatorFieldLine() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -968,8 +934,8 @@ func TestPos_String1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Pos{
-				line:   tt.fields.line,
-				offset: tt.fields.offset,
+				Line:   tt.fields.line,
+				Offset: tt.fields.offset,
 			}
 			if got := p.String(); got != tt.want {
 				t.Errorf("String() = %v, want %v", got, tt.want)
@@ -992,7 +958,7 @@ func TestScanFieldTerminator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanFieldTerminator(tt.args.s, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := ScanFieldTerminator(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ScanFieldTerminator() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1013,7 +979,7 @@ func TestScanNewLine1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanNewLine(tt.args.s, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := ScanNewLine(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ScanNewLine() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1054,7 +1020,7 @@ func TestScanRunesUntil(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanRunesUntil(tt.args.s, tt.args.pos, tt.args.minimum, tt.args.until, tt.args.name); (err != nil) != tt.wantErr {
+			if err := ScanRunesUntil(tt.args.s, tt.args.minimum, tt.args.until, tt.args.name); (err != nil) != tt.wantErr {
 				t.Errorf("ScanRunesUntil() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1076,7 +1042,7 @@ func TestScanStrings1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanStrings(tt.args.s, tt.args.pos, tt.args.strs...); (err != nil) != tt.wantErr {
+			if err := ScanStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
 				t.Errorf("ScanStrings() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1097,7 +1063,7 @@ func TestScanUntilFieldTerminator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanUntilFieldTerminator(tt.args.s, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := ScanUntilFieldTerminator(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ScanUntilFieldTerminator() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1118,7 +1084,7 @@ func TestScanUntilNewLine1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanUntilNewLine(tt.args.s, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := ScanUntilNewLine(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("ScanUntilNewLine() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1157,7 +1123,7 @@ func TestScanUntilStrings1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanUntilStrings(tt.args.s, tt.args.pos, tt.args.strs...); (err != nil) != tt.wantErr {
+			if err := ScanUntilStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
 				t.Errorf("ScanUntilStrings() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1179,7 +1145,7 @@ func TestScanWhiteSpace1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ScanWhiteSpace(tt.args.s, tt.args.pos, tt.args.minimum); (err != nil) != tt.wantErr {
+			if err := ScanWhiteSpace(tt.args.s, tt.args.minimum); (err != nil) != tt.wantErr {
 				t.Errorf("ScanWhiteSpace() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1305,24 +1271,6 @@ func TestScanner_scannerWrapper(t *testing.T) {
 			if !reflect.DeepEqual(gotToken, tt.wantToken) {
 				t.Errorf("scannerWrapper() gotToken = %v, want %v", gotToken, tt.wantToken)
 			}
-		})
-	}
-}
-
-func Test_scanFound(t *testing.T) {
-	type args struct {
-		found   []byte
-		advance int
-		pos     *Pos
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
 		})
 	}
 }
