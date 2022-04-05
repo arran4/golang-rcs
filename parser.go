@@ -575,6 +575,7 @@ func ScanUntilFieldTerminator(s *Scanner) error {
 
 func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		err = nil
 		adv := 0
 		for {
 			a, t, err := bufio.ScanRunes(data[adv:], atEOF)
@@ -596,10 +597,10 @@ func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name strin
 		err = ScanUntilNotFound(name)
 		return 0, []byte{}, nil
 	})
-	if s.Err() != nil {
-		return s.Err()
-	}
 	if !s.Scan() {
+		if s.Err() != nil {
+			return s.Err()
+		}
 		return ScanUntilNotFound(name)
 	}
 	return
@@ -640,6 +641,7 @@ func IsNotFound(err error) bool {
 
 func ScanStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		err = nil
 		for _, ss := range strs {
 			if len(ss) == 0 && atEOF && len(data) == 0 {
 				return 0, []byte{}, nil
@@ -658,10 +660,10 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 		err = ScanNotFound(strs)
 		return 0, []byte{}, nil
 	})
-	if s.Err() != nil {
-		return s.Err()
-	}
 	if !s.Scan() {
+		if s.Err() != nil {
+			return s.Err()
+		}
 		return ScanNotFound(strs)
 	}
 	return
@@ -669,6 +671,7 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 
 func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		err = nil
 		for o := 0; o < len(data); o++ {
 			for _, ss := range strs {
 				if len(ss) == 0 && atEOF {
@@ -693,10 +696,10 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 		}
 		return 0, nil, nil
 	})
-	if s.Err() != nil {
-		return s.Err()
-	}
 	if !s.Scan() {
+		if s.Err() != nil {
+			return s.Err()
+		}
 		return ScanNotFound(strs)
 	}
 	return err

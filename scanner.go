@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 )
 
 type Scanner struct {
@@ -41,11 +42,29 @@ func (s *Scanner) Scan() bool {
 	return s.lastScan
 }
 
+func (s *Scanner) Text() string {
+	return s.Scanner.Text()
+}
+
+func (s *Scanner) Bytes() []byte {
+	return s.Scanner.Bytes()
+}
+
 func (s *Scanner) LastScan() bool {
 	return s.lastScan
 }
 
-func NewScanner(r io.Reader) *Scanner {
+type ScannerOpt interface {
+	ScannerOpt(scanner *Scanner)
+}
+
+type MaxBuffer int
+
+func (mb MaxBuffer) ScannerOpt(scanner *Scanner) {
+	scanner.Scanner.Buffer(nil, int(mb))
+}
+
+func NewScanner(r io.Reader, opts ...ScannerOpt) *Scanner {
 	scanner := &Scanner{
 		Scanner: bufio.NewScanner(r),
 		pos: &Pos{
@@ -53,6 +72,10 @@ func NewScanner(r io.Reader) *Scanner {
 		},
 	}
 	scanner.Scanner.Split(scanner.scannerWrapper)
+	scanner.Scanner.Buffer(nil, math.MaxInt/2)
+	for _, opt := range opts {
+		opt.ScannerOpt(scanner)
+	}
 	return scanner
 }
 
