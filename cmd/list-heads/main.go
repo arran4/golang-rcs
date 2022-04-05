@@ -33,7 +33,7 @@ func ListHeads(fn string) {
 	fmt.Println("Parsing: ", fn)
 	r, err := rcs.ParseFile(f)
 	if err != nil {
-		log.Panicf("Error parsing: %s", err)
+		log.Panicf("Error parsing %s: %s", fn, err)
 	}
 	for _, rh := range r.RevisionHeads {
 		fmt.Printf("%s on %s by %s\n", rh.Revision, rh.Date.In(time.Local), rh.Author)
