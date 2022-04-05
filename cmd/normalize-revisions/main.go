@@ -92,7 +92,7 @@ func WriteFile(fn string, file *rcs.File) {
 func ReadParse(fn string) *rcs.File {
 	f, err := os.Open(fn)
 	if err != nil {
-		log.Panicf("Error with file: %s", err)
+		log.Panicf("Error with file %s: %s", fn, err)
 	}
 	defer func() {
 		if err = f.Close(); err != nil {
