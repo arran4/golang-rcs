@@ -16,6 +16,10 @@ func init() {
 	flag.Parse()
 }
 
+var (
+	padCommits = flag.Bool("pad-commits", false, "pad commits with empty commits")
+)
+
 type DateSorter struct {
 	dates []time.Time
 }
@@ -76,6 +80,13 @@ func main() {
 		for _, rc := range r.Rcs.RevisionContents {
 			rc.Revision = revisionToRevision[rc.Revision]
 		}
+		if len(r.Rcs.RevisionHeads) < len(dates) {
+			r.Rcs.RevisionHeads = append(r.Rcs.RevisionHeads, make([]*rcs.RevisionHead, len(dates)-len(r.Rcs.RevisionHeads))...)
+		}
+		if len(r.Rcs.RevisionContents) < len(dates) {
+			r.Rcs.RevisionContents = append(r.Rcs.RevisionContents, make([]*rcs.RevisionContent, len(dates)-len(r.Rcs.RevisionContents))...)
+		}
+
 	}
 	for _, r := range rs {
 		WriteFile(r.FN, r.Rcs)
