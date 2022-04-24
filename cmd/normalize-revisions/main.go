@@ -17,7 +17,7 @@ func init() {
 }
 
 var (
-	padCommits = flag.Bool("pad-commits", false, "pad commits with empty commits")
+	// TODO padCommits = flag.Bool("pad-commits", false, "pad commits with empty commits")
 )
 
 type DateSorter struct {
