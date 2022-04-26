@@ -5,6 +5,8 @@ Is a serializer and deserializer library for the RCS version control system http
 I couldn't find anything which would do what I wanted. Currently the code is usecase specific, but I'm happy
 to accept PRs.
 
+Note; there is a lot of work that needs to be done here to get it to the point it can be considered anything close to generally applicable. -- I will accept most PRs at the stage.
+
 # Usage
 
 The library is simple to use:
