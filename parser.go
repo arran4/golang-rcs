@@ -39,7 +39,15 @@ func (h *RevisionHead) String() string {
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("%s\n", h.Revision))
 	sb.WriteString(fmt.Sprintf("date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State))
-	sb.WriteString("branches;\n")
+	sb.WriteString("branches")
+	if len(h.Branches) > 0 {
+		sb.WriteString("\n\t")
+		sb.WriteString(strings.Join(h.Branches, "\n\t"))
+		sb.WriteString(";")
+	} else {
+		sb.WriteString(";")
+	}
+	sb.WriteString("\n")
 	sb.WriteString(fmt.Sprintf("next\t%s;\n", h.NextRevision))
 	return sb.String()
 }
@@ -349,9 +357,14 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 			return err
 		}
 	}
-	rh.Branches = []string{}
-	err := ParseTerminatorFieldLine(s)
-	return err
+	if err := ScanUntilFieldTerminator(s); err != nil {
+		return err
+	}
+	rh.Branches = strings.Fields(s.Text())
+	if err := ParseTerminatorFieldLine(s); err != nil {
+		return err
+	}
+	return nil
 }
 
 func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
