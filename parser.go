@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -68,6 +69,8 @@ type File struct {
 	Comment          string
 	Access           bool
 	Symbols          bool
+	AccessUsers      []string
+	SymbolMap        map[string]string
 	Locks            []*Lock
 	RevisionHeads    []*RevisionHead
 	RevisionContents []*RevisionContent
@@ -77,10 +80,32 @@ func (f *File) String() string {
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("head\t%s;\n", f.Head))
 	if f.Access {
-		sb.WriteString("access;\n")
+		if len(f.AccessUsers) > 0 {
+			sb.WriteString("access ")
+			sb.WriteString(strings.Join(f.AccessUsers, " "))
+			sb.WriteString(";\n")
+		} else {
+			sb.WriteString("access;\n")
+		}
 	}
 	if f.Symbols {
-		sb.WriteString("symbols;\n")
+		if len(f.SymbolMap) > 0 {
+			sb.WriteString("symbols ")
+			keys := make([]string, 0, len(f.SymbolMap))
+			for k := range f.SymbolMap {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for i, k := range keys {
+				if i > 0 {
+					sb.WriteString(" ")
+				}
+				sb.WriteString(fmt.Sprintf("%s:%s", k, f.SymbolMap[k]))
+			}
+			sb.WriteString(";\n")
+		} else {
+			sb.WriteString("symbols;\n")
+		}
 	}
 	sb.WriteString("locks")
 	if len(f.Locks) == 0 {
@@ -200,15 +225,18 @@ func ParseHeader(s *Scanner, f *File) error {
 		switch nt {
 		case "access":
 			f.Access = true
-			err := ParseTerminatorFieldLine(s)
+			users, err := ParseHeaderAccess(s, true)
 			if err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
+			f.AccessUsers = users
 		case "symbols":
 			f.Symbols = true
-			if err := ParseTerminatorFieldLine(s); err != nil {
+			sym, err := ParseHeaderSymbols(s, true)
+			if err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
+			f.SymbolMap = sym
 		case "locks":
 			if locks, err := ParseHeaderLocks(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
@@ -372,6 +400,55 @@ func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
 	}
 	return sr, nil
 
+}
+
+func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
+	if !havePropertyName {
+		if err := ScanStrings(s, "access"); err != nil {
+			return nil, err
+		}
+	}
+	if err := ScanWhiteSpace(s, 0); err != nil {
+		return nil, err
+	}
+	if err := ScanUntilFieldTerminator(s); err != nil {
+		return nil, err
+	}
+	text := s.Text()
+	if err := ParseTerminatorFieldLine(s); err != nil {
+		return nil, err
+	}
+	if text == "" {
+		return []string{}, nil
+	}
+	return strings.Fields(text), nil
+}
+
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, error) {
+	if !havePropertyName {
+		if err := ScanStrings(s, "symbols"); err != nil {
+			return nil, err
+		}
+	}
+	if err := ScanWhiteSpace(s, 0); err != nil {
+		return nil, err
+	}
+	if err := ScanUntilNewLine(s); err != nil {
+		return nil, err
+	}
+	line := s.Text()
+	if err := ScanNewLine(s, false); err != nil {
+		return nil, err
+	}
+	m := map[string]string{}
+	for _, f := range strings.Fields(line) {
+		f = strings.TrimSuffix(f, ";")
+		parts := strings.SplitN(f, ":", 2)
+		if len(parts) == 2 {
+			m[parts[0]] = parts[1]
+		}
+	}
+	return m, nil
 }
 
 func ParseAtQuotedString(s *Scanner) (string, error) {
