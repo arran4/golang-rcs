@@ -866,6 +866,7 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 		name    string
 		args    args
 		wantErr bool
+		want    []string
 	}{
 		{
 			name: "Basic branches parse",
@@ -875,6 +876,7 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 				propertyNameKnown: false,
 			},
 			wantErr: false,
+			want:    []string{},
 		},
 		{
 			name: "Basic branches parse - known",
@@ -884,12 +886,27 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 				propertyNameKnown: true,
 			},
 			wantErr: false,
+			want:    []string{},
+		},
+		{
+			name: "Branches with numbers",
+			args: args{
+				s:                 NewScanner(strings.NewReader("branches\n\t1.1.1.1\n\t1.1.2.1;\n")),
+				rh:                &RevisionHead{},
+				propertyNameKnown: false,
+			},
+			wantErr: false,
+			want:    []string{"1.1.1.1", "1.1.2.1"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := ParseRevisionHeaderBranches(tt.args.s, tt.args.rh, tt.args.propertyNameKnown); (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaderBranches() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if diff := cmp.Diff(tt.want, tt.args.rh.Branches); diff != "" {
+				t.Errorf("Branches diff: %s", diff)
 			}
 		})
 	}
@@ -1152,5 +1169,23 @@ func TestScanUntilFieldTerminator(t *testing.T) {
 				t.Errorf("ScanUntilFieldTerminator() %s", diff)
 			}
 		})
+	}
+}
+
+func TestRevisionHeadStringBranches(t *testing.T) {
+	h := &RevisionHead{
+		Revision:     "1.1",
+		Date:         time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
+		Author:       "test",
+		State:        "Exp",
+		Branches:     []string{"1.1.1.1", "1.1.2.1"},
+		NextRevision: "",
+	}
+	want := "1.1\n" +
+		"date\t2022.01.01.00.00.00;\tauthor test;\tstate Exp;\n" +
+		"branches\n\t1.1.1.1\n\t1.1.2.1;\n" +
+		"next\t;\n"
+	if diff := cmp.Diff(h.String(), want); diff != "" {
+		t.Errorf("RevisionHead.String() diff: %s", diff)
 	}
 }
