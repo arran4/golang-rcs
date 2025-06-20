@@ -119,7 +119,7 @@ func (f *File) String() string {
 }
 
 func AtQuote(s string) string {
-	return "@" + strings.Replace(s, "@", "@@", -1) + "@"
+	return "@" + strings.ReplaceAll(s, "@", "@@") + "@"
 }
 
 func ParseFile(r io.Reader) (*File, error) {

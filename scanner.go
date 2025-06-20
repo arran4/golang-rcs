@@ -61,7 +61,7 @@ type ScannerOpt interface {
 type MaxBuffer int
 
 func (mb MaxBuffer) ScannerOpt(scanner *Scanner) {
-	scanner.Scanner.Buffer(nil, int(mb))
+	scanner.Buffer(nil, int(mb))
 }
 
 func NewScanner(r io.Reader, opts ...ScannerOpt) *Scanner {
@@ -72,7 +72,7 @@ func NewScanner(r io.Reader, opts ...ScannerOpt) *Scanner {
 		},
 	}
 	scanner.Scanner.Split(scanner.scannerWrapper)
-	scanner.Scanner.Buffer(nil, math.MaxInt/2)
+	scanner.Buffer(nil, math.MaxInt/2)
 	for _, opt := range opts {
 		opt.ScannerOpt(scanner)
 	}
