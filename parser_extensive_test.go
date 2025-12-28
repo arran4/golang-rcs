@@ -250,7 +250,8 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name: "Unknown token",
 			input: "head 1.1;\nunknown",
-			wantErr: "finding []string{\"access\", \"symbols\"", // Matches ScanStrings failure
+			// Updated wantErr to include new keywords
+			wantErr: "finding []string{\"branch\", \"access\", \"symbols\", \"locks\", \"strict\", \"integrity\", \"comment\", \"expand\"",
 		},
 		{
 			name: "Access error",
