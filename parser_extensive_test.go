@@ -256,12 +256,12 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name: "Access error",
 			input: "head 1.1;\naccess", // missing ;
-			wantErr: "token \"access\": finding []string{\";\"}",
+			wantErr: "token \"access\": scanning until \"whitespace\"",
 		},
 		{
 			name: "Symbols error",
 			input: "head 1.1;\nsymbols", // missing ;
-			wantErr: "token \"symbols\": finding []string{\";\"}",
+			wantErr: "token \"symbols\": scanning until \"whitespace\"",
 		},
 		{
 			name: "Locks error",
