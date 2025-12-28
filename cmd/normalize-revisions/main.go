@@ -34,7 +34,9 @@ func (d DateSorter) Swap(i, j int) {
 func main() {
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	padCommits := fs.Bool("pad-commits", false, "pad commits with empty commits")
-	fs.Parse(os.Args[1:])
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		os.Exit(1)
+	}
 
 	type Pair struct {
 		Rcs *rcs.File
