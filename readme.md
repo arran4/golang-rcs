@@ -2,21 +2,20 @@
 
 `go-rcs` is a library for parsing and interacting with [RCS (Revision Control System)](https://en.wikipedia.org/wiki/Revision_Control_System) files in Go. It allows you to read RCS files (typically ending in `,v`), inspect their revision history, and access metadata and content.
 
-This project was created to fill a gap in the Go ecosystem for handling RCS files. While it currently supports parsing and basic interaction, it is a work in progress, and contributions are welcome.
+This project was created to fill a gap in the Go ecosystem for handling RCS files. It supports parsing headers, revision metadata, and content, and provides utilities for managing revision histories.
 
 ## Features
 
 - **Parse RCS Files:** Read RCS files into structured Go objects.
 - **Inspect Revisions:** Access revision metadata like author, date, state, and commit messages.
 - **Read Content:** Retrieve the log messages and raw text content of revisions.
-- **Handle Metadata:** Parse headers, descriptions, locks, and other RCS metadata.
+- **Handle Metadata:** Parse headers, descriptions, locks, strict locking, access lists, symbols, and other RCS metadata.
 
 ## Installation
 
 ```bash
-go get github.com/yourusername/go-rcs
+go get github.com/arran4/golang-rcs
 ```
-*(Replace `github.com/yourusername/go-rcs` with the actual import path)*
 
 ## Usage
 
@@ -31,7 +30,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/yourusername/go-rcs" // Replace with actual import path
+	"github.com/arran4/golang-rcs"
 )
 
 func main() {
@@ -48,7 +47,7 @@ func main() {
 		log.Panicf("Error parsing RCS file: %s", err)
 	}
 
-	fmt.Printf("File Head: %s\n", rcsFile.Head)
+	fmt.Printf("Head: %s\n", rcsFile.Head)
 	fmt.Printf("Description: %s\n", rcsFile.Description)
 
 	// Iterate over revision headers
@@ -72,11 +71,27 @@ The top-level structure representing a parsed RCS file.
 | :--- | :--- | :--- |
 | `Head` | `string` | The revision number of the head revision. |
 | `Branch` | `string` | The default branch (if any). |
-| `Description` | `string` | The description of the file. |
+| `Access` | `bool` | Whether the access list is present. |
+| `AccessUsers` | `[]string` | List of users in the access list. |
+| `Symbols` | `bool` | Whether symbols are present. |
+| `SymbolMap` | `map[string]string` | Map of symbolic names to revision numbers. |
 | `Locks` | `[]*Lock` | List of locks held on the file. |
 | `Strict` | `bool` | Whether strict locking is enabled. |
+| `Integrity` | `string` | Integrity configuration string. |
+| `Comment` | `string` | Comment prefix string. |
+| `Expand` | `string` | Keyword expansion mode (e.g., `@kv@`). |
+| `Description` | `string` | The description of the file. |
 | `RevisionHeads` | `[]*RevisionHead` | Metadata for each revision in the file. |
 | `RevisionContents` | `[]*RevisionContent` | The actual content (log and text) for each revision. |
+
+### `Lock`
+Represents a lock on a revision.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `User` | `string` | The user holding the lock. |
+| `Revision` | `string` | The revision locked. |
+| `Strict` | `bool` | Whether it is a strict lock. |
 
 ### `RevisionHead`
 Contains metadata about a specific revision.
@@ -101,13 +116,19 @@ Contains the log message and text content for a revision.
 
 ## Programs
 
-This repository includes two utility programs.
+This repository includes two utility programs in the `cmd/` directory.
 
 ### `list-heads`
 
 A simple tool to list revisions in specified RCS files.
 
 **Usage:**
+
+```shell
+list-heads [file1,v file2,v ...]
+```
+
+**Example:**
 
 ```shell
 > list-heads testinput.go,v
@@ -122,7 +143,17 @@ Parsing:  testinput.go,v
 
 ### `normalize-revisions`
 
-A utility to align revision numbers across multiple files based on timestamps. This is useful for analyzing related files where revisions might be out of sync numerically but synchronous in time.
+A utility to align revision numbers across multiple files based on timestamps. This is useful for analyzing related files where revisions might be out of sync numerically but synchronous in time. It sorts revisions by date and renumbers them starting from 1.0 (implicitly, as 1.x) to match across files.
+
+**Usage:**
+
+```shell
+normalize-revisions [-pad-commits] [file1,v file2,v ...]
+```
+
+**Flags:**
+
+- `-pad-commits`: If set, when a file is missing a revision at a specific timestamp (which exists in other files), a dummy revision is created to keep the sequence aligned.
 
 **Example Scenario:**
 
