@@ -26,10 +26,10 @@ func TestParseFile_BigFile(t *testing.T) {
 		if i > 1 {
 			next = fmt.Sprintf("%d.1", i-1)
 		}
-		sb.WriteString(fmt.Sprintf("%s\n", rev))
-		sb.WriteString(fmt.Sprintf("date\t%s;\tauthor user;\tstate Exp;\n", time.Now().Format(DateFormat)))
+		fmt.Fprintf(sb, "%s\n", rev)
+		fmt.Fprintf(sb, "date\t%s;\tauthor user;\tstate Exp;\n", time.Now().Format(DateFormat))
 		sb.WriteString("branches;\n")
-		sb.WriteString(fmt.Sprintf("next\t%s;\n", next))
+		fmt.Fprintf(sb, "next\t%s;\n", next)
 		sb.WriteString("\n")
 	}
 
@@ -38,14 +38,14 @@ func TestParseFile_BigFile(t *testing.T) {
 	// Generate revision contents
 	for i := 1000; i >= 1; i-- {
 		rev := fmt.Sprintf("%d.1", i)
-		sb.WriteString(fmt.Sprintf("%s\n", rev))
+		fmt.Fprintf(sb, "%s\n", rev)
 		sb.WriteString("log\n")
-		sb.WriteString(fmt.Sprintf("@Log message for %s\n@\n", rev))
+		fmt.Fprintf(sb, "@Log message for %s\n@\n", rev)
 		sb.WriteString("text\n")
 		if i == 1 {
-			sb.WriteString(fmt.Sprintf("@Text content for %s\nLine 2\nLine 3\n@\n\n", rev))
+			fmt.Fprintf(sb, "@Text content for %s\nLine 2\nLine 3\n@\n\n", rev)
 		} else {
-			sb.WriteString(fmt.Sprintf("@Text content for %s\nLine 2\nLine 3\n@\n\n\n", rev))
+			fmt.Fprintf(sb, "@Text content for %s\nLine 2\nLine 3\n@\n\n\n", rev)
 		}
 	}
 
