@@ -108,25 +108,53 @@ This repository includes two utility programs.
 A simple tool to list revisions in specified RCS files.
 
 **Usage:**
-```shell
-list-heads file.go,v
-```
 
-**Output:**
-```
-Parsing:  file.go,v
+```shell
+> list-heads testinput.go,v
+Parsing:  testinput.go,v
 1.6 on 2022-03-23 13:22:51 +1100 AEDT by arran
 1.5 on 2022-03-23 13:22:34 +1100 AEDT by arran
-...
+1.4 on 2022-03-23 13:22:03 +1100 AEDT by arran
+1.3 on 2022-03-23 13:21:35 +1100 AEDT by arran
+1.2 on 2022-03-23 13:20:39 +1100 AEDT by arran
+1.1 on 2022-03-23 13:18:09 +1100 AEDT by arran
 ```
 
 ### `normalize-revisions`
 
 A utility to align revision numbers across multiple files based on timestamps. This is useful for analyzing related files where revisions might be out of sync numerically but synchronous in time.
 
-**Usage:**
+**Example Scenario:**
+
+Imagine these two files:
+
 ```shell
-normalize-revisions file1.go,v file2.go,v
+> list-heads file1.go,v
+Parsing:  file1.go,v file2.go,v
+1.2 on 2022-03-23 15:01:01 +1100 AEDT by arran
+1.1 on 2022-03-23 13:01:01 +1100 AEDT by arran
+> list-heads file2.go,v
+Parsing:  file2.go,v
+1.3 on 2022-03-23 15:01:01 +1100 AEDT by arran
+1.2 on 2022-03-23 14:01:01 +1100 AEDT by arran
+1.1 on 2022-03-23 13:01:01 +1100 AEDT by arran
+```
+
+Notice how revision 1.2 in `file1.go,v` occurs at 15:01:01, while revision 1.3 in `file2.go,v` occurs at the same time.
+
+The `normalize-revisions` program will align the revision numbers to match based on their timestamps:
+
+```shell
+> normalize-revisions file1.go,v file2.go,v
+> list-heads file1.go,v
+Parsing:  file1.go,v file2.go,v
+1.3 on 2022-03-23 15:01:01 +1100 AEDT by arran
+1.1 on 2022-03-23 13:01:01 +1100 AEDT by arran
+> list-heads file2.go,v
+Parsing:  file2.go,v
+1.3 on 2022-03-23 15:01:01 +1100 AEDT by arran
+1.2 on 2022-03-23 14:01:01 +1100 AEDT by arran
+1.1 on 2022-03-23 13:01:01 +1100 AEDT by arran
 ```
 
 ## License
