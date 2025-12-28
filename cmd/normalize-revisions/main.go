@@ -13,12 +13,7 @@ import (
 
 func init() {
 	log.SetFlags(log.Flags() | log.Lshortfile)
-	flag.Parse()
 }
-
-var (
-	// TODO padCommits = flag.Bool("pad-commits", false, "pad commits with empty commits")
-)
 
 type DateSorter struct {
 	dates []time.Time
@@ -37,13 +32,19 @@ func (d DateSorter) Swap(i, j int) {
 }
 
 func main() {
+	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	padCommits := fs.Bool("pad-commits", false, "pad commits with empty commits")
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		os.Exit(1)
+	}
+
 	type Pair struct {
 		Rcs *rcs.File
 		FN  string
 	}
 	var rs []Pair
 	datesSet := map[time.Time]struct{}{}
-	for _, f := range flag.Args() {
+	for _, f := range fs.Args() {
 		r := ReadParse(f)
 		rs = append(rs, Pair{
 			Rcs: r,
@@ -74,19 +75,56 @@ func main() {
 			fmt.Println("Updating date ", rh.Date.Format(rcs.DateFormat), " to revision: ", s, "from", rh.Revision)
 			rh.Revision = s
 		}
+
+		type hc struct {
+			h *rcs.RevisionHead
+			c *rcs.RevisionContent
+		}
+
 		for _, rh := range r.Rcs.RevisionHeads {
 			rh.NextRevision = revisionToRevision[rh.NextRevision]
+		}
+
+		byDate := map[time.Time]hc{}
+		for i, h := range r.Rcs.RevisionHeads {
+			byDate[h.Date] = hc{h: h, c: r.Rcs.RevisionContents[i]}
 		}
 		for _, rc := range r.Rcs.RevisionContents {
 			rc.Revision = revisionToRevision[rc.Revision]
 		}
-		if len(r.Rcs.RevisionHeads) < len(dates) {
-			r.Rcs.RevisionHeads = append(r.Rcs.RevisionHeads, make([]*rcs.RevisionHead, len(dates)-len(r.Rcs.RevisionHeads))...)
-		}
-		if len(r.Rcs.RevisionContents) < len(dates) {
-			r.Rcs.RevisionContents = append(r.Rcs.RevisionContents, make([]*rcs.RevisionContent, len(dates)-len(r.Rcs.RevisionContents))...)
+
+		var newHeads []*rcs.RevisionHead
+		var newContents []*rcs.RevisionContent
+
+		for i := len(dates) - 1; i >= 0; i-- {
+			d := dates[i]
+			pair, ok := byDate[d]
+			if ok {
+				pair.h.Revision = dateToRevision[d]
+				pair.c.Revision = dateToRevision[d]
+				newHeads = append(newHeads, pair.h)
+				newContents = append(newContents, pair.c)
+			} else if *padCommits {
+				h := &rcs.RevisionHead{Revision: dateToRevision[d], Date: d}
+				c := &rcs.RevisionContent{Revision: dateToRevision[d]}
+				newHeads = append(newHeads, h)
+				newContents = append(newContents, c)
+			}
 		}
 
+		for i := 0; i < len(newHeads); i++ {
+			if i+1 < len(newHeads) {
+				newHeads[i].NextRevision = newHeads[i+1].Revision
+			} else {
+				newHeads[i].NextRevision = ""
+			}
+		}
+
+		if len(newHeads) > 0 {
+			r.Rcs.Head = newHeads[0].Revision
+		}
+		r.Rcs.RevisionHeads = newHeads
+		r.Rcs.RevisionContents = newContents
 	}
 	for _, r := range rs {
 		WriteFile(r.FN, r.Rcs)
