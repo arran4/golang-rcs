@@ -70,6 +70,7 @@ func NewScanner(r io.Reader, opts ...ScannerOpt) *Scanner {
 		pos: &Pos{
 			Line: 1,
 		},
+		sf: bufio.ScanLines,
 	}
 	scanner.Scanner.Split(scanner.scannerWrapper)
 	scanner.Buffer(nil, math.MaxInt/2)

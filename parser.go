@@ -72,11 +72,15 @@ func (c *RevisionContent) String() string {
 
 type File struct {
 	Head             string
+	Branch           string
 	Description      string
 	Comment          string
 	Access           bool
 	Symbols          bool
 	Locks            []*Lock
+	Strict           bool
+	Integrity        string
+	Expand           string
 	RevisionHeads    []*RevisionHead
 	RevisionContents []*RevisionContent
 }
@@ -84,6 +88,9 @@ type File struct {
 func (f *File) String() string {
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("head\t%s;\n", f.Head))
+	if f.Branch != "" {
+		sb.WriteString(fmt.Sprintf("branch\t%s;\n", f.Branch))
+	}
 	if f.Access {
 		sb.WriteString("access;\n")
 	}
@@ -99,7 +106,16 @@ func (f *File) String() string {
 		sb.WriteString(lock.String())
 	}
 	sb.WriteString("\n")
+	if f.Strict {
+		sb.WriteString("strict;\n")
+	}
+	if f.Integrity != "" {
+		sb.WriteString(fmt.Sprintf("integrity\t%s;\n", AtQuote(f.Integrity)))
+	}
 	sb.WriteString(fmt.Sprintf("comment\t%s;\n", AtQuote(f.Comment)))
+	if f.Expand != "" {
+		sb.WriteString(fmt.Sprintf("expand\t%s;\n", f.Expand)) // Assuming expand value doesn't need @ quoting in output if parsed raw
+	}
 	sb.WriteString("\n")
 	sb.WriteString("\n")
 	for _, head := range f.RevisionHeads {
@@ -125,7 +141,6 @@ func AtQuote(s string) string {
 func ParseFile(r io.Reader) (*File, error) {
 	f := new(File)
 	s := NewScanner(r)
-	s.pos.Line++
 	if err := ParseHeader(s, f); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	}
@@ -201,11 +216,17 @@ func ParseHeader(s *Scanner, f *File) error {
 		f.Head = head
 	}
 	for {
-		if err := ScanStrings(s, "access", "symbols", "locks", "comment", "\n\n", "\r\n\r\n"); err != nil {
+		if err := ScanStrings(s, "branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n"); err != nil {
 			return err
 		}
 		nt := s.Text()
 		switch nt {
+		case "branch":
+			if branch, err := ParseProperty(s, true, "branch", true); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				f.Branch = branch
+			}
 		case "access":
 			f.Access = true
 			err := ParseTerminatorFieldLine(s)
@@ -223,11 +244,39 @@ func ParseHeader(s *Scanner, f *File) error {
 			} else {
 				f.Locks = locks
 			}
+		case "strict":
+			f.Strict = true
+			if err := ParseTerminatorFieldLine(s); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
+			}
+		case "integrity":
+			// TODO: Integrity parsing might need AtQuote string parsing similar to comment/desc?
+			// RCS usually has simple strings? integrity @...@;
+			// Let's assume quoted string for integrity.
+			if integrity, err := ParseHeaderComment(s, true); err != nil { // Reusing ParseHeaderComment logic (quote + terminator)
+				return fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				f.Integrity = integrity
+			}
 		case "comment":
 			if comment, err := ParseHeaderComment(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Comment = comment
+			}
+		case "expand":
+			if expand, err := ParseProperty(s, true, "expand", true); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				// ParseProperty reads raw text. If it is @quoted@, we might need to handle it.
+				// For now, assuming identifiers like @kv@ are returned as is.
+				// The test expects "kv" if input is "@kv@".
+				// If ParseProperty returns "@kv@", I need to strip it.
+				// But ParseProperty calls ScanUntilFieldTerminator, which reads everything including @.
+				if strings.HasPrefix(expand, "@") && strings.HasSuffix(expand, "@") {
+					expand = expand[1 : len(expand)-1]
+				}
+				f.Expand = expand
 			}
 
 		case "\n\n", "\r\n\r\n":
@@ -266,7 +315,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, error) {
 	}
 	for {
 		if err := ScanStrings(s, "branches", "date", "next", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
-			return nil, false, fmt.Errorf("finding reivsion header field: %w", err)
+			return nil, false, fmt.Errorf("finding revision header field: %w", err)
 		}
 		nt := s.Text()
 		switch nt {
@@ -426,6 +475,9 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 	for {
 		if err := ScanStrings(s, "\n\t", "\r\n\t", " "); err != nil {
 			if IsNotFound(err) {
+				if err := ScanFieldTerminator(s); err == nil {
+					break
+				}
 				break
 			}
 			return nil, err
@@ -591,6 +643,9 @@ func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name strin
 		err = nil
 		adv := 0
 		for {
+			if !atEOF && adv >= len(data) {
+				return 0, nil, nil
+			}
 			a, t, err := bufio.ScanRunes(data[adv:], atEOF)
 			if err != nil {
 				return 0, nil, err
