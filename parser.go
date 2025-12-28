@@ -125,7 +125,6 @@ func AtQuote(s string) string {
 func ParseFile(r io.Reader) (*File, error) {
 	f := new(File)
 	s := NewScanner(r)
-	s.pos.Line++
 	if err := ParseHeader(s, f); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	}
@@ -266,7 +265,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, error) {
 	}
 	for {
 		if err := ScanStrings(s, "branches", "date", "next", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
-			return nil, false, fmt.Errorf("finding reivsion header field: %w", err)
+			return nil, false, fmt.Errorf("finding revision header field: %w", err)
 		}
 		nt := s.Text()
 		switch nt {
