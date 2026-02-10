@@ -1,7 +1,6 @@
-package main
+package cli
 
 import (
-	"flag"
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
 	"io/ioutil"
@@ -10,10 +9,6 @@ import (
 	"sort"
 	"time"
 )
-
-func init() {
-	log.SetFlags(log.Flags() | log.Lshortfile)
-}
 
 type DateSorter struct {
 	dates []time.Time
@@ -31,20 +26,19 @@ func (d DateSorter) Swap(i, j int) {
 	d.dates[j], d.dates[i] = d.dates[i], d.dates[j]
 }
 
-func main() {
-	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	padCommits := fs.Bool("pad-commits", false, "pad commits with empty commits")
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		os.Exit(1)
-	}
-
+// NormalizeRevisions is a subcommand `gorcs normalize-revisions`
+//
+// Flags:
+//   padCommits: -p --pad-commits pad commits with empty commits
+//   files: ... List of files to process
+func NormalizeRevisions(padCommits bool, files ...string) {
 	type Pair struct {
 		Rcs *rcs.File
 		FN  string
 	}
 	var rs []Pair
 	datesSet := map[time.Time]struct{}{}
-	for _, f := range fs.Args() {
+	for _, f := range files {
 		r := ReadParse(f)
 		rs = append(rs, Pair{
 			Rcs: r,
@@ -104,7 +98,7 @@ func main() {
 				pair.c.Revision = dateToRevision[d]
 				newHeads = append(newHeads, pair.h)
 				newContents = append(newContents, pair.c)
-			} else if *padCommits {
+			} else if padCommits {
 				h := &rcs.RevisionHead{Revision: dateToRevision[d], Date: d}
 				c := &rcs.RevisionContent{Revision: dateToRevision[d]}
 				newHeads = append(newHeads, h)

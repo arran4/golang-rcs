@@ -117,22 +117,22 @@ Contains the log message and text content for a revision.
 
 ## Programs
 
-This repository includes two utility programs in the `cmd/` directory.
+This repository includes a utility program `gorcs` with subcommands.
 
-### `list-heads`
+### `gorcs list-heads`
 
 A simple tool to list revisions in specified RCS files.
 
 **Usage:**
 
 ```shell
-list-heads [file1,v file2,v ...]
+gorcs list-heads [file1,v file2,v ...]
 ```
 
 **Example:**
 
 ```shell
-> list-heads testinput.go,v
+> gorcs list-heads testinput.go,v
 Parsing:  testinput.go,v
 1.6 on 2022-03-23 13:22:51 +1100 AEDT by arran
 1.5 on 2022-03-23 13:22:34 +1100 AEDT by arran
@@ -142,14 +142,14 @@ Parsing:  testinput.go,v
 1.1 on 2022-03-23 13:18:09 +1100 AEDT by arran
 ```
 
-### `normalize-revisions`
+### `gorcs normalize-revisions`
 
 A utility to align revision numbers across multiple files based on timestamps. This is useful for analyzing related files where revisions might be out of sync numerically but synchronous in time. It sorts revisions by date and renumbers them starting from 1.0 (implicitly, as 1.x) to match across files.
 
 **Usage:**
 
 ```shell
-normalize-revisions [-pad-commits] [file1,v file2,v ...]
+gorcs normalize-revisions [-pad-commits] [file1,v file2,v ...]
 ```
 
 **Flags:**
@@ -161,11 +161,11 @@ normalize-revisions [-pad-commits] [file1,v file2,v ...]
 Imagine these two files:
 
 ```shell
-> list-heads file1.go,v
+> gorcs list-heads file1.go,v
 Parsing:  file1.go,v file2.go,v
 1.2 on 2022-03-23 15:01:01 +1100 AEDT by arran
 1.1 on 2022-03-23 13:01:01 +1100 AEDT by arran
-> list-heads file2.go,v
+> gorcs list-heads file2.go,v
 Parsing:  file2.go,v
 1.3 on 2022-03-23 15:01:01 +1100 AEDT by arran
 1.2 on 2022-03-23 14:01:01 +1100 AEDT by arran
@@ -174,15 +174,15 @@ Parsing:  file2.go,v
 
 Notice how revision 1.2 in `file1.go,v` occurs at 15:01:01, while revision 1.3 in `file2.go,v` occurs at the same time.
 
-The `normalize-revisions` program will align the revision numbers to match based on their timestamps:
+The `gorcs normalize-revisions` program will align the revision numbers to match based on their timestamps:
 
 ```shell
-> normalize-revisions file1.go,v file2.go,v
-> list-heads file1.go,v
+> gorcs normalize-revisions file1.go,v file2.go,v
+> gorcs list-heads file1.go,v
 Parsing:  file1.go,v file2.go,v
 1.3 on 2022-03-23 15:01:01 +1100 AEDT by arran
 1.1 on 2022-03-23 13:01:01 +1100 AEDT by arran
-> list-heads file2.go,v
+> gorcs list-heads file2.go,v
 Parsing:  file2.go,v
 1.3 on 2022-03-23 15:01:01 +1100 AEDT by arran
 1.2 on 2022-03-23 14:01:01 +1100 AEDT by arran
