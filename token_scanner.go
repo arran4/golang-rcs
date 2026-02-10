@@ -44,6 +44,11 @@ func isIdChar(r rune) bool {
 
 func ScanTokenNum(s *Scanner) (string, error) {
 	// num ::= { digit | "." }+
+	// num cannot be empty, but fields like 'next' can have optional num.
+	// If this function is called, it expects to find a number.
+	// However, if we are integrating, we might call it when we are not sure if there is a number.
+	// If minimum 1 is enforced, we must check beforehand.
+
 	err := ScanRunesUntil(s, 1, func(b []byte) bool {
 		r := bytes.Runes(b)[0]
 		return !isDigit(r) && r != '.'
