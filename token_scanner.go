@@ -60,17 +60,7 @@ func ScanTokenId(s *Scanner) (string, error) {
 	// Basically: visible graphic except (special - '.')
 	err := ScanRunesUntil(s, 1, func(b []byte) bool {
 		r := bytes.Runes(b)[0]
-		if unicode.IsSpace(r) {
-			return true
-		}
-		if !unicode.IsGraphic(r) {
-			return true
-		}
-		switch r {
-		case '$', ',', ':', ';', '@':
-			return true
-		}
-		return false
+		return !isIdChar(r) && r != '.'
 	}, "id")
 	if err != nil {
 		return "", err
@@ -83,13 +73,7 @@ func ScanTokenSym(s *Scanner) (string, error) {
 	// idchar excludes '.'
 	err := ScanRunesUntil(s, 1, func(b []byte) bool {
 		r := bytes.Runes(b)[0]
-		if unicode.IsSpace(r) {
-			return true
-		}
-		if !unicode.IsGraphic(r) {
-			return true
-		}
-		return isSpecial(r)
+		return !isIdChar(r)
 	}, "sym")
 	if err != nil {
 		return "", err
