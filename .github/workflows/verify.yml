@@ -1,0 +1,33 @@
+name: Verify
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.17.x
+
+    - name: Go Vet
+      run: go vet ./...
+
+    - name: Go Fix
+      run: go fix ./...
+
+    - name: Go Format
+      run: go fmt ./...
+
+    - name: Check for changes
+      run: |
+        git diff --exit-code || (echo "Run go fix ./... && go fmt ./... and commit changes" && exit 1)
