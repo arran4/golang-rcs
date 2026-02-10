@@ -1,0 +1,8 @@
+Usage: gorcs from-json [files...]
+
+Subcommands:
+    help         Print this help message
+    usage        Print this usage message
+
+Positional Arguments:
+    files      List of files to process or - for stdin
