@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/arran4/golang-rcs/internal/cli"
@@ -16,6 +17,8 @@ var _ Cmd = (*FromJson)(nil)
 type FromJson struct {
 	*RootCmd
 	Flags       *flag.FlagSet
+	output      string
+	force       bool
 	files       []string
 	SubCommands map[string]Cmd
 }
@@ -52,10 +55,40 @@ func (c *FromJson) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") && arg != "-" {
+		if strings.HasPrefix(arg, "-") {
 			name := arg
+			value := ""
+			hasValue := false
+			if strings.Contains(arg, "=") {
+				parts := strings.SplitN(arg, "=", 2)
+				name = parts[0]
+				value = parts[1]
+				hasValue = true
+			}
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
+
+			case "output", "o":
+				if !hasValue {
+					if i+1 < len(args) {
+						value = args[i+1]
+						i++
+					} else {
+						return fmt.Errorf("flag %s requires a value", name)
+					}
+				}
+				c.output = value
+
+			case "force", "f":
+				if hasValue {
+					b, err := strconv.ParseBool(value)
+					if err != nil {
+						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
+					}
+					c.force = b
+				} else {
+					c.force = true
+				}
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -76,7 +109,7 @@ func (c *FromJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.FromJson(c.files...)
+	cli.FromJson(c.output, c.force, c.files...)
 
 	return nil
 }
@@ -88,6 +121,12 @@ func (c *RootCmd) NewFromJson() *FromJson {
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
+
+	set.StringVar(&v.output, "o", "", "Output file path")
+	set.StringVar(&v.output, "output", "", "Output file path")
+
+	set.BoolVar(&v.force, "f", false, "Force overwrite output")
+	set.BoolVar(&v.force, "force", false, "Force overwrite output")
 	set.Usage = v.Usage
 
 	v.SubCommands["help"] = &InternalCommand{

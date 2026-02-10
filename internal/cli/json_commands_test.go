@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	rcs "github.com/arran4/golang-rcs"
@@ -45,9 +46,6 @@ func TestCircularJson(t *testing.T) {
 }
 
 func TestJsonCommandsStdIO(t *testing.T) {
-	// Mock stdout/stdin is tricky with the current implementation which uses os.Stdin/Stdout directly.
-	// For this test, we can use a temporary file and the file path argument support.
-
 	input := loadTestInput(t)
 	tmpFile, err := ioutil.TempFile("", "rcs_input_*.v")
 	if err != nil {
@@ -70,12 +68,31 @@ func TestJsonCommandsStdIO(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	ToJson(tmpFile.Name())
+	// Act: ToJson using "-" as file (stdin simulation is complex here as ToJson takes filename "-")
+	// Actually ToJson("-") reads from os.Stdin. So we need to mock os.Stdin too if we use "-".
+	// But in this test we can test "file -> stdout" mode if we pass filename but no -o.
+	// Wait, ToJson(file) writes to file + .json by default.
+	// ToJson("-") writes to stdout.
+	// Let's test "File -> File" default behavior first in another test.
+	// Here let's test Stdin -> Stdout behavior.
+
+	// Mock Stdin
+	oldStdin := os.Stdin
+	rIn, wIn, _ := os.Pipe()
+	os.Stdin = rIn
+
+	go func() {
+		defer wIn.Close()
+		wIn.Write(input)
+	}()
+
+	ToJson("", false, "-")
 
 	if err := w.Close(); err != nil {
 		t.Fatalf("close pipe: %v", err)
 	}
 	os.Stdout = oldStdout
+	os.Stdin = oldStdin
 
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, r); err != nil {
@@ -83,34 +100,26 @@ func TestJsonCommandsStdIO(t *testing.T) {
 	}
 	jsonOutput := buf.Bytes()
 
-	// Now feed this jsonOutput to FromJson via a temp file
-	tmpJsonFile, err := ioutil.TempFile("", "rcs_input_*.json")
-	if err != nil {
-		t.Fatalf("temp json file: %v", err)
-	}
-	defer func() {
-		if err := os.Remove(tmpJsonFile.Name()); err != nil {
-			t.Errorf("remove temp json: %v", err)
-		}
-	}()
-	if _, err := tmpJsonFile.Write(jsonOutput); err != nil {
-		t.Fatalf("write temp json: %v", err)
-	}
-	if err := tmpJsonFile.Close(); err != nil {
-		t.Fatalf("close temp json: %v", err)
-	}
-
-	// Capture stdout again
+	// Now feed this jsonOutput to FromJson via Stdin -> Stdout
 	oldStdout = os.Stdout
+	oldStdin = os.Stdin
 	r, w, _ = os.Pipe()
+	rIn, wIn, _ = os.Pipe()
 	os.Stdout = w
+	os.Stdin = rIn
 
-	FromJson(tmpJsonFile.Name())
+	go func() {
+		defer wIn.Close()
+		wIn.Write(jsonOutput)
+	}()
+
+	FromJson("", false, "-")
 
 	if err := w.Close(); err != nil {
 		t.Fatalf("close pipe: %v", err)
 	}
 	os.Stdout = oldStdout
+	os.Stdin = oldStdin
 
 	var buf2 bytes.Buffer
 	if _, err := io.Copy(&buf2, r); err != nil {
@@ -118,15 +127,66 @@ func TestJsonCommandsStdIO(t *testing.T) {
 	}
 	finalOutput := buf2.Bytes()
 
-	// Parse original to string for comparison, as strict byte comparison might fail due to whitespace differences if any,
-	// but mostly we want to ensure rcs.ParseFile(input).String() matches finalOutput.
-	// Although FromJson calls r.String(), so it should be close.
-	// Note: rcs.ParseFile might consume slightly differently than raw bytes.
-
 	parsedOriginal, _ := rcs.ParseFile(bytes.NewReader(input))
 	expectedOutput := parsedOriginal.String()
 
 	if diff := cmp.Diff(expectedOutput, string(finalOutput)); diff != "" {
 		t.Errorf("Round trip output mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestJsonCommandsFileToFile(t *testing.T) {
+	dir := t.TempDir()
+	input := loadTestInput(t)
+	inputFile := filepath.Join(dir, "input.v")
+	if err := os.WriteFile(inputFile, input, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// 1. ToJson default output
+	ToJson("", false, inputFile)
+	expectedJsonFile := inputFile + ".json"
+	if _, err := os.Stat(expectedJsonFile); os.IsNotExist(err) {
+		t.Fatalf("Expected output file %s does not exist", expectedJsonFile)
+	}
+
+	// 2. FromJson default output
+	// Need to handle potential overwrite issue if we write back to input.v?
+	// FromJson writes to trimmed suffix. input.v.json -> input.v
+	// input.v already exists. Should fail without force.
+
+	// Capture log panic? Testing log.Panicf is hard without capturing output or recovering.
+	// Let's assume user uses a library that allows error return instead of panic for CLI,
+	// but currently it panics. We can use defer recover.
+
+	func() {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic due to existing output file without force")
+			}
+		}()
+		FromJson("", false, expectedJsonFile)
+	}()
+
+	// 3. FromJson with force
+	FromJson("", true, expectedJsonFile)
+	// Verify content matches original
+	content, err := os.ReadFile(inputFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	parsedOriginal, _ := rcs.ParseFile(bytes.NewReader(input))
+	// input might vary slightly due to whitespace, compare via rcs struct or string()
+	// parsedOriginal.String() is the normalized output.
+	// But `content` is what FromJson wrote.
+	if diff := cmp.Diff(parsedOriginal.String(), string(content)); diff != "" {
+		t.Errorf("File to File content mismatch:\n%s", diff)
+	}
+
+	// 4. Custom output
+	customOut := filepath.Join(dir, "custom.json")
+	ToJson(customOut, false, inputFile)
+	if _, err := os.Stat(customOut); os.IsNotExist(err) {
+		t.Fatalf("Expected custom output file %s", customOut)
 	}
 }
