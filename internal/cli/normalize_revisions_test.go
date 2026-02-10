@@ -29,18 +29,6 @@ func writeSubset(t *testing.T, dir string, indices []int) string {
 	}
 	var heads []*rcs.RevisionHead
 	var contents []*rcs.RevisionContent
-	// The original test code had logic to subset.
-	// We need to replicate it carefully.
-	// indices are presumably indices into RevisionHeads?
-	// The original code:
-	/*
-		for _, i := range indices {
-			heads = append(heads, f.RevisionHeads[i])
-			contents = append(contents, f.RevisionContents[i])
-		}
-	*/
-	// But RevisionHeads in the original file are likely sorted by date descending?
-	// Let's assume the indices are correct for the original file.
 
 	for _, i := range indices {
 		if i >= len(f.RevisionHeads) {
