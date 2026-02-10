@@ -1,0 +1,90 @@
+-- input.rcs --
+head    1.2;
+access;
+symbols;
+locks; strict;
+comment @ * @;
+
+
+1.2
+date    2024.07.31.07.11.33;    author esr;     state Exp;
+branches;
+next    1.1;
+commitid        10066A9E3A53CD229C8;
+
+1.1
+date    2024.07.31.07.11.27;    author esr;     state Exp;
+branches;
+next    ;
+commitid        10066A9E39F3CCDA47B;
+
+
+desc
+@@
+
+
+1.2
+log
+@Third commit
+@
+text
+@And now for something completely different.
+@
+
+
+1.1
+log
+@First commit
+@
+text
+@d1 1
+a1 1
+The quick brown fox jumped over the lazy dog.
+@
+-- expected.json --
+{
+  "Head": "1.2",
+  "Branch": "",
+  "Description": "",
+  "Comment": " * ",
+  "Access": true,
+  "Symbols": true,
+  "AccessUsers": null,
+  "SymbolMap": null,
+  "Locks": null,
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": [
+    {
+      "Revision": "1.2",
+      "Date": "2024-07-31T07:11:33Z",
+      "Author": "esr",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": "10066A9E3A53CD229C8"
+    },
+    {
+      "Revision": "1.1",
+      "Date": "2024-07-31T07:11:27Z",
+      "Author": "esr",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": "10066A9E39F3CCDA47B"
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.2",
+      "Log": "Third commit\n",
+      "Text": "And now for something completely different.\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "First commit\n",
+      "Text": "d1 1\na1 1\nThe quick brown fox jumped over the lazy dog.\n"
+    }
+  ]
+}

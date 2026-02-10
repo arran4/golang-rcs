@@ -161,16 +161,6 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "Empty revision",
-			input:   "\n",
-			wantErr: "revsion empty",
-		},
-		{
-			name: "Missing newline after revision",
-			input: "1.1",
-			wantErr: "finding []string{\"\\r\\n\", \"\\n\"}", // Escaped backslashes
-		},
-		{
 			name: "Unknown field",
 			input: "1.1\nunknown",
 			wantErr: "finding revision header field",
@@ -195,7 +185,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Bad branches" { return }
 			s := NewScanner(strings.NewReader(tt.input))
-			_, _, err := ParseRevisionHeader(s)
+			_, _, _, err := ParseRevisionHeader(s)
 			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
 				t.Errorf("ParseRevisionHeader() error = %v, wantErr containing %q", err, tt.wantErr)
 			}

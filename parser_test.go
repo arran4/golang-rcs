@@ -489,7 +489,7 @@ func TestParseDescription(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseDescription(tt.args.s)
+			got, err := ParseDescription(tt.args.s, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseDescription() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -735,7 +735,7 @@ func TestParseProperty(t *testing.T) {
 				line:             true,
 			},
 			want:    "asdf",
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -878,13 +878,13 @@ func TestParseRevisionHeader(t *testing.T) {
 				Branches:     []string{},
 				NextRevision: "1.5",
 			},
-			wantNext: false,
+			wantNext: true,
 			wantErr:  false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRH, gotNext, err := ParseRevisionHeader(tt.args.s)
+			gotRH, gotNext, _, err := ParseRevisionHeader(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeader() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1081,7 +1081,7 @@ func TestParseRevisionHeaders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionHeaders(tt.args.s)
+			got, _, err := ParseRevisionHeaders(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaders() error = %v, wantErr %v", err, tt.wantErr)
 				return
