@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/arran4/golang-rcs/cli"
+	"github.com/arran4/golang-rcs/internal/cli"
 )
 
 var _ Cmd = (*ListHeads)(nil)

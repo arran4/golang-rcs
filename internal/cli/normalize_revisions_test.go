@@ -11,8 +11,8 @@ import (
 
 func loadTestInput(t *testing.T) []byte {
 	t.Helper()
-	// Adjusted path: testdata is in the root, cli is in root. So .. points to root.
-	path := filepath.Join("..", "testdata", "testinput.go,v")
+	// Adjusted path: testdata is in the root, internal/cli is in internal. So ../.. points to root.
+	path := filepath.Join("..", "..", "testdata", "testinput.go,v")
 	b, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read test input from %s: %v", path, err)
