@@ -104,6 +104,7 @@ Contains metadata about a specific revision.
 | `State` | `string` | The state of the revision (e.g., "Exp"). |
 | `Branches` | `[]string` | List of branches starting from this revision. |
 | `NextRevision` | `string` | The revision number of the next revision in the sequence. |
+| `CommitID` | `string` | The Commit ID of the revision (if present). |
 
 ### `RevisionContent`
 Contains the log message and text content for a revision.
