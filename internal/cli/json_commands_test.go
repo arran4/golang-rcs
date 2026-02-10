@@ -53,11 +53,17 @@ func TestJsonCommandsStdIO(t *testing.T) {
 	if err != nil {
 		t.Fatalf("temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			t.Errorf("remove temp: %v", err)
+		}
+	}()
 	if _, err := tmpFile.Write(input); err != nil {
 		t.Fatalf("write temp: %v", err)
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("close temp: %v", err)
+	}
 
 	// Capture stdout
 	oldStdout := os.Stdout
@@ -66,11 +72,15 @@ func TestJsonCommandsStdIO(t *testing.T) {
 
 	ToJson(tmpFile.Name())
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatalf("close pipe: %v", err)
+	}
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("copy pipe: %v", err)
+	}
 	jsonOutput := buf.Bytes()
 
 	// Now feed this jsonOutput to FromJson via a temp file
@@ -78,11 +88,17 @@ func TestJsonCommandsStdIO(t *testing.T) {
 	if err != nil {
 		t.Fatalf("temp json file: %v", err)
 	}
-	defer os.Remove(tmpJsonFile.Name())
+	defer func() {
+		if err := os.Remove(tmpJsonFile.Name()); err != nil {
+			t.Errorf("remove temp json: %v", err)
+		}
+	}()
 	if _, err := tmpJsonFile.Write(jsonOutput); err != nil {
 		t.Fatalf("write temp json: %v", err)
 	}
-	tmpJsonFile.Close()
+	if err := tmpJsonFile.Close(); err != nil {
+		t.Fatalf("close temp json: %v", err)
+	}
 
 	// Capture stdout again
 	oldStdout = os.Stdout
@@ -91,11 +107,15 @@ func TestJsonCommandsStdIO(t *testing.T) {
 
 	FromJson(tmpJsonFile.Name())
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatalf("close pipe: %v", err)
+	}
 	os.Stdout = oldStdout
 
 	var buf2 bytes.Buffer
-	io.Copy(&buf2, r)
+	if _, err := io.Copy(&buf2, r); err != nil {
+		t.Fatalf("copy pipe: %v", err)
+	}
 	finalOutput := buf2.Bytes()
 
 	// Parse original to string for comparison, as strict byte comparison might fail due to whitespace differences if any,
