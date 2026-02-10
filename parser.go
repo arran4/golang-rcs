@@ -34,6 +34,7 @@ type RevisionHead struct {
 	State        string
 	Branches     []string
 	NextRevision string
+	CommitID     string
 }
 
 func (h *RevisionHead) String() string {
@@ -50,6 +51,9 @@ func (h *RevisionHead) String() string {
 	}
 	sb.WriteString("\n")
 	sb.WriteString(fmt.Sprintf("next\t%s;\n", h.NextRevision))
+	if h.CommitID != "" {
+		sb.WriteString(fmt.Sprintf("commitid\t%s;\n", h.CommitID))
+	}
 	return sb.String()
 }
 
@@ -169,12 +173,14 @@ func ParseFile(r io.Reader) (*File, error) {
 	if err := ParseHeader(s, f); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	}
-	if rhs, err := ParseRevisionHeaders(s); err != nil {
+	descConsumed := false
+	if rhs, dc, err := ParseRevisionHeaders(s); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
+		descConsumed = dc
 		f.RevisionHeads = rhs
 	}
-	if desc, err := ParseDescription(s); err != nil {
+	if desc, err := ParseDescription(s, descConsumed); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		f.Description = desc
@@ -187,10 +193,22 @@ func ParseFile(r io.Reader) (*File, error) {
 	return f, nil
 }
 
-func ParseDescription(s *Scanner) (string, error) {
-	d, err := ParseMultiLineText(s, false, "desc", true)
-	if err != nil {
-		return "", fmt.Errorf("description tag: %s", err)
+func ParseDescription(s *Scanner, havePropertyName bool) (string, error) {
+	var d string
+	var err error
+	if havePropertyName {
+		d, err = ParseAtQuotedString(s)
+		if err != nil {
+			return "", fmt.Errorf("quote string: %w", err)
+		}
+		if err = ScanNewLine(s, true); err != nil {
+			return "", fmt.Errorf("end new line: %w", err)
+		}
+	} else {
+		d, err = ParseMultiLineText(s, false, "desc", true)
+		if err != nil {
+			return "", fmt.Errorf("description tag: %s", err)
+		}
 	}
 	if err = ScanStrings(s, "\n\n", "\r\n\r\n"); err != nil {
 		return "", fmt.Errorf("description scan string: %s", err)
@@ -241,11 +259,13 @@ func ParseHeader(s *Scanner, f *File) error {
 		f.Head = head
 	}
 	for {
-		if err := ScanStrings(s, "branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n"); err != nil {
+		if err := ScanStrings(s, "branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n", " ", "\t", "\n", "\r\n"); err != nil {
 			return err
 		}
 		nt := s.Text()
 		switch nt {
+		case " ", "\t", "\n", "\r\n":
+			continue
 		case "branch":
 			if branch, err := ParseProperty(s, true, "branch", true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
@@ -319,58 +339,79 @@ func ParseHeader(s *Scanner, f *File) error {
 	}
 }
 
-func ParseRevisionHeaders(s *Scanner) ([]*RevisionHead, error) {
+func ParseRevisionHeaders(s *Scanner) ([]*RevisionHead, bool, error) {
 	var rhs []*RevisionHead
 	for {
-		if rh, next, err := ParseRevisionHeader(s); err != nil {
-			return nil, err
+		if rh, next, descConsumed, err := ParseRevisionHeader(s); err != nil {
+			return nil, false, err
 		} else {
+			if descConsumed {
+				return rhs, true, nil
+			}
+			if rh == nil {
+				return rhs, false, nil
+			}
 			rhs = append(rhs, rh)
 			if !next {
-				return rhs, nil
+				return rhs, false, nil
 			}
 		}
 	}
 }
 
-func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, error) {
+func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 	rh := &RevisionHead{}
-	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
-		return nil, false, err
+	for {
+		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
+			if IsNotFound(err) {
+				return nil, false, false, nil
+			}
+			return nil, false, false, err
+		}
+		rev := s.Text()
+		if err := ScanNewLine(s, false); err != nil {
+			return nil, false, false, err
+		}
+		if rev != "" {
+			rh.Revision = rev
+			break
+		}
 	}
-	rh.Revision = s.Text()
-	if rh.Revision == "" {
-		return nil, false, fmt.Errorf("revsion empty")
-	}
-	if err := ScanNewLine(s, false); err != nil {
-		return nil, false, err
+	if rh.Revision == "desc" {
+		return nil, false, true, nil
 	}
 	for {
-		if err := ScanStrings(s, "branches", "date", "next", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
-			return nil, false, fmt.Errorf("finding revision header field: %w", err)
+		if err := ScanStrings(s, "branches", "date", "next", "commitid", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
 		}
 		nt := s.Text()
 		switch nt {
 		case "branches":
 			if err := ParseRevisionHeaderBranches(s, rh, true); err != nil {
-				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "date":
 			if err := ParseRevisionHeaderDateLine(s, true, rh); err != nil {
-				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
 			if n, err := ParseRevisionHeaderNext(s, true); err != nil {
-				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.NextRevision = n
 			}
+		case "commitid":
+			if c, err := ParseProperty(s, true, "commitid", true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.CommitID = c
+			}
 		case "\n\n", "\r\n\r\n":
-			return rh, false, nil
+			return rh, true, false, nil
 		case "\n", "\r\n":
-			return rh, true, nil
+			continue
 		default:
-			return nil, false, fmt.Errorf("unknown token: %s", nt)
+			return nil, false, false, fmt.Errorf("unknown token: %s", nt)
 		}
 	}
 }
@@ -576,9 +617,6 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 			return nil, fmt.Errorf("unknown token: %s", nt)
 		}
 	}
-	if err := ScanNewLine(s, false); err != nil {
-		return nil, err
-	}
 	return locks, nil
 }
 
@@ -631,7 +669,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		rh.Date = date
 	}
 	for {
-		if err := ScanStrings(s, "\t", "author", "state"); err != nil {
+		if err := ScanStrings(s, " ", "\t", "author", "state"); err != nil {
 			if IsNotFound(err) {
 				break
 			}
@@ -639,6 +677,8 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		}
 		nt := s.Text()
 		switch nt {
+		case " ", "\t":
+			continue
 		case "author":
 			if s, err := ParseProperty(s, true, "author", false); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
@@ -651,7 +691,6 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 			} else {
 				rh.State = s
 			}
-		case " ", "\t":
 		default:
 			return fmt.Errorf("unknown token: %s", nt)
 		}
@@ -697,9 +736,6 @@ func ParseProperty(s *Scanner, havePropertyName bool, propertyName string, line 
 
 func ParseTerminatorFieldLine(s *Scanner) error {
 	if err := ScanFieldTerminator(s); err != nil {
-		return err
-	}
-	if err := ScanNewLine(s, false); err != nil {
 		return err
 	}
 	return nil
