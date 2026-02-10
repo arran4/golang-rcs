@@ -82,8 +82,14 @@ func TestJsonCommandsStdIO(t *testing.T) {
 	os.Stdin = rIn
 
 	go func() {
-		defer wIn.Close()
-		wIn.Write(input)
+		defer func() {
+			if err := wIn.Close(); err != nil {
+				t.Errorf("close input pipe: %v", err)
+			}
+		}()
+		if _, err := wIn.Write(input); err != nil {
+			t.Errorf("write input pipe: %v", err)
+		}
 	}()
 
 	ToJson("", false, "-")
@@ -109,8 +115,14 @@ func TestJsonCommandsStdIO(t *testing.T) {
 	os.Stdin = rIn
 
 	go func() {
-		defer wIn.Close()
-		wIn.Write(jsonOutput)
+		defer func() {
+			if err := wIn.Close(); err != nil {
+				t.Errorf("close input pipe: %v", err)
+			}
+		}()
+		if _, err := wIn.Write(jsonOutput); err != nil {
+			t.Errorf("write input pipe: %v", err)
+		}
 	}()
 
 	FromJson("", false, "-")
