@@ -1,0 +1,129 @@
+package rcs
+
+import (
+	"testing"
+	"time"
+)
+
+func TestParseDate(t *testing.T) {
+	// Set up reference time: 2023-10-25 12:00:00 UTC
+	now := time.Date(2023, 10, 25, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name        string
+		input       string
+		defaultZone *time.Location // Defaults to UTC if nil
+		want        time.Time
+		checkZone   bool // If true, check strict equality including zone
+	}{
+		{
+			name:  "Time only (8:00 pm)",
+			input: "8:00 pm",
+			// Expect: 2023-10-25 20:00:00 UTC
+			want:      time.Date(2023, 10, 25, 20, 0, 0, 0, time.UTC),
+			checkZone: true,
+		},
+		{
+			name:  "Time with LT (8:00 pm lt)",
+			input: "8:00 pm lt",
+			// Expect: 2023-10-25 20:00:00 Local
+			want:      time.Date(2023, 10, 25, 20, 0, 0, 0, time.Local),
+			checkZone: true,
+		},
+		{
+			name:  "Date and Time (4:00 AM, Jan. 12, 1990)",
+			input: "4:00 AM, Jan. 12, 1990",
+			// Expect: 1990-01-12 04:00:00 UTC
+			want:      time.Date(1990, 1, 12, 4, 0, 0, 0, time.UTC),
+			checkZone: true,
+		},
+		{
+			name:  "ISO 8601 UTC (1990-01-12 04:00:00+00)",
+			input: "1990-01-12 04:00:00+00",
+			// Expect: 1990-01-12 04:00:00 UTC
+			want:      time.Date(1990, 1, 12, 4, 0, 0, 0, time.UTC),
+			checkZone: true,
+		},
+		{
+			name:  "ISO 8601 Offset (1990-01-11 20:00:00-08)",
+			input: "1990-01-11 20:00:00-08",
+			// Expect: 1990-01-11 20:00:00 -0800
+			// Equivalent to 1990-01-12 04:00:00 UTC
+			want:      time.Date(1990, 1, 11, 20, 0, 0, 0, time.FixedZone("", -8*3600)),
+			checkZone: false, // Offset names might differ
+		},
+		{
+			name:  "Traditional RCS (1990/01/12 04:00:00)",
+			input: "1990/01/12 04:00:00",
+			// Expect: 1990-01-12 04:00:00 UTC
+			want:      time.Date(1990, 1, 12, 4, 0, 0, 0, time.UTC),
+			checkZone: true,
+		},
+		{
+			name:  "ctime + LT (Thu Jan 11 20:00:00 1990 LT)",
+			input: "Thu Jan 11 20:00:00 1990 LT",
+			// Expect: 1990-01-11 20:00:00 Local
+			want:      time.Date(1990, 1, 11, 20, 0, 0, 0, time.Local),
+			checkZone: true,
+		},
+		{
+			name:  "GMT (Fri Jan 12 04:00:00 GMT 1990)",
+			input: "Fri Jan 12 04:00:00 GMT 1990",
+			// Expect: 1990-01-12 04:00:00 UTC (GMT is UTC)
+			// time.Parse usually handles GMT as UTC.
+			want:      time.Date(1990, 1, 12, 4, 0, 0, 0, time.UTC),
+			checkZone: false,
+		},
+		{
+			name:  "RFC 822 (Thu, 11 Jan 1990 20:00:00 -0800)",
+			input: "Thu, 11 Jan 1990 20:00:00 -0800",
+			// Expect: 1990-01-11 20:00:00 -0800
+			want:      time.Date(1990, 1, 11, 20, 0, 0, 0, time.FixedZone("", -8*3600)),
+			checkZone: false,
+		},
+		{
+			name:  "Day, Time (20, 10:30)",
+			input: "20, 10:30",
+			// Expect: 2023-10-20 10:30:00 UTC
+			want:      time.Date(2023, 10, 20, 10, 30, 0, 0, time.UTC),
+			checkZone: true,
+		},
+		{
+			name:  "YEAR-DOY (2018-110)",
+			input: "2018-110",
+			// Expect: 2018, 110th day. April 20.
+			want:      time.Date(2018, 4, 20, 0, 0, 0, 0, time.UTC),
+			checkZone: true,
+		},
+		{
+			name:  "YEAR-wWEEK-DOW (2018-w16-5)",
+			input: "2018-w16-5",
+			// 2018. Week 16. Day 5 (Friday). April 20.
+			want:      time.Date(2018, 4, 20, 0, 0, 0, 0, time.UTC),
+			checkZone: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseDate(tt.input, now, tt.defaultZone)
+			if err != nil {
+				t.Fatalf("ParseDate() error = %v", err)
+			}
+
+            // Compare timestamps (ignoring zone name if checkZone is false, but time instant should match)
+            if !got.Equal(tt.want) {
+                t.Errorf("ParseDate() = %v, want %v", got, tt.want)
+            }
+
+            if tt.checkZone {
+                // Check zone offset and name if possible
+                _, o1 := got.Zone()
+                _, o2 := tt.want.Zone()
+                if o1 != o2 {
+                     t.Errorf("ParseDate() zone offset = %v, want %v", o1, o2)
+                }
+            }
+		})
+	}
+}
