@@ -69,6 +69,7 @@ func parseTxtar(content string) map[string]string {
 	var currentContent strings.Builder
 
 	for _, line := range lines {
+		line = strings.TrimRight(line, "\r")
 		if strings.HasPrefix(line, "-- ") && strings.HasSuffix(line, " --") {
 			if currentFile != "" {
 				parts[currentFile] = strings.TrimSpace(currentContent.String())
