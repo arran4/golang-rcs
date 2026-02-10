@@ -1,0 +1,63 @@
+-- input.rcs --
+head    1.1;
+access;
+symbols;
+locks; strict;
+comment @# @;
+
+
+1.1
+date    2026.02.10.10.35.45;    author arran;   state Exp;
+branches;
+next    ;
+
+
+desc
+@asdkjfa
+sadfsaa
+message!
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@asdf
+asdf
+asdf
+@
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "asdkjfa\nsadfsaa\nmessage!\n",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": true,
+  "AccessUsers": null,
+  "SymbolMap": null,
+  "Locks": null,
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2026-02-10T10:35:45Z",
+      "Author": "arran",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "asdf\nasdf\nasdf\n"
+    }
+  ]
+}
