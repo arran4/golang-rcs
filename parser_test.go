@@ -597,7 +597,7 @@ func TestParseHeaderLocks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderLocks(tt.args.s, tt.args.havePropertyName)
+			got, _, err := ParseHeaderLocks(tt.args.s, tt.args.havePropertyName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderLocks() error = %v, wantErr %v", err, tt.wantErr)
 				return
