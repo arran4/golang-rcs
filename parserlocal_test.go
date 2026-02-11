@@ -35,7 +35,7 @@ func TestParseLocalFiles(t *testing.T) {
 				t.Errorf("ParseFile() error = %s", err)
 				return
 			}
-			if diff := cmp.Diff(got.String(), string(b)); diff != "" {
+			if diff := cmp.Diff(strings.Split(got.String(), "\n"), strings.Split(string(b), "\n")); diff != "" {
 				t.Errorf("String(): %s", diff)
 			}
 		})
