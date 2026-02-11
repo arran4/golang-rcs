@@ -2,18 +2,14 @@ package rcs
 
 import (
 	"bytes"
-	"embed"
 	"io/fs"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
-var (
-	//go:embed "testdata/local/*"
-	localTests embed.FS
-)
-
-func TestParseLocalFiles(t *testing.T) {
+func TestCircularParseGenerateLocalFiles(t *testing.T) {
 	path := "testdata/local"
 	err := fs.WalkDir(localTests, path, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
@@ -28,10 +24,13 @@ func TestParseLocalFiles(t *testing.T) {
 				t.Errorf("ReadFile( %s ) error = %s", path, err)
 				return
 			}
-			_, err = ParseFile(bytes.NewReader(b))
+			got, err := ParseFile(bytes.NewReader(b))
 			if err != nil {
 				t.Errorf("ParseFile( %s ) error = %s", path, err)
 				return
+			}
+			if diff := cmp.Diff(strings.Split(got.String(), "\n"), strings.Split(string(b), "\n")); diff != "" {
+				t.Errorf("String(): %s", diff)
 			}
 		})
 		return nil

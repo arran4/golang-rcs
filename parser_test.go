@@ -15,11 +15,13 @@ var (
 	//go:embed "testdata/testinput.go,v"
 	testinputv []byte
 	//go:embed "testdata/testinput1.go,v"
-	testinputv1 []byte
+	testinputv1   []byte
 	accessSymbols = []byte(
 		"head\t1.1;\n" +
 			"access john jane;\n" +
-			"symbols rel:1.1 tag:1.1.0.2;\n" +
+			"symbols\n" +
+			"\trel:1.1\n" +
+			"\ttag:1.1.0.2;\n" +
 			"locks\n" +
 			"\tjohn:1.1;\n" +
 			"comment\t@# @;\n" +
@@ -92,9 +94,9 @@ func TestParseFile(t *testing.T) {
 				if diff := cmp.Diff(got.AccessUsers, []string{"john", "jane"}); diff != "" {
 					t.Errorf("AccessUsers: %s", diff)
 				}
-				expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
-				if diff := cmp.Diff(expectedMap, got.SymbolMap); diff != "" {
-					t.Errorf("SymbolMap: %s", diff)
+				expected := []Symbol{{Name: "rel", Revision: "1.1"}, {Name: "tag", Revision: "1.1.0.2"}}
+				if diff := cmp.Diff(expected, got.Symbols); diff != "" {
+					t.Errorf("Symbols: %s", diff)
 				}
 				if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
 					t.Errorf("Description: %s", diff)
@@ -156,10 +158,10 @@ func TestParseHeader(t *testing.T) {
 				s: NewScanner(bytes.NewReader(testinputv)),
 			},
 			want: &File{
-				Head:    "1.6",
-				Comment: "# ",
-				Access:  true,
-				Symbols: true,
+				Head:       "1.6",
+				Comment:    "# ",
+				Access:     true,
+				HasSymbols: true,
 				Locks: []*Lock{
 					{
 						User:     "arran",
@@ -1230,5 +1232,27 @@ func TestRevisionHeadStringBranches(t *testing.T) {
 		"next\t;\n"
 	if diff := cmp.Diff(h.String(), want); diff != "" {
 		t.Errorf("RevisionHead.String() diff: %s", diff)
+	}
+}
+
+func TestScanStringsEOF(t *testing.T) {
+	s := NewScanner(strings.NewReader(""))
+	err := ScanStrings(s, "foo")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !IsEOFError(err) {
+		t.Errorf("expected EOF error, got %v", err)
+	}
+}
+
+func TestScanStringsEOFPartial(t *testing.T) {
+	s := NewScanner(strings.NewReader("fo"))
+	err := ScanStrings(s, "foo")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !IsEOFError(err) {
+		t.Errorf("expected EOF error, got %v", err)
 	}
 }

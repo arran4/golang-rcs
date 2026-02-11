@@ -73,8 +73,8 @@ The top-level structure representing a parsed RCS file.
 | `Branch` | `string` | The default branch (if any). |
 | `Access` | `bool` | Whether the access list is present. |
 | `AccessUsers` | `[]string` | List of users in the access list. |
-| `Symbols` | `bool` | Whether symbols are present. |
-| `SymbolMap` | `map[string]string` | Map of symbolic names to revision numbers. |
+| `HasSymbols` | `bool` | Whether symbols are present. |
+| `Symbols` | `[]Symbol` | List of symbolic names to revision numbers. |
 | `Locks` | `[]*Lock` | List of locks held on the file. |
 | `Strict` | `bool` | Whether strict locking is enabled. |
 | `Integrity` | `string` | Integrity configuration string. |
@@ -83,6 +83,14 @@ The top-level structure representing a parsed RCS file.
 | `Description` | `string` | The description of the file. |
 | `RevisionHeads` | `[]*RevisionHead` | Metadata for each revision in the file. |
 | `RevisionContents` | `[]*RevisionContent` | The actual content (log and text) for each revision. |
+
+### `Symbol`
+Represents a symbolic name for a revision.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `Name` | `string` | The symbolic name. |
+| `Revision` | `string` | The revision the symbol points to. |
 
 ### `Lock`
 Represents a lock on a revision.
