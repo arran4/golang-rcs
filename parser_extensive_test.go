@@ -134,12 +134,12 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 		{
 			name:    "Error parsing author",
 			input:   "date\t2022.01.01.00.00.00;\tauthor;", // missing value
-			wantErr: "token \"author\": scanning until \"whitespace\"",
+			wantErr: "Author scanning until \"whitespace\" parser section parser: raw: author",
 		},
 		{
 			name:    "Error parsing state",
 			input:   "date\t2022.01.01.00.00.00;\tauthor a;\tstate;", // missing value
-			wantErr: "token \"state\": scanning until \"whitespace\"",
+			wantErr: "State scanning until \"whitespace\" parser section parser: raw: state",
 		},
 	}
 	for _, tt := range tests {
@@ -173,12 +173,12 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad date",
 			input:   "1.1\ndate bad;",
-			wantErr: "token \"date\": unable to parse date",
+			wantErr: "Date unable to parse date",
 		},
 		{
 			name:    "Bad next",
 			input:   "1.1\nnext;",
-			wantErr: "token \"next\": scanning until \"whitespace\"",
+			wantErr: "Next scanning until \"whitespace\" parser section parser: raw: next",
 		},
 	}
 	for _, tt := range tests {
@@ -209,12 +209,12 @@ func TestParseRevisionContent_Errors(t *testing.T) {
 		{
 			name:    "Bad log",
 			input:   "1.1\nlog\nbad", // Expects @
-			wantErr: "token \"log\": quote string: open quote: looking for []string{\"@\"}",
+			wantErr: "Log quote string: open quote: looking for []string{\"@\"} parser section parser: raw: log",
 		},
 		{
 			name:    "Bad text",
 			input:   "1.1\ntext\nbad", // Expects @
-			wantErr: "token \"text\": quote string: open quote: looking for []string{\"@\"}",
+			wantErr: "Text quote string: open quote: looking for []string{\"@\"} parser section parser: raw: text",
 		},
 	}
 	for _, tt := range tests {
@@ -248,22 +248,22 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name:    "Access error",
 			input:   "head 1.1;\naccess", // missing ;
-			wantErr: "token \"access\": scanning until \"whitespace\"",
+			wantErr: "Access scanning until \"whitespace\" parser section parser: raw: access",
 		},
 		{
 			name:    "Symbols error",
 			input:   "head 1.1;\nsymbols", // missing ;
-			wantErr: "token \"symbols\": scanning until \"whitespace\"",
+			wantErr: "Symbols scanning until \"whitespace\" parser section parser: raw: symbols",
 		},
 		{
 			name:    "Locks error",
 			input:   "head 1.1;\nlocks\n\tbad",
-			wantErr: "token \"locks\": EOF:looking for []string{\":\"}", // ScanUntilStrings : at EOF
+			wantErr: "Locks EOF:looking for []string{\":\"} parser section parser: raw: locks",
 		},
 		{
 			name:    "Comment error",
 			input:   "head 1.1;\ncomment bad",
-			wantErr: "token \"comment\": open quote: looking for []string{\"@\"}",
+			wantErr: "Comment open quote: looking for []string{\"@\"} parser section parser: raw: comment",
 		},
 	}
 	for _, tt := range tests {
@@ -302,7 +302,7 @@ func TestParseFile_Errors(t *testing.T) {
 		{
 			name:    "Revision content error",
 			input:   "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\ndesc\n@@\n\n\n1.1\nlog\nbad", // Added 3rd newline
-			wantErr: "token \"log\": quote string: open quote: looking for []string{\"@\"}",
+			wantErr: "Log quote string: open quote: looking for []string{\"@\"} parser section parser: raw: log",
 		},
 	}
 	for _, tt := range tests {
