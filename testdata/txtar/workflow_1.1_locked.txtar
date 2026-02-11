@@ -46,7 +46,7 @@ asdf
     }
   ],
   "Strict": true,
-  "StrictLock": true,
+  "StrictInline": true,
   "Integrity": "",
   "Expand": "",
   "RevisionHeads": [

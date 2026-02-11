@@ -82,7 +82,7 @@ type File struct {
 	SymbolMap        map[string]string
 	Locks            []*Lock
 	Strict           bool
-	StrictLock       bool `json:",omitempty"`
+	StrictInline     bool `json:",omitempty"`
 	Integrity        string
 	Expand           string
 	RevisionHeads    []*RevisionHead
@@ -131,12 +131,12 @@ func (f *File) String() string {
 	for i, lock := range f.Locks {
 		sb.WriteString("\n\t")
 		sb.WriteString(lock.String())
-		if i == len(f.Locks)-1 && f.Strict && f.StrictLock {
+		if i == len(f.Locks)-1 && f.Strict && f.StrictInline {
 			sb.WriteString(" strict;")
 		}
 	}
 	sb.WriteString("\n")
-	if f.Strict && len(f.Locks) > 0 && !f.StrictLock {
+	if f.Strict && len(f.Locks) > 0 && !f.StrictInline {
 		sb.WriteString("strict;\n")
 	}
 	if f.Integrity != "" {
@@ -298,7 +298,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Locks = locks
 				if strict {
 					f.Strict = true
-					f.StrictLock = true
+					f.StrictInline = true
 				}
 			}
 		case "strict":
