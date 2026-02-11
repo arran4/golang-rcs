@@ -3,9 +3,10 @@ package rcs
 import (
 	"embed"
 	"encoding/json"
-	"github.com/google/go-cmp/cmp"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 //go:embed testdata/txtar/*.txtar
@@ -41,8 +42,7 @@ func TestParseTxtarFiles(t *testing.T) {
 			parsedFile, err := ParseFile(strings.NewReader(rcsContent))
 			if err != nil {
 				// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
-				rcsReader = strings.NewReader(rcsContent + "\n\n\n")
-				parsedFile, err = ParseFile(rcsReader)
+				parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n\n\n"))
 				if err != nil {
 					t.Fatalf("ParseFile error: %v", err)
 				}
