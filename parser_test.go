@@ -1234,3 +1234,25 @@ func TestRevisionHeadStringBranches(t *testing.T) {
 		t.Errorf("RevisionHead.String() diff: %s", diff)
 	}
 }
+
+func TestScanStringsEOF(t *testing.T) {
+	s := NewScanner(strings.NewReader(""))
+	err := ScanStrings(s, "foo")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !IsEOFError(err) {
+		t.Errorf("expected EOF error, got %v", err)
+	}
+}
+
+func TestScanStringsEOFPartial(t *testing.T) {
+	s := NewScanner(strings.NewReader("fo"))
+	err := ScanStrings(s, "foo")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !IsEOFError(err) {
+		t.Errorf("expected EOF error, got %v", err)
+	}
+}

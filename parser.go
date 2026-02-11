@@ -266,7 +266,7 @@ func ParseHeader(s *Scanner, f *File) error {
 			continue
 		case "branch":
 			if branch, err := ParseProperty(s, true, "branch", true); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("Branch %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				f.Branch = branch
 			}
@@ -275,7 +275,7 @@ func ParseHeader(s *Scanner, f *File) error {
 			if err := ParseTerminatorFieldLine(s); err != nil {
 				users, err := ParseHeaderAccess(s, true)
 				if err != nil {
-					return fmt.Errorf("token %#v: %w", nt, err)
+					return fmt.Errorf("Access %w parser %w: raw: %s", err, ErrInParserSection, nt)
 				}
 				f.AccessUsers = users
 			}
@@ -284,39 +284,39 @@ func ParseHeader(s *Scanner, f *File) error {
 			if err := ParseTerminatorFieldLine(s); err != nil {
 				sym, err := ParseHeaderSymbols(s, true)
 				if err != nil {
-					return fmt.Errorf("token %#v: %w", nt, err)
+					return fmt.Errorf("Symbols %w parser %w: raw: %s", err, ErrInParserSection, nt)
 				}
 				f.SymbolMap = sym
 			}
 		case "locks":
 			if locks, err := ParseHeaderLocks(s, true); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("Locks %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				f.Locks = locks
 			}
 		case "strict":
 			f.Strict = true
 			if err := ParseTerminatorFieldLine(s); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("Strict %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			}
 		case "integrity":
 			// TODO: Integrity parsing might need AtQuote string parsing similar to comment/desc?
 			// RCS usually has simple strings? integrity @...@;
 			// Let's assume quoted string for integrity.
 			if integrity, err := ParseHeaderComment(s, true); err != nil { // Reusing ParseHeaderComment logic (quote + terminator)
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("Integrity %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				f.Integrity = integrity
 			}
 		case "comment":
 			if comment, err := ParseHeaderComment(s, true); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("Comment %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				f.Comment = comment
 			}
 		case "expand":
 			if expand, err := ParseProperty(s, true, "expand", true); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("Expand %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				// ParseProperty reads raw text. If it is @quoted@, we might need to handle it.
 				// For now, assuming identifiers like @kv@ are returned as is.
@@ -389,21 +389,21 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 		switch nt {
 		case "branches":
 			if err := ParseRevisionHeaderBranches(s, rh, true); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, fmt.Errorf("Branches %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			}
 		case "date":
 			if err := ParseRevisionHeaderDateLine(s, true, rh); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, fmt.Errorf("Date %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			}
 		case "next":
 			if n, err := ParseRevisionHeaderNext(s, true); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, fmt.Errorf("Next %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				rh.NextRevision = n
 			}
 		case "commitid":
 			if c, err := ParseProperty(s, true, "commitid", true); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, fmt.Errorf("CommitID %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				rh.CommitID = c
 			}
@@ -435,6 +435,12 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
+	if err := ScanWhiteSpace(s, 0); err != nil {
+		if IsNotFound(err) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
 	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 		if IsEOFError(err) {
 			return nil, false, nil
@@ -459,13 +465,13 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		switch nt {
 		case "log":
 			if s, err := ParseRevisionContentLog(s); err != nil {
-				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, fmt.Errorf("Log %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				rh.Log = s
 			}
 		case "text":
 			if s, err := ParseRevisionContentText(s); err != nil {
-				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, fmt.Errorf("Text %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				rh.Text = s
 			}
@@ -587,13 +593,13 @@ func ParseAtQuotedString(s *Scanner) (string, error) {
 		switch nt {
 		case "@@":
 			if _, err := sb.WriteString("@"); err != nil {
-				return "", fmt.Errorf("token %#v: %w", nt, err)
+				return "", fmt.Errorf("QuotedString %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			}
 		case "@":
 			return sb.String(), nil
 		default:
 			if _, err := sb.WriteString("@"); err != nil {
-				return "", fmt.Errorf("token %#v: %w", nt, err)
+				return "", fmt.Errorf("QuotedString %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			}
 		}
 	}
@@ -693,13 +699,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 			continue
 		case "author":
 			if s, err := ParseProperty(s, true, "author", false); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("Author %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				rh.Author = s
 			}
 		case "state":
 			if s, err := ParseProperty(s, true, "state", false); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
+				return fmt.Errorf("State %w parser %w: raw: %s", err, ErrInParserSection, nt)
 			} else {
 				rh.State = s
 			}
@@ -897,7 +903,10 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 			Pos:        *s.pos,
 			Found:      string(data),
 		}
-		return 0, []byte{}, nil
+		if atEOF {
+			err = ErrEOF{err}
+		}
+		return 0, []byte{}, err
 	})
 	if !s.Scan() {
 		if s.Err() != nil {
@@ -919,6 +928,10 @@ type ErrEOF struct{ error }
 
 func (e ErrEOF) Error() string {
 	return "EOF:" + e.error.Error()
+}
+
+func (e ErrEOF) Unwrap() error {
+	return e.error
 }
 
 func ScanUntilStrings(s *Scanner, strs ...string) (err error) {

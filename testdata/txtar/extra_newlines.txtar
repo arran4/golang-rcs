@@ -1,0 +1,59 @@
+-- input.rcs --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2024.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+
+1.1
+log
+@Initial revision
+@
+text
+@content
+@
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": true,
+  "AccessUsers": null,
+  "SymbolMap": null,
+  "Locks": null,
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2024-01-01T00:00:00Z",
+      "Author": "user",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "content\n"
+    }
+  ]
+}
