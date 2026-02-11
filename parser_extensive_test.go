@@ -93,8 +93,8 @@ func TestParseLockLine_Errors(t *testing.T) {
 			wantErr: "finding []string{\";\"}",
 		},
 		{
-			name: "Unknown token at end",
-			input: "user:1.1; garbage",
+			name:    "Unknown token at end",
+			input:   "user:1.1; garbage",
 			wantErr: "", // Should succeed, ignores garbage
 		},
 	}
@@ -127,18 +127,18 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 			wantErr: "parsing time",
 		},
 		{
-			name: "Missing author",
-			input: "date\t2022.01.01.00.00.00;\tmissing_author",
+			name:    "Missing author",
+			input:   "date\t2022.01.01.00.00.00;\tmissing_author",
 			wantErr: "finding []string{\"\\r\\n\", \"\\n\"}", // ScanNewLine fails, escaped backslashes
 		},
 		{
-			name: "Error parsing author",
-			input: "date\t2022.01.01.00.00.00;\tauthor;", // missing value
+			name:    "Error parsing author",
+			input:   "date\t2022.01.01.00.00.00;\tauthor;", // missing value
 			wantErr: "token \"author\": scanning until \"whitespace\"",
 		},
 		{
-			name: "Error parsing state",
-			input: "date\t2022.01.01.00.00.00;\tauthor a;\tstate;", // missing value
+			name:    "Error parsing state",
+			input:   "date\t2022.01.01.00.00.00;\tauthor a;\tstate;", // missing value
 			wantErr: "token \"state\": scanning until \"whitespace\"",
 		},
 	}
@@ -161,29 +161,31 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "Unknown field",
-			input: "1.1\nunknown",
+			name:    "Unknown field",
+			input:   "1.1\nunknown",
 			wantErr: "finding revision header field",
 		},
 		{
-			name: "Bad branches",
-			input: "1.1\nbranches bad;\n",
+			name:    "Bad branches",
+			input:   "1.1\nbranches bad;\n",
 			wantErr: "",
 		},
 		{
-			name: "Bad date",
-			input: "1.1\ndate bad;",
+			name:    "Bad date",
+			input:   "1.1\ndate bad;",
 			wantErr: "token \"date\": parsing time",
 		},
 		{
-			name: "Bad next",
-			input: "1.1\nnext;",
+			name:    "Bad next",
+			input:   "1.1\nnext;",
 			wantErr: "token \"next\": scanning until \"whitespace\"",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Bad branches" { return }
+			if tt.name == "Bad branches" {
+				return
+			}
 			s := NewScanner(strings.NewReader(tt.input))
 			_, _, _, err := ParseRevisionHeader(s)
 			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
@@ -200,18 +202,18 @@ func TestParseRevisionContent_Errors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "Empty revision",
-			input: "\n",
+			name:    "Empty revision",
+			input:   "\n",
 			wantErr: "revsion empty",
 		},
 		{
-			name: "Bad log",
-			input: "1.1\nlog\nbad", // Expects @
+			name:    "Bad log",
+			input:   "1.1\nlog\nbad", // Expects @
 			wantErr: "token \"log\": quote string: open quote: finding []string{\"@\"}",
 		},
 		{
-			name: "Bad text",
-			input: "1.1\ntext\nbad", // Expects @
+			name:    "Bad text",
+			input:   "1.1\ntext\nbad", // Expects @
 			wantErr: "token \"text\": quote string: open quote: finding []string{\"@\"}",
 		},
 	}
@@ -233,34 +235,34 @@ func TestParseHeader_Errors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "Bad head",
-			input: "head;",
+			name:    "Bad head",
+			input:   "head;",
 			wantErr: "scanning until \"whitespace\"",
 		},
 		{
-			name: "Unknown token",
+			name:  "Unknown token",
 			input: "head 1.1;\nunknown",
 			// Updated wantErr to include new keywords
 			wantErr: "finding []string{\"branch\", \"access\", \"symbols\", \"locks\", \"strict\", \"integrity\", \"comment\", \"expand\"",
 		},
 		{
-			name: "Access error",
-			input: "head 1.1;\naccess", // missing ;
+			name:    "Access error",
+			input:   "head 1.1;\naccess", // missing ;
 			wantErr: "token \"access\": scanning until \"whitespace\"",
 		},
 		{
-			name: "Symbols error",
-			input: "head 1.1;\nsymbols", // missing ;
+			name:    "Symbols error",
+			input:   "head 1.1;\nsymbols", // missing ;
 			wantErr: "token \"symbols\": scanning until \"whitespace\"",
 		},
 		{
-			name: "Locks error",
-			input: "head 1.1;\nlocks\n\tbad",
+			name:    "Locks error",
+			input:   "head 1.1;\nlocks\n\tbad",
 			wantErr: "token \"locks\": finding []string{\":\"}", // ScanUntilStrings : at EOF
 		},
 		{
-			name: "Comment error",
-			input: "head 1.1;\ncomment bad",
+			name:    "Comment error",
+			input:   "head 1.1;\ncomment bad",
 			wantErr: "token \"comment\": open quote: finding []string{\"@\"}",
 		},
 	}
@@ -283,23 +285,23 @@ func TestParseFile_Errors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "Header error",
-			input: "bad",
+			name:    "Header error",
+			input:   "bad",
 			wantErr: "parsing 1:0: finding []string{\"head\"}",
 		},
 		{
-			name: "Revision headers error",
-			input: "head 1.1;\n\n\n1.1\nbad",
+			name:    "Revision headers error",
+			input:   "head 1.1;\n\n\n1.1\nbad",
 			wantErr: "finding revision header field",
 		},
 		{
-			name: "Description error",
-			input: "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\nbad",
+			name:    "Description error",
+			input:   "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\nbad",
 			wantErr: "description tag: finding []string{\"desc\\n\", \"desc\\r\\n\"}",
 		},
 		{
-			name: "Revision content error",
-			input: "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\ndesc\n@@\n\n\n1.1\nlog\nbad", // Added 3rd newline
+			name:    "Revision content error",
+			input:   "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\ndesc\n@@\n\n\n1.1\nlog\nbad", // Added 3rd newline
 			wantErr: "token \"log\": quote string: open quote: finding []string{\"@\"}",
 		},
 	}
@@ -316,24 +318,24 @@ func TestParseFile_Errors(t *testing.T) {
 
 func TestParseHeaderLocks_Errors(t *testing.T) {
 	tests := []struct {
-		name string
-		input string
+		name    string
+		input   string
 		wantErr string
 	}{
 		{
-			name: "Missing locks keyword",
-			input: "not_locks",
+			name:    "Missing locks keyword",
+			input:   "not_locks",
 			wantErr: "finding []string{\"locks\"}",
 		},
 		{
-			name: "Error in lock line",
-			input: "locks\n\tbad_lock",
+			name:    "Error in lock line",
+			input:   "locks\n\tbad_lock",
 			wantErr: "finding []string{\":\"}", // ScanUntilStrings : at EOF
 		},
 		{
-			name: "Unknown token inside locks",
-			input: "locks\n\tuser:1.1;\n\tbad_token", // It expects " " or "\n\t" or "\r\n\t"
-			wantErr: "finding []string{\":\"}", // Failed inside ParseLockLine scanning user:
+			name:    "Unknown token inside locks",
+			input:   "locks\n\tuser:1.1;\n\tbad_token", // It expects " " or "\n\t" or "\r\n\t"
+			wantErr: "finding []string{\":\"}",         // Failed inside ParseLockLine scanning user:
 		},
 	}
 	for _, tt := range tests {

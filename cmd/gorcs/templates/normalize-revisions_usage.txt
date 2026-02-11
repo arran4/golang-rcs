@@ -1,0 +1,11 @@
+Usage: gorcs normalize-revisions [flags...] [files...]
+
+Subcommands:
+    help         Print this help message
+    usage        Print this usage message
+
+Flags:
+    -p, --pad-commits   pad commits with empty commits
+
+Positional Arguments:
+    files      List of files to process

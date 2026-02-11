@@ -2,27 +2,9 @@ version: 2
 project_name: golang-rcs
 builds:
   -
-    id: "list-heads"
-    binary: "list-heads"
-    dir: cmd/list-heads
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - windows
-      - darwin
-    goarch:
-      - amd64
-      - arm
-      - arm64
-      - 386
-    goarm:
-      - 6
-      - 7
-  -
-    id: "normalize-revisions"
-    binary: "normalize-revisions"
-    dir: cmd/normalize-revisions
+    id: "gorcs"
+    binary: "gorcs"
+    dir: cmd/gorcs
     env:
       - CGO_ENABLED=0
     goos:
