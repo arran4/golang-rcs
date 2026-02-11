@@ -80,17 +80,17 @@ func TestParseLockLine_Errors(t *testing.T) {
 		{
 			name:    "Missing colon",
 			input:   "user",
-			wantErr: "finding []string{\":\"}", // ScanUntilStrings returns ScanNotFound at EOF
+			wantErr: "expected : after lock id \"user\": finding []string{\":\"}",
 		},
 		{
 			name:    "Missing revision",
 			input:   "user:;",
-			wantErr: "scanning until \"num\"",
+			wantErr: "expected num in lock: scanning until \"num\"",
 		},
 		{
 			name:    "Missing semicolon",
 			input:   "user:1.1",
-			wantErr: "",
+			wantErr: "", // ParseLockLine parses id:num, does not check for semicolon
 		},
 		{
 			name: "Unknown token at end",
@@ -246,17 +246,17 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name: "Access error",
 			input: "head 1.1;\naccess", // missing ;
-			wantErr: "token \"access\": expected id in access",
+			wantErr: "token \"access\": expected id in access: scanning until \"id\"",
 		},
 		{
 			name: "Symbols error",
 			input: "head 1.1;\nsymbols", // missing ;
-			wantErr: "token \"symbols\": expected sym in symbols",
+			wantErr: "token \"symbols\": expected sym in symbols: scanning until \"sym\"",
 		},
 		{
 			name: "Locks error",
 			input: "head 1.1;\nlocks\n\tbad",
-			wantErr: "token \"locks\": expected : after lock id \"bad\"",
+			wantErr: "token \"locks\": expected : after lock id \"bad\"", // This one failed earlier with expected : finding ...
 		},
 		{
 			name: "Comment error",
@@ -328,7 +328,7 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 		{
 			name: "Error in lock line",
 			input: "locks\n\tbad_lock",
-			wantErr: "finding []string{\":\"}", // ScanUntilStrings : at EOF
+			wantErr: "expected : after lock id \"bad_lock\"",
 		},
 		{
 			name: "Unknown token inside locks",
