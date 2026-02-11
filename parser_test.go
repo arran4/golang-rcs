@@ -169,7 +169,7 @@ func TestParseHeader(t *testing.T) {
 					},
 				},
 				Strict:          true,
-				StrictOnOwnLine: true,
+				StrictOnOwnLine: false,
 			},
 			wantErr: false,
 		},
