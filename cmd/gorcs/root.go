@@ -68,10 +68,12 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 	c.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "  Commands:")
+	fmt.Fprintf(os.Stderr, "    %s\n", "format")
 	fmt.Fprintf(os.Stderr, "    %s\n", "from-json")
 	fmt.Fprintf(os.Stderr, "    %s\n", "list-heads")
 	fmt.Fprintf(os.Stderr, "    %s\n", "normalize-revisions")
 	fmt.Fprintf(os.Stderr, "    %s\n", "to-json")
+	fmt.Fprintf(os.Stderr, "    %s\n", "validate")
 }
 
 func NewRoot(name, version, commit, date string) (*RootCmd, error) {
@@ -83,10 +85,12 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 		Date:     date,
 	}
 	c.FlagSet.Usage = c.Usage
+	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()
 	c.Commands["list-heads"] = c.NewListHeads()
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
 	c.Commands["to-json"] = c.NewToJson()
+	c.Commands["validate"] = c.NewValidate()
 	c.Commands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
 			for _, arg := range args {

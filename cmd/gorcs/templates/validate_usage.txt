@@ -1,0 +1,14 @@
+Usage: gorcs validate [flags...] [files...]
+
+Subcommands:
+    help         Print this help message
+    usage        Print this usage message
+
+Flags:
+    -o, --output string   Output file path (only valid for single input file)
+    -f, --force           Force overwrite output file if it exists
+    -w, --overwrite       Overwrite input file
+    -s, --stdout          Force output to stdout
+
+Positional Arguments:
+    files      List of files to process or - for stdin
