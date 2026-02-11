@@ -134,12 +134,12 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 		{
 			name:    "Error parsing author",
 			input:   "date\t2022.01.01.00.00.00;\tauthor;", // missing value
-			wantErr: "token \"author\": scanning until \"whitespace\"",
+			wantErr: "token \"author\": scanning until \"whitespace\" at 1:32 found \";\"",
 		},
 		{
 			name:    "Error parsing state",
 			input:   "date\t2022.01.01.00.00.00;\tauthor a;\tstate;", // missing value
-			wantErr: "token \"state\": scanning until \"whitespace\"",
+			wantErr: "token \"state\": scanning until \"whitespace\" at 1:41 found \";\"",
 		},
 	}
 	for _, tt := range tests {
@@ -178,7 +178,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad next",
 			input:   "1.1\nnext;",
-			wantErr: "token \"next\": scanning until \"whitespace\"",
+			wantErr: "token \"next\": scanning until \"whitespace\" at 2:4 found \";\"",
 		},
 	}
 	for _, tt := range tests {
@@ -237,7 +237,7 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad head",
 			input:   "head;",
-			wantErr: "scanning until \"whitespace\"",
+			wantErr: "scanning until \"whitespace\" at 1:4 found \";\"",
 		},
 		{
 			name:  "Unknown token",
@@ -248,12 +248,12 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name:    "Access error",
 			input:   "head 1.1;\naccess", // missing ;
-			wantErr: "token \"access\": scanning until \"whitespace\"",
+			wantErr: "token \"access\": scanning until \"whitespace\" at 2:6 found \"\"",
 		},
 		{
 			name:    "Symbols error",
 			input:   "head 1.1;\nsymbols", // missing ;
-			wantErr: "token \"symbols\": scanning until \"whitespace\"",
+			wantErr: "token \"symbols\": scanning until \"whitespace\" at 2:7 found \"\"",
 		},
 		{
 			name:    "Locks error",

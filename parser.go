@@ -791,14 +791,25 @@ func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name strin
 			}
 			adv += a
 		}
-		err = ScanUntilNotFound(name)
+		err = ScanUntilNotFound{
+			Until: name,
+			Pos:   *s.pos,
+			Found: string(data),
+		}
 		return 0, []byte{}, nil
 	})
 	if !s.Scan() {
 		if s.Err() != nil {
 			return s.Err()
 		}
-		return ScanUntilNotFound(name)
+		if err != nil {
+			return err
+		}
+		return ScanUntilNotFound{
+			Until: name,
+			Pos:   *s.pos,
+			Found: "",
+		}
 	}
 	return
 }
@@ -836,10 +847,21 @@ func (se ScanNotFound) Error() string {
 	return fmt.Sprintf("looking for %s at %s found %q", lookingFor, se.Pos.String(), found)
 }
 
-type ScanUntilNotFound string
+type ScanUntilNotFound struct {
+	Until string
+	Pos   Pos
+	Found string
+}
 
 func (se ScanUntilNotFound) Error() string {
-	return fmt.Sprintf("scanning until %#v", string(se))
+	found := se.Found
+	if len(found) > 20 {
+		runes := []rune(found)
+		if len(runes) > 20 {
+			found = string(runes[:20]) + "..."
+		}
+	}
+	return fmt.Sprintf("scanning until %q at %s found %q", se.Until, se.Pos.String(), found)
 }
 
 func IsNotFound(err error) bool {
@@ -848,7 +870,7 @@ func IsNotFound(err error) bool {
 		return true
 	}
 	e1 := ScanNotFound{}
-	e2 := ScanUntilNotFound("")
+	e2 := ScanUntilNotFound{}
 	return errors.As(err, &e1) || errors.As(err, &e2)
 }
 
