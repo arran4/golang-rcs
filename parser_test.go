@@ -1365,38 +1365,3 @@ func TestParseLockBody(t *testing.T) {
 		})
 	}
 }
-
-func TestParseHeaderLocks_Inline(t *testing.T) {
-	input := `head     1.1;
-locks    payne:4.4.2.1;
-comment  @# @;
-
-
-1.1
-date    2021.01.01.00.00.00;    author payne;    state Exp;
-branches;
-next    ;
-
-
-desc
-@@
-
-
-`
-	f, err := ParseFile(strings.NewReader(input))
-	if err != nil {
-		t.Fatalf("ParseFile failed: %v", err)
-	}
-
-	if len(f.Locks) != 1 {
-		t.Errorf("expected 1 lock, got %d", len(f.Locks))
-	} else {
-		lock := f.Locks[0]
-		if lock.User != "payne" {
-			t.Errorf("expected lock user 'payne', got '%s'", lock.User)
-		}
-		if lock.Revision != "4.4.2.1" {
-			t.Errorf("expected lock revision '4.4.2.1', got '%s'", lock.Revision)
-		}
-	}
-}

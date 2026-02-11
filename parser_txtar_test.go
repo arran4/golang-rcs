@@ -38,8 +38,7 @@ func TestParseTxtarFiles(t *testing.T) {
 			}
 
 			// Parse RCS
-			// Add newline to ensure parser behaves correctly if txtar trimming removed it
-			parsedFile, err := ParseFile(strings.NewReader(rcsContent + "\n"))
+			parsedFile, err := ParseFile(strings.NewReader(rcsContent))
 			if err != nil {
 				t.Fatalf("ParseFile error: %v", err)
 			}
@@ -72,7 +71,7 @@ func parseTxtar(content string) map[string]string {
 		line = strings.TrimRight(line, "\r")
 		if strings.HasPrefix(line, "-- ") && strings.HasSuffix(line, " --") {
 			if currentFile != "" {
-				parts[currentFile] = strings.TrimSpace(currentContent.String())
+				parts[currentFile] = currentContent.String()
 				currentContent.Reset()
 			}
 			currentFile = strings.TrimSuffix(strings.TrimPrefix(line, "-- "), " --")
@@ -83,7 +82,7 @@ func parseTxtar(content string) map[string]string {
 		}
 	}
 	if currentFile != "" {
-		parts[currentFile] = strings.TrimSpace(currentContent.String())
+		parts[currentFile] = currentContent.String()
 	}
 	return parts
 }
