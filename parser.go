@@ -345,7 +345,7 @@ func ParseHeader(s *Scanner, f *File) error {
 		case "\n\n", "\r\n\r\n":
 			return nil
 		default:
-			return fmt.Errorf("unknown token: %s", nt)
+			return fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
 }
@@ -425,7 +425,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 		case "\n", "\r\n":
 			continue
 		default:
-			return nil, false, false, fmt.Errorf("unknown token: %s", nt)
+			return nil, false, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
 }
@@ -456,7 +456,7 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	}
 	rh.Revision = s.Text()
 	if rh.Revision == "" {
-		return nil, false, fmt.Errorf("revision empty")
+		return nil, false, ErrRevisionEmpty
 	}
 	if err := ScanNewLine(s, false); err != nil {
 		return nil, false, err
@@ -487,7 +487,7 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		case "\n", "\r\n":
 			return rh, false, nil
 		default:
-			return nil, false, fmt.Errorf("unknown token: %s", nt)
+			return nil, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
 }
@@ -685,7 +685,7 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 	}
 	l.Revision = s.Text()
 	if l.Revision == "" {
-		return nil, fmt.Errorf("revision empty")
+		return nil, ErrRevisionEmpty
 	}
 	if err := ScanFieldTerminator(s); err != nil {
 		return nil, err
@@ -706,7 +706,7 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 			}
 		case " ":
 		default:
-			return nil, fmt.Errorf("unknown token: %s", nt)
+			return nil, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
 }
@@ -743,7 +743,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 				rh.State = s
 			}
 		default:
-			return fmt.Errorf("unknown token: %s", nt)
+			return fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
 	if err := ScanNewLine(s, false); err != nil {
@@ -984,7 +984,7 @@ func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, e
 		for i, b := range data {
 			if b == ':' {
 				if i == 0 {
-					return 0, nil, fmt.Errorf("empty id")
+					return 0, nil, ErrEmptyId
 				}
 				return i, data[:i], nil
 			}
