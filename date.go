@@ -61,7 +61,7 @@ func ParseDate(input string, now time.Time, defaultZone *time.Location) (time.Ti
 		}
 	}
 
-	return time.Time{}, fmt.Errorf("unable to parse date: %s", input)
+	return time.Time{}, fmt.Errorf("%w: %s", ErrDateParse, input)
 }
 
 const (
