@@ -2,7 +2,8 @@ head	1.6;
 access;
 symbols;
 locks
-	arran:1.6; strict;
+	arran:1.6;
+strict;
 comment	@# @;
 
 

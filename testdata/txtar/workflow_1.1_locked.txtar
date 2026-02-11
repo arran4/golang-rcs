@@ -43,10 +43,10 @@ asdf
     {
       "User": "arran",
       "Revision": "1.1",
-      "Strict": true
+      "Strict": false
     }
   ],
-  "Strict": false,
+  "Strict": true,
   "Integrity": "",
   "Expand": "",
   "RevisionHeads": [

@@ -166,9 +166,10 @@ func TestParseHeader(t *testing.T) {
 					{
 						User:     "arran",
 						Revision: "1.6",
-						Strict:   true,
+						Strict:   false,
 					},
 				},
+				Strict: true,
 			},
 			wantErr: false,
 		},
@@ -589,7 +590,7 @@ func TestParseHeaderLocks(t *testing.T) {
 				{
 					User:     "arran",
 					Revision: "1.6",
-					Strict:   true,
+					Strict:   false,
 				},
 			},
 			wantErr: false,
@@ -627,7 +628,7 @@ func TestParseLockLine(t *testing.T) {
 			want: &Lock{
 				User:     "arran",
 				Revision: "1.6",
-				Strict:   true,
+				Strict:   false,
 			},
 			wantErr: false,
 		},
@@ -1330,7 +1331,7 @@ func TestParseLockBody(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Strict lock body",
+			name: "Strict lock body - strict is ignored here now",
 			args: args{
 				s:    NewScanner(strings.NewReader("1.1; strict;")),
 				user: "user",
@@ -1338,7 +1339,7 @@ func TestParseLockBody(t *testing.T) {
 			want: &Lock{
 				User:     "user",
 				Revision: "1.1",
-				Strict:   true,
+				Strict:   false,
 			},
 			wantErr: false,
 		},
