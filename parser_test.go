@@ -19,7 +19,9 @@ var (
 	accessSymbols = []byte(
 		"head\t1.1;\n" +
 			"access john jane;\n" +
-			"symbols rel:1.1 tag:1.1.0.2;\n" +
+			"symbols\n" +
+			"\trel:1.1\n" +
+			"\ttag:1.1.0.2;\n" +
 			"locks\n" +
 			"\tjohn:1.1;\n" +
 			"comment\t@# @;\n" +
