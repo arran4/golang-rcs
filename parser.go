@@ -814,10 +814,26 @@ func ScanNewLine(s *Scanner, orEof bool) error {
 	return ScanStrings(s, "\r\n", "\n")
 }
 
-type ScanNotFound []string
+type ScanNotFound struct {
+	LookingFor []string
+	Pos        Pos
+	Found      string
+}
 
 func (se ScanNotFound) Error() string {
-	return fmt.Sprintf("looking for %#v", []string(se))
+	strs := make([]string, len(se.LookingFor))
+	for i, s := range se.LookingFor {
+		strs[i] = fmt.Sprintf("%#v", s)
+	}
+	lookingFor := strings.Join(strs, ", ")
+	found := se.Found
+	if len(found) > 20 {
+		runes := []rune(found)
+		if len(runes) > 20 {
+			found = string(runes[:20]) + "..."
+		}
+	}
+	return fmt.Sprintf("looking for %s at %s found %q", lookingFor, se.Pos.String(), found)
 }
 
 type ScanUntilNotFound string
@@ -831,7 +847,7 @@ func IsNotFound(err error) bool {
 	case ScanUntilNotFound, ScanNotFound:
 		return true
 	}
-	e1 := ScanNotFound([]string{})
+	e1 := ScanNotFound{}
 	e2 := ScanUntilNotFound("")
 	return errors.As(err, &e1) || errors.As(err, &e2)
 }
@@ -854,14 +870,25 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 				return i, rs, nil
 			}
 		}
-		err = ScanNotFound(strs)
+		err = ScanNotFound{
+			LookingFor: strs,
+			Pos:        *s.pos,
+			Found:      string(data),
+		}
 		return 0, []byte{}, nil
 	})
 	if !s.Scan() {
 		if s.Err() != nil {
 			return s.Err()
 		}
-		return ScanNotFound(strs)
+		if err != nil {
+			return err
+		}
+		return ScanNotFound{
+			LookingFor: strs,
+			Pos:        *s.pos,
+			Found:      "",
+		}
 	}
 	return
 }
@@ -894,7 +921,11 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 			}
 		}
 		if atEOF {
-			err = ErrEOF{ScanNotFound(strs)}
+			err = ErrEOF{ScanNotFound{
+				LookingFor: strs,
+				Pos:        *s.pos,
+				Found:      string(data),
+			}}
 			return 0, []byte{}, nil
 		}
 		return 0, nil, nil
@@ -903,7 +934,14 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 		if s.Err() != nil {
 			return s.Err()
 		}
-		return ScanNotFound(strs)
+		if err != nil {
+			return err
+		}
+		return ScanNotFound{
+			LookingFor: strs,
+			Pos:        *s.pos,
+			Found:      "",
+		}
 	}
 	return err
 }

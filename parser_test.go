@@ -395,12 +395,12 @@ func TestIsNotFound(t *testing.T) {
 		},
 		{
 			name: "ScanNotFound error is",
-			err:  ScanNotFound([]string{"123", "123"}),
+			err:  ScanNotFound{LookingFor: []string{"123", "123"}},
 			want: true,
 		},
 		{
 			name: "Nested ScanNotFound error is",
-			err:  fmt.Errorf("hi: %w", ScanNotFound([]string{"123", "123"})),
+			err:  fmt.Errorf("hi: %w", ScanNotFound{LookingFor: []string{"123", "123"}}),
 			want: true,
 		},
 		{
