@@ -231,6 +231,40 @@ Example:
 cat file1.json | gorcs from-json - > file1.go,v
 ```
 
+### `gorcs format`
+
+Reads one or more RCS files and outputs them in RCS format. This is useful for normalizing file formatting or verifying parser round-trips.
+
+**Usage:**
+
+```shell
+gorcs format [-o output_file] [-w] [-s] [-f] [file1,v ...]
+```
+
+- **Output:** By default, outputs to stdout. If multiple files are provided and output is stdout, uses `txtar` format.
+- `-o`: Specify output file (only valid with a single input file).
+- `-w`, `--overwrite`: Overwrite the input file with the formatted output.
+- `-s`, `--stdout`: Force output to stdout (even if other flags might imply otherwise).
+- `-f`, `--force`: Force overwrite if output file exists.
+- `-` as input file reads from stdin.
+
+### `gorcs validate`
+
+Reads one or more RCS files, parses them, and re-serializes them to ensure validity. Currently functionally identical to `format`.
+
+**Usage:**
+
+```shell
+gorcs validate [-o output_file] [-w] [-s] [-f] [file1,v ...]
+```
+
+- **Output:** By default, outputs to stdout. If multiple files are provided and output is stdout, uses `txtar` format.
+- `-o`: Specify output file (only valid with a single input file).
+- `-w`, `--overwrite`: Overwrite the input file.
+- `-s`, `--stdout`: Force output to stdout.
+- `-f`, `--force`: Force overwrite if output file exists.
+- `-` as input file reads from stdin.
+
 ## License
 
 MIT.
