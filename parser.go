@@ -366,6 +366,9 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 			if IsNotFound(err) {
 				return nil, false, false, nil
 			}
+			if IsEOFError(err) {
+				return nil, false, false, nil
+			}
 			return nil, false, false, err
 		}
 		rev := s.Text()
@@ -419,13 +422,15 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
 	for {
-		if rc, next, err := ParseRevisionContent(s); err != nil {
+		rc, next, err := ParseRevisionContent(s)
+		if err != nil {
 			return nil, err
-		} else {
+		}
+		if rc != nil {
 			rcs = append(rcs, rc)
-			if !next {
-				return rcs, nil
-			}
+		}
+		if !next {
+			return rcs, nil
 		}
 	}
 }
@@ -433,11 +438,14 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
 	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
+		if IsEOFError(err) {
+			return nil, false, nil
+		}
 		return nil, false, err
 	}
 	rh.Revision = s.Text()
 	if rh.Revision == "" {
-		return nil, false, fmt.Errorf("revsion empty")
+		return nil, false, fmt.Errorf("revision empty")
 	}
 	if err := ScanNewLine(s, false); err != nil {
 		return nil, false, err
@@ -471,6 +479,12 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 			return nil, false, fmt.Errorf("unknown token: %s", nt)
 		}
 	}
+}
+
+func IsEOFError(err error) bool {
+	var eofErr ErrEOF
+	isEof := errors.As(err, &eofErr)
+	return isEof
 }
 
 func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName bool) error {
@@ -634,7 +648,7 @@ func ParseLockLine(s *Scanner) (*Lock, error) {
 	}
 	l.Revision = s.Text()
 	if l.Revision == "" {
-		return nil, fmt.Errorf("revsion empty")
+		return nil, fmt.Errorf("revision empty")
 	}
 	if err := ScanFieldTerminator(s); err != nil {
 		return nil, err
@@ -805,7 +819,7 @@ func ScanNewLine(s *Scanner, orEof bool) error {
 type ScanNotFound []string
 
 func (se ScanNotFound) Error() string {
-	return fmt.Sprintf("finding %#v", []string(se))
+	return fmt.Sprintf("looking for %#v", []string(se))
 }
 
 type ScanUntilNotFound string
@@ -854,6 +868,12 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 	return
 }
 
+type ErrEOF struct{ error }
+
+func (e ErrEOF) Error() string {
+	return "EOF:" + e.error.Error()
+}
+
 func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		err = nil
@@ -876,7 +896,7 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 			}
 		}
 		if atEOF {
-			err = ScanNotFound(strs)
+			err = ErrEOF{ScanNotFound(strs)}
 			return 0, []byte{}, nil
 		}
 		return 0, nil, nil
