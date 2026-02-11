@@ -173,7 +173,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad date",
 			input:   "1.1\ndate bad;",
-			wantErr: "Date unable to parse date",
+			wantErr: "Date unable to parse date: bad parser section parser: raw: date",
 		},
 		{
 			name:    "Bad next",
