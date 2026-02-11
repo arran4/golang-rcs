@@ -1234,3 +1234,169 @@ func TestRevisionHeadStringBranches(t *testing.T) {
 		t.Errorf("RevisionHead.String() diff: %s", diff)
 	}
 }
+
+func TestScanLockIdOrStrings(t *testing.T) {
+	type args struct {
+		s    *Scanner
+		strs []string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantId    string
+		wantMatch string
+		wantErr   bool
+	}{
+		{
+			name: "Match keyword",
+			args: args{
+				s:    NewScanner(strings.NewReader("keyword")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "",
+			wantMatch: "keyword",
+			wantErr:   false,
+		},
+		{
+			name: "Match lock ID",
+			args: args{
+				s:    NewScanner(strings.NewReader("user:1.1")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "user",
+			wantMatch: "",
+			wantErr:   false,
+		},
+		{
+			name: "Match nothing",
+			args: args{
+				s:    NewScanner(strings.NewReader("other")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "",
+			wantMatch: "",
+			wantErr:   true,
+		},
+		{
+			name: "Empty input",
+			args: args{
+				s:    NewScanner(strings.NewReader("")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "",
+			wantMatch: "",
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotId, gotMatch, err := ScanLockIdOrStrings(tt.args.s, tt.args.strs...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ScanLockIdOrStrings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotId != tt.wantId {
+				t.Errorf("ScanLockIdOrStrings() gotId = %v, want %v", gotId, tt.wantId)
+			}
+			if gotMatch != tt.wantMatch {
+				t.Errorf("ScanLockIdOrStrings() gotMatch = %v, want %v", gotMatch, tt.wantMatch)
+			}
+		})
+	}
+}
+
+func TestParseLockBody(t *testing.T) {
+	type args struct {
+		s    *Scanner
+		user string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *Lock
+		wantErr bool
+	}{
+		{
+			name: "Simple lock body",
+			args: args{
+				s:    NewScanner(strings.NewReader("1.1;")),
+				user: "user",
+			},
+			want: &Lock{
+				User:     "user",
+				Revision: "1.1",
+				Strict:   false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Strict lock body",
+			args: args{
+				s:    NewScanner(strings.NewReader("1.1; strict;")),
+				user: "user",
+			},
+			want: &Lock{
+				User:     "user",
+				Revision: "1.1",
+				Strict:   true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Empty revision",
+			args: args{
+				s:    NewScanner(strings.NewReader(";")),
+				user: "user",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseLockBody(tt.args.s, tt.args.user)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseLockBody() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Errorf("ParseLockBody() %s", diff)
+			}
+		})
+	}
+}
+
+func TestParseHeaderLocks_Inline(t *testing.T) {
+	input := `head     1.1;
+locks    payne:4.4.2.1;
+comment  @# @;
+
+
+1.1
+date    2021.01.01.00.00.00;    author payne;    state Exp;
+branches;
+next    ;
+
+
+desc
+@@
+
+
+`
+	f, err := ParseFile(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("ParseFile failed: %v", err)
+	}
+
+	if len(f.Locks) != 1 {
+		t.Errorf("expected 1 lock, got %d", len(f.Locks))
+	} else {
+		lock := f.Locks[0]
+		if lock.User != "payne" {
+			t.Errorf("expected lock user 'payne', got '%s'", lock.User)
+		}
+		if lock.Revision != "4.4.2.1" {
+			t.Errorf("expected lock revision '4.4.2.1', got '%s'", lock.Revision)
+		}
+	}
+}
