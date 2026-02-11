@@ -40,6 +40,7 @@ asdf
   "SymbolMap": null,
   "Locks": null,
   "Strict": true,
+  "StrictOnOwnLine": true,
   "Integrity": "",
   "Expand": "",
   "RevisionHeads": [
