@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 name: Test
 jobs:
   test:
@@ -12,10 +12,41 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
+    - name: Cache-Go
+      uses: actions/cache@v4.2.3
+      with:
+        path: |
+          ~/go/pkg/mod              # Module download cache
+          ~/.cache/go-build         # Build cache (Linux)
+          ~/Library/Caches/go-build # Build cache (Mac)
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Test
       run: go test ./...
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Cache-Go
+      uses: actions/cache@v4.2.3
+      with:
+        path: |
+          ~/go/pkg/mod              # Module download cache
+          ~/.cache/go-build         # Build cache (Linux)
+          ~/Library/Caches/go-build # Build cache (Mac)
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: latest
+
   verify:
     name: Verify
     runs-on: ubuntu-latest
@@ -38,5 +69,15 @@ jobs:
       run: go fmt ./...
 
     - name: Check for changes
+      if: github.event_name != 'workflow_dispatch'
       run: |
         git diff --exit-code || (echo "Run go fix ./... && go fmt ./... and commit changes" && exit 1)
+
+    - name: Create Pull Request
+      if: github.event_name == 'workflow_dispatch'
+      uses: peter-evans/create-pull-request@v7
+      with:
+        commit-message: "Apply go fix and go fmt"
+        title: "Apply go fix and go fmt"
+        body: "This PR applies `go fix` and `go fmt` to the codebase."
+        branch: "fix-and-fmt-patch"
