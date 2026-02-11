@@ -136,7 +136,7 @@ func (f *File) String() string {
 		sb.WriteString(" strict;")
 	}
 	sb.WriteString("\n")
-	if f.Strict && len(f.Locks) > 0 && f.StrictOnOwnLine {
+	if f.Strict && f.StrictOnOwnLine {
 		sb.WriteString("strict;\n")
 	}
 	if f.Integrity != "" {
