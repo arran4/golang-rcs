@@ -1234,3 +1234,72 @@ func TestRevisionHeadStringBranches(t *testing.T) {
 		t.Errorf("RevisionHead.String() diff: %s", diff)
 	}
 }
+
+func TestParseRevisionContent_ExtraNewlines(t *testing.T) {
+	input := `
+
+
+1.1
+log
+@Initial revision
+@
+text
+@content
+@
+`
+	s := NewScanner(strings.NewReader(input))
+	gotRC, _, err := ParseRevisionContent(s)
+	if err != nil {
+		t.Errorf("ParseRevisionContent() error = %v", err)
+	}
+
+	expectedRC := &RevisionContent{
+		Revision: "1.1",
+		Log:      "Initial revision\n",
+		Text:     "content\n",
+	}
+
+	if diff := cmp.Diff(gotRC, expectedRC); diff != "" {
+		t.Errorf("ParseRevisionContent() %s", diff)
+	}
+}
+
+func TestParseFile_ExtraNewlines(t *testing.T) {
+	input := `head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2024.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+
+1.1
+log
+@Initial revision
+@
+text
+@content
+@
+`
+	f, err := ParseFile(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("ParseFile() error = %v", err)
+	}
+
+	if len(f.RevisionContents) != 1 {
+		t.Errorf("Expected 1 revision content, got %d", len(f.RevisionContents))
+	}
+	if f.RevisionContents[0].Revision != "1.1" {
+		t.Errorf("Expected revision 1.1, got %s", f.RevisionContents[0].Revision)
+	}
+}
