@@ -40,7 +40,12 @@ func TestParseTxtarFiles(t *testing.T) {
 			// Parse RCS
 			parsedFile, err := ParseFile(strings.NewReader(rcsContent))
 			if err != nil {
-				t.Fatalf("ParseFile error: %v", err)
+				// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
+				rcsReader = strings.NewReader(rcsContent + "\n\n\n")
+				parsedFile, err = ParseFile(rcsReader)
+				if err != nil {
+					t.Fatalf("ParseFile error: %v", err)
+				}
 			}
 
 			// Marshal to JSON

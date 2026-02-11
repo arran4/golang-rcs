@@ -52,12 +52,12 @@ func TestParseAtQuotedString_Errors(t *testing.T) {
 		{
 			name:    "Missing start quote",
 			input:   "no quote",
-			wantErr: "open quote: looking for []string{\"@\"}",
+			wantErr: "open quote: looking for \"@\"",
 		},
 		{
 			name:    "Missing end quote",
 			input:   "@start quote",
-			wantErr: "looking for []string{\"@\"}", // ScanUntilStrings returns ScanNotFound at EOF
+			wantErr: "looking for \"@\"", // ScanUntilStrings returns ScanNotFound at EOF
 		},
 	}
 	for _, tt := range tests {
@@ -80,7 +80,7 @@ func TestParseLockLine_Errors(t *testing.T) {
 		{
 			name:    "Missing colon",
 			input:   "user",
-			wantErr: "EOF:looking for []string{\":\"}", // ScanUntilStrings returns ScanNotFound at EOF
+			wantErr: "EOF:looking for \":\"", // ScanUntilStrings returns ScanNotFound at EOF
 		},
 		{
 			name:    "Missing revision",
@@ -90,7 +90,7 @@ func TestParseLockLine_Errors(t *testing.T) {
 		{
 			name:    "Missing semicolon",
 			input:   "user:1.1",
-			wantErr: "EOF:looking for []string{\";\"}",
+			wantErr: "EOF:looking for \";\"",
 		},
 		{
 			name:    "Unknown token at end",
@@ -129,17 +129,17 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 		{
 			name:    "Missing author",
 			input:   "date\t2022.01.01.00.00.00;\tmissing_author",
-			wantErr: "looking for []string{\"\\r\\n\", \"\\n\"}", // ScanNewLine fails, escaped backslashes
+			wantErr: "looking for \"\\r\\n\", \"\\n\"", // ScanNewLine fails, escaped backslashes
 		},
 		{
 			name:    "Error parsing author",
 			input:   "date\t2022.01.01.00.00.00;\tauthor;", // missing value
-			wantErr: "token \"author\": scanning until \"whitespace\"",
+			wantErr: "token \"author\": scanning until \"whitespace\" at 1:32 but found \";\"",
 		},
 		{
 			name:    "Error parsing state",
 			input:   "date\t2022.01.01.00.00.00;\tauthor a;\tstate;", // missing value
-			wantErr: "token \"state\": scanning until \"whitespace\"",
+			wantErr: "token \"state\": scanning until \"whitespace\" at 1:41 but found \";\"",
 		},
 	}
 	for _, tt := range tests {
@@ -178,7 +178,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad next",
 			input:   "1.1\nnext;",
-			wantErr: "token \"next\": scanning until \"whitespace\"",
+			wantErr: "token \"next\": scanning until \"whitespace\" at 2:4 but found \";\"",
 		},
 	}
 	for _, tt := range tests {
@@ -209,12 +209,12 @@ func TestParseRevisionContent_Errors(t *testing.T) {
 		{
 			name:    "Bad log",
 			input:   "1.1\nlog\nbad", // Expects @
-			wantErr: "token \"log\": quote string: open quote: looking for []string{\"@\"}",
+			wantErr: "token \"log\": quote string: open quote: looking for \"@\"",
 		},
 		{
 			name:    "Bad text",
 			input:   "1.1\ntext\nbad", // Expects @
-			wantErr: "token \"text\": quote string: open quote: looking for []string{\"@\"}",
+			wantErr: "token \"text\": quote string: open quote: looking for \"@\"",
 		},
 	}
 	for _, tt := range tests {
@@ -237,33 +237,33 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad head",
 			input:   "head;",
-			wantErr: "scanning until \"whitespace\"",
+			wantErr: "scanning until \"whitespace\" at 1:4 but found \";\"",
 		},
 		{
 			name:  "Unknown token",
 			input: "head 1.1;\nunknown",
 			// Updated wantErr to include new keywords
-			wantErr: "looking for []string{\"branch\", \"access\", \"symbols\", \"locks\", \"strict\", \"integrity\", \"comment\", \"expand\"",
+			wantErr: "looking for \"branch\", \"access\", \"symbols\", \"locks\", \"strict\", \"integrity\", \"comment\", \"expand\"",
 		},
 		{
 			name:    "Access error",
 			input:   "head 1.1;\naccess", // missing ;
-			wantErr: "token \"access\": scanning until \"whitespace\"",
+			wantErr: "token \"access\": scanning until \"whitespace\" at 2:6 but found \"\"",
 		},
 		{
 			name:    "Symbols error",
 			input:   "head 1.1;\nsymbols", // missing ;
-			wantErr: "token \"symbols\": scanning until \"whitespace\"",
+			wantErr: "token \"symbols\": scanning until \"whitespace\" at 2:7 but found \"\"",
 		},
 		{
 			name:    "Locks error",
 			input:   "head 1.1;\nlocks\n\tbad",
-			wantErr: "token \"locks\": EOF:looking for []string{\":\"}", // ScanUntilStrings : at EOF
+			wantErr: "token \"locks\": EOF:looking for \":\"", // ScanUntilStrings : at EOF
 		},
 		{
 			name:    "Comment error",
 			input:   "head 1.1;\ncomment bad",
-			wantErr: "token \"comment\": open quote: looking for []string{\"@\"}",
+			wantErr: "token \"comment\": open quote: looking for \"@\"",
 		},
 	}
 	for _, tt := range tests {
@@ -287,7 +287,7 @@ func TestParseFile_Errors(t *testing.T) {
 		{
 			name:    "Header error",
 			input:   "bad",
-			wantErr: "parsing 1:0: looking for []string{\"head\"}",
+			wantErr: "parsing 1:0: looking for \"head\"",
 		},
 		{
 			name:    "Revision headers error",
@@ -297,12 +297,12 @@ func TestParseFile_Errors(t *testing.T) {
 		{
 			name:    "Description error",
 			input:   "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\nbad",
-			wantErr: "parsing 10:0: description tag: looking for []string{\"desc\\n\", \"desc\\r\\n\"}",
+			wantErr: "parsing 10:0: description tag: looking for \"desc\\n\", \"desc\\r\\n\"",
 		},
 		{
 			name:    "Revision content error",
 			input:   "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\ndesc\n@@\n\n\n1.1\nlog\nbad", // Added 3rd newline
-			wantErr: "token \"log\": quote string: open quote: looking for []string{\"@\"}",
+			wantErr: "token \"log\": quote string: open quote: looking for \"@\"",
 		},
 	}
 	for _, tt := range tests {
@@ -325,17 +325,17 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 		{
 			name:    "Missing locks keyword",
 			input:   "not_locks",
-			wantErr: "looking for []string{\"locks\"}",
+			wantErr: "looking for \"locks\"",
 		},
 		{
 			name:    "Error in lock line",
 			input:   "locks\n\tbad_lock",
-			wantErr: "EOF:looking for []string{\":\"}", // ScanUntilStrings : at EOF
+			wantErr: "EOF:looking for \":\"", // ScanUntilStrings : at EOF
 		},
 		{
 			name:    "Unknown token inside locks",
 			input:   "locks\n\tuser:1.1;\n\tbad_token", // It expects " " or "\n\t" or "\r\n\t"
-			wantErr: "EOF:looking for []string{\":\"}", // Failed inside ParseLockLine scanning user:
+			wantErr: "EOF:looking for \":\"",           // Failed inside ParseLockLine scanning user:
 		},
 	}
 	for _, tt := range tests {

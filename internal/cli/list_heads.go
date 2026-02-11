@@ -1,7 +1,6 @@
-package main
+package cli
 
 import (
-	"flag"
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
 	"log"
@@ -9,18 +8,17 @@ import (
 	"time"
 )
 
-func init() {
-	log.SetFlags(log.Flags() | log.Lshortfile)
-	flag.Parse()
-}
-
-func main() {
-	for _, f := range flag.Args() {
-		ListHeads(f)
+// ListHeads is a subcommand `gorcs list-heads`
+//
+// Flags:
+//   files: ... List of files to process
+func ListHeads(files ...string) {
+	for _, f := range files {
+		listHeadsFile(f)
 	}
 }
 
-func ListHeads(fn string) {
+func listHeadsFile(fn string) {
 	f, err := os.Open(fn)
 	if err != nil {
 		log.Panicf("Error with file: %s", err)
