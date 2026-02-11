@@ -115,7 +115,7 @@ Contains the log message and text content for a revision.
 | `Log` | `string` | The commit log message. |
 | `Text` | `string` | The raw text content of the revision. |
 
-## gorcs
+## Program: gorcs
 
 This repository includes a utility program `gorcs` with subcommands.
 
