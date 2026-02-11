@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
-	"io/ioutil"
 	"log"
 	"os"
 	"sort"
@@ -133,7 +132,7 @@ func main() {
 
 func WriteFile(fn string, file *rcs.File) {
 	fmt.Println("Saving: ", fn)
-	if err := ioutil.WriteFile(fn, []byte(file.String()), 0644); err != nil {
+	if err := os.WriteFile(fn, []byte(file.String()), 0644); err != nil {
 		log.Panicf("Error saving file: %s: %s", fn, err)
 	}
 }
