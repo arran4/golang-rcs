@@ -540,11 +540,11 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 	if err := ScanWhiteSpace(s, 0); err != nil {
 		return nil, err
 	}
-	if err := ScanUntilNewLine(s); err != nil {
+	if err := ScanUntilFieldTerminator(s); err != nil {
 		return nil, err
 	}
 	line := s.Text()
-	if err := ScanNewLine(s, false); err != nil {
+	if err := ParseTerminatorFieldLine(s); err != nil {
 		return nil, err
 	}
 	m := map[string]string{}
