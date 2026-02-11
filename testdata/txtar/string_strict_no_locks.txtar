@@ -24,6 +24,8 @@ comment	@@;
 
 desc
 @@
+
+
 -- input.rcs --
 head	1.7;
 locks; strict;
