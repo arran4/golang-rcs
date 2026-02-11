@@ -366,6 +366,9 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 			if IsNotFound(err) {
 				return nil, false, false, nil
 			}
+			if IsEOFError(err) {
+				return nil, false, false, nil
+			}
 			return nil, false, false, err
 		}
 		rev := s.Text()
@@ -435,15 +438,14 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
 	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
-		var eofErr ErrEOF
-		if errors.As(err, &eofErr) {
+		if IsEOFError(err) {
 			return nil, false, nil
 		}
 		return nil, false, err
 	}
 	rh.Revision = s.Text()
 	if rh.Revision == "" {
-		return nil, false, fmt.Errorf("revsion empty")
+		return nil, false, fmt.Errorf("revision empty")
 	}
 	if err := ScanNewLine(s, false); err != nil {
 		return nil, false, err
@@ -477,6 +479,12 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 			return nil, false, fmt.Errorf("unknown token: %s", nt)
 		}
 	}
+}
+
+func IsEOFError(err error) bool {
+	var eofErr ErrEOF
+	isEof := errors.As(err, &eofErr)
+	return isEof
 }
 
 func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName bool) error {
@@ -640,7 +648,7 @@ func ParseLockLine(s *Scanner) (*Lock, error) {
 	}
 	l.Revision = s.Text()
 	if l.Revision == "" {
-		return nil, fmt.Errorf("revsion empty")
+		return nil, fmt.Errorf("revision empty")
 	}
 	if err := ScanFieldTerminator(s); err != nil {
 		return nil, err
