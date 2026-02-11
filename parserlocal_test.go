@@ -3,11 +3,11 @@ package rcs
 import (
 	"bytes"
 	"embed"
-	"github.com/google/go-cmp/cmp"
 	"io/fs"
-	"path"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 var (
@@ -16,17 +16,16 @@ var (
 )
 
 func TestParseLocalFiles(t *testing.T) {
-	dir := "testdata/local"
-	d, err := localTests.ReadDir(dir)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	for _, tt := range d {
-		if !strings.HasSuffix(tt.Name(), ",v") {
-			continue
+	path := "testdata/local"
+	err := fs.WalkDir(localTests, path, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
 		}
-		t.Run(tt.Name(), func(t *testing.T) {
-			b, err := fs.ReadFile(localTests, path.Join(dir, tt.Name()))
+		if !strings.HasSuffix(path, ",v") {
+			return nil
+		}
+		t.Run(path, func(t *testing.T) {
+			b, err := fs.ReadFile(localTests, path)
 			if err != nil {
 				t.Errorf("ReadFile() error = %s", err)
 				return
@@ -40,5 +39,9 @@ func TestParseLocalFiles(t *testing.T) {
 				t.Errorf("String(): %s", diff)
 			}
 		})
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Error: %s", err)
 	}
 }
