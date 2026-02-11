@@ -168,7 +168,8 @@ func TestParseHeader(t *testing.T) {
 						Revision: "1.6",
 					},
 				},
-				Strict: true,
+				Strict:          true,
+				StrictOnOwnLine: false,
 			},
 			wantErr: false,
 		},
@@ -618,11 +619,10 @@ func TestParseLockLine(t *testing.T) {
 		s *Scanner
 	}
 	tests := []struct {
-		name       string
-		args       args
-		want       *Lock
-		wantStrict bool
-		wantErr    bool
+		name    string
+		args    args
+		want    *Lock
+		wantErr bool
 	}{
 		{
 			name: "Just a lock",
@@ -633,22 +633,18 @@ func TestParseLockLine(t *testing.T) {
 				User:     "arran",
 				Revision: "1.6",
 			},
-			wantStrict: true,
-			wantErr:    false,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, strict, err := ParseLockLine(tt.args.s)
+			got, err := ParseLockLine(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseLockLine() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("ParseLockLine() %s", diff)
-			}
-			if strict != tt.wantStrict {
-				t.Errorf("ParseLockLine() strict = %v, want %v", strict, tt.wantStrict)
 			}
 		})
 	}
@@ -1319,11 +1315,10 @@ func TestParseLockBody(t *testing.T) {
 		user string
 	}
 	tests := []struct {
-		name       string
-		args       args
-		want       *Lock
-		wantStrict bool
-		wantErr    bool
+		name    string
+		args    args
+		want    *Lock
+		wantErr bool
 	}{
 		{
 			name: "Simple lock body",
@@ -1335,11 +1330,10 @@ func TestParseLockBody(t *testing.T) {
 				User:     "user",
 				Revision: "1.1",
 			},
-			wantStrict: false,
-			wantErr:    false,
+			wantErr: false,
 		},
 		{
-			name: "Strict lock body",
+			name: "Strict lock body - strict is ignored here now",
 			args: args{
 				s:    NewScanner(strings.NewReader("1.1; strict;")),
 				user: "user",
@@ -1348,8 +1342,7 @@ func TestParseLockBody(t *testing.T) {
 				User:     "user",
 				Revision: "1.1",
 			},
-			wantStrict: true,
-			wantErr:    false,
+			wantErr: false,
 		},
 		{
 			name: "Empty revision",
@@ -1363,16 +1356,13 @@ func TestParseLockBody(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, strict, err := ParseLockBody(tt.args.s, tt.args.user)
+			got, err := ParseLockBody(tt.args.s, tt.args.user)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseLockBody() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("ParseLockBody() %s", diff)
-			}
-			if strict != tt.wantStrict {
-				t.Errorf("ParseLockBody() strict = %v, want %v", strict, tt.wantStrict)
 			}
 		})
 	}

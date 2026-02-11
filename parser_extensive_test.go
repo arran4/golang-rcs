@@ -30,10 +30,10 @@ func TestFile_String(t *testing.T) {
 		t.Errorf("File.String() = %q, want %q", got, expected)
 	}
 
-	// Test Lock.String strict
+	// Test Lock.String
 	l := &Lock{User: "u", Revision: "1"}
 	if got := l.String(); got != "u:1;" {
-		t.Errorf("Lock.String() strict=false = %q, want %q", got, "u:1;")
+		t.Errorf("Lock.String() = %q, want %q", got, "u:1;")
 	}
 
 	// Test RevisionHead with branches
@@ -80,17 +80,17 @@ func TestParseLockLine_Errors(t *testing.T) {
 		{
 			name:    "Missing colon",
 			input:   "user",
-			wantErr: "EOF:looking for \":\"", // ScanUntilStrings returns ScanNotFound at EOF
+			wantErr: "expected : after lock id \"user\": looking for \":\"",
 		},
 		{
 			name:    "Missing revision",
 			input:   "user:;",
-			wantErr: "revision empty",
+			wantErr: "expected num in lock: scanning until \"num\"",
 		},
 		{
 			name:    "Missing semicolon",
 			input:   "user:1.1",
-			wantErr: "EOF:looking for \";\"",
+			wantErr: "", // ParseLockLine parses id:num, does not check for semicolon
 		},
 		{
 			name:    "Unknown token at end",
@@ -101,7 +101,7 @@ func TestParseLockLine_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewScanner(strings.NewReader(tt.input))
-			_, _, err := ParseLockLine(s)
+			_, err := ParseLockLine(s)
 			if tt.wantErr == "" {
 				if err != nil {
 					t.Errorf("ParseLockLine() error = %v, want nil", err)
@@ -248,17 +248,17 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name:    "Access error",
 			input:   "head 1.1;\naccess", // missing ;
-			wantErr: "token \"access\": scanning until \"whitespace\" at 2:6 but found \"\"",
+			wantErr: "token \"access\": expected id in access: scanning until \"id\"",
 		},
 		{
 			name:    "Symbols error",
 			input:   "head 1.1;\nsymbols", // missing ;
-			wantErr: "token \"symbols\": scanning until \"whitespace\" at 2:7 but found \"\"",
+			wantErr: "token \"symbols\": expected sym in symbols: scanning until \"sym\"",
 		},
 		{
 			name:    "Locks error",
 			input:   "head 1.1;\nlocks\n\tbad",
-			wantErr: "token \"locks\": EOF:looking for \":\"", // ScanUntilStrings : at EOF
+			wantErr: "token \"locks\": expected : after lock id \"bad\"",
 		},
 		{
 			name:    "Comment error",
@@ -330,20 +330,26 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 		{
 			name:    "Error in lock line",
 			input:   "locks\n\tbad_lock",
-			wantErr: "EOF:looking for \":\"", // ScanUntilStrings : at EOF
+			wantErr: "expected : after lock id \"bad_lock\"",
 		},
 		{
 			name:    "Unknown token inside locks",
 			input:   "locks\n\tuser:1.1;\n\tbad_token", // It expects " " or "\n\t" or "\r\n\t"
-			wantErr: "EOF:looking for \":\"",           // Failed inside ParseLockLine scanning user:
+			wantErr: "",                                // Stops parsing locks, returns success
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewScanner(strings.NewReader(tt.input))
 			_, _, _, err := ParseHeaderLocks(s, false)
-			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
-				t.Errorf("ParseHeaderLocks() error = %v, wantErr containing %q", err, tt.wantErr)
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Errorf("ParseHeaderLocks() error = %v, want nil", err)
+				}
+			} else {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+					t.Errorf("ParseHeaderLocks() error = %v, wantErr containing %q", err, tt.wantErr)
+				}
 			}
 		})
 	}
