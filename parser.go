@@ -610,7 +610,7 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 	}
 	var locks []*Lock
 	for {
-		if err := ScanStrings(s, "\n\t", "\r\n\t", " "); err != nil {
+		if err := ScanStrings(s, "\n\t", "\r\n\t", "\n ", "\r\n ", " "); err != nil {
 			if IsNotFound(err) {
 				if err := ScanFieldTerminator(s); err == nil {
 					break
@@ -621,7 +621,7 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 		}
 		nt := s.Text()
 		switch nt {
-		case "\n\t", "\r\n\t":
+		case "\n\t", "\r\n\t", "\n ", "\r\n ":
 			if l, err := ParseLockLine(s); err != nil {
 				return nil, err
 			} else {
@@ -640,7 +640,7 @@ func ParseLockLine(s *Scanner) (*Lock, error) {
 	if err := ScanUntilStrings(s, ":"); err != nil {
 		return nil, err
 	}
-	l.User = s.Text()
+	l.User = strings.TrimSpace(s.Text())
 	if err := ScanStrings(s, ":"); err != nil {
 		return nil, err
 	}
