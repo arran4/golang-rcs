@@ -46,6 +46,7 @@ asdf
     }
   ],
   "Strict": true,
+  "StrictOnOwnLine": false,
   "Integrity": "",
   "Expand": "",
   "RevisionHeads": [

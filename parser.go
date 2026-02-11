@@ -82,6 +82,7 @@ type File struct {
 	SymbolMap        map[string]string
 	Locks            []*Lock
 	Strict           bool
+	StrictOnOwnLine  bool
 	Integrity        string
 	Expand           string
 	RevisionHeads    []*RevisionHead
@@ -128,10 +129,13 @@ func (f *File) String() string {
 		sb.WriteString("\n\t")
 		sb.WriteString(lock.String())
 	}
-	if f.Strict {
+	if f.Strict && !f.StrictOnOwnLine {
 		sb.WriteString(" strict;")
 	}
 	sb.WriteString("\n")
+	if f.Strict && f.StrictOnOwnLine {
+		sb.WriteString("strict;\n")
+	}
 	if f.Integrity != "" {
 		sb.WriteString(fmt.Sprintf("integrity\t%s;\n", AtQuote(f.Integrity)))
 	}

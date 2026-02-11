@@ -58,6 +58,7 @@ asdf
   "SymbolMap": null,
   "Locks": null,
   "Strict": false,
+  "StrictOnOwnLine": false,
   "Integrity": "",
   "Expand": "",
   "RevisionHeads": [
