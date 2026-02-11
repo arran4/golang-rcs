@@ -635,13 +635,10 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 func ParseLockLine(s *Scanner) (*Lock, error) {
 	l := &Lock{}
 	if err := ScanUntilStrings(s, ":"); err != nil {
-		fmt.Printf("ParseLockLine: ScanUntilStrings error: %v\n", err)
 		return nil, err
 	}
 	l.User = s.Text()
-	fmt.Printf("ParseLockLine: User=%q\n", l.User)
 	if err := ScanStrings(s, ":"); err != nil {
-		fmt.Printf("ParseLockLine: ScanStrings(:) error: %v\n", err)
 		return nil, err
 	}
 	if err := ScanUntilFieldTerminator(s); err != nil {
