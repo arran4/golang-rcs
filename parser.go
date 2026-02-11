@@ -419,13 +419,15 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
 	for {
-		if rc, next, err := ParseRevisionContent(s); err != nil {
+		rc, next, err := ParseRevisionContent(s)
+		if err != nil {
 			return nil, err
-		} else {
+		}
+		if rc != nil {
 			rcs = append(rcs, rc)
-			if !next {
-				return rcs, nil
-			}
+		}
+		if !next {
+			return rcs, nil
 		}
 	}
 }
@@ -433,6 +435,10 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
 	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
+		var eofErr ErrEOF
+		if errors.As(err, &eofErr) {
+			return nil, false, nil
+		}
 		return nil, false, err
 	}
 	rh.Revision = s.Text()
@@ -805,7 +811,7 @@ func ScanNewLine(s *Scanner, orEof bool) error {
 type ScanNotFound []string
 
 func (se ScanNotFound) Error() string {
-	return fmt.Sprintf("finding %#v", []string(se))
+	return fmt.Sprintf("looking for %#v", []string(se))
 }
 
 type ScanUntilNotFound string
@@ -854,6 +860,12 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 	return
 }
 
+type ErrEOF struct{ error }
+
+func (e ErrEOF) Error() string {
+	return "EOF:" + e.error.Error()
+}
+
 func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		err = nil
@@ -876,7 +888,7 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 			}
 		}
 		if atEOF {
-			err = ScanNotFound(strs)
+			err = ErrEOF{ScanNotFound(strs)}
 			return 0, []byte{}, nil
 		}
 		return 0, nil, nil
