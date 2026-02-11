@@ -42,11 +42,11 @@ asdf
   "Locks": [
     {
       "User": "arran",
-      "Revision": "1.1",
-      "Strict": true
+      "Revision": "1.1"
     }
   ],
-  "Strict": false,
+  "Strict": true,
+  "StrictLock": true,
   "Integrity": "",
   "Expand": "",
   "RevisionHeads": [

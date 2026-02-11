@@ -166,9 +166,10 @@ func TestParseHeader(t *testing.T) {
 					{
 						User:     "arran",
 						Revision: "1.6",
-						Strict:   true,
 					},
 				},
+			Strict:     true,
+			StrictLock: true,
 			},
 			wantErr: false,
 		},
@@ -574,10 +575,11 @@ func TestParseHeaderLocks(t *testing.T) {
 		havePropertyName bool
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []*Lock
-		wantErr bool
+		name       string
+		args       args
+		want       []*Lock
+		wantStrict bool
+		wantErr    bool
 	}{
 		{
 			name: "Single lock",
@@ -589,21 +591,24 @@ func TestParseHeaderLocks(t *testing.T) {
 				{
 					User:     "arran",
 					Revision: "1.6",
-					Strict:   true,
 				},
 			},
-			wantErr: false,
+			wantStrict: true,
+			wantErr:    false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderLocks(tt.args.s, tt.args.havePropertyName)
+			got, strict, err := ParseHeaderLocks(tt.args.s, tt.args.havePropertyName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderLocks() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("ParseHeaderLocks() %s", diff)
+			}
+			if strict != tt.wantStrict {
+				t.Errorf("ParseHeaderLocks() strict = %v, want %v", strict, tt.wantStrict)
 			}
 		})
 	}
@@ -614,10 +619,11 @@ func TestParseLockLine(t *testing.T) {
 		s *Scanner
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    *Lock
-		wantErr bool
+		name       string
+		args       args
+		want       *Lock
+		wantStrict bool
+		wantErr    bool
 	}{
 		{
 			name: "Just a lock",
@@ -627,20 +633,23 @@ func TestParseLockLine(t *testing.T) {
 			want: &Lock{
 				User:     "arran",
 				Revision: "1.6",
-				Strict:   true,
 			},
-			wantErr: false,
+			wantStrict: true,
+			wantErr:    false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseLockLine(tt.args.s)
+			got, strict, err := ParseLockLine(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseLockLine() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("ParseLockLine() %s", diff)
+			}
+			if strict != tt.wantStrict {
+				t.Errorf("ParseLockLine() strict = %v, want %v", strict, tt.wantStrict)
 			}
 		})
 	}

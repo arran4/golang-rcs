@@ -31,7 +31,7 @@ func TestFile_String(t *testing.T) {
 	}
 
 	// Test Lock.String strict
-	l := &Lock{User: "u", Revision: "1", Strict: false}
+	l := &Lock{User: "u", Revision: "1"}
 	if got := l.String(); got != "u:1;" {
 		t.Errorf("Lock.String() strict=false = %q, want %q", got, "u:1;")
 	}
@@ -101,7 +101,7 @@ func TestParseLockLine_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewScanner(strings.NewReader(tt.input))
-			_, err := ParseLockLine(s)
+			_, _, err := ParseLockLine(s)
 			if tt.wantErr == "" {
 				if err != nil {
 					t.Errorf("ParseLockLine() error = %v, want nil", err)
@@ -341,7 +341,7 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewScanner(strings.NewReader(tt.input))
-			_, err := ParseHeaderLocks(s, false)
+			_, _, err := ParseHeaderLocks(s, false)
 			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
 				t.Errorf("ParseHeaderLocks() error = %v, wantErr containing %q", err, tt.wantErr)
 			}
