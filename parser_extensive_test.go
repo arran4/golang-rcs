@@ -297,7 +297,7 @@ func TestParseFile_Errors(t *testing.T) {
 		{
 			name:    "Description error",
 			input:   "head 1.1;\n\n\n1.1\ndate 2022.01.01.00.00.00;\tauthor a;\tstate s;\nbranches;\nnext ;\n\n\nbad",
-			wantErr: "parsing 10:0: description tag: looking for []string{\"desc\\n\", \"desc\\r\\n\"}",
+			wantErr: "parsing 10:0: description tag: EOF:looking for []string{\"desc\\n\", \"desc\\r\\n\"}",
 		},
 		{
 			name:    "Revision content error",

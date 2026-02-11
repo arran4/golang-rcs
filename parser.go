@@ -635,10 +635,13 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
 func ParseLockLine(s *Scanner) (*Lock, error) {
 	l := &Lock{}
 	if err := ScanUntilStrings(s, ":"); err != nil {
+		fmt.Printf("ParseLockLine: ScanUntilStrings error: %v\n", err)
 		return nil, err
 	}
 	l.User = s.Text()
+	fmt.Printf("ParseLockLine: User=%q\n", l.User)
 	if err := ScanStrings(s, ":"); err != nil {
+		fmt.Printf("ParseLockLine: ScanStrings(:) error: %v\n", err)
 		return nil, err
 	}
 	if err := ScanUntilFieldTerminator(s); err != nil {
@@ -854,12 +857,19 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 				return i, rs, nil
 			}
 		}
+		if atEOF {
+			err = ErrEOF{ScanNotFound(strs)}
+			return 0, []byte{}, nil
+		}
 		err = ScanNotFound(strs)
 		return 0, []byte{}, nil
 	})
 	if !s.Scan() {
 		if s.Err() != nil {
 			return s.Err()
+		}
+		if err != nil {
+			return err
 		}
 		return ScanNotFound(strs)
 	}
@@ -870,6 +880,10 @@ type ErrEOF struct{ error }
 
 func (e ErrEOF) Error() string {
 	return "EOF:" + e.error.Error()
+}
+
+func (e ErrEOF) Unwrap() error {
+	return e.error
 }
 
 func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
@@ -902,6 +916,9 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	if !s.Scan() {
 		if s.Err() != nil {
 			return s.Err()
+		}
+		if err != nil {
+			return err
 		}
 		return ScanNotFound(strs)
 	}
