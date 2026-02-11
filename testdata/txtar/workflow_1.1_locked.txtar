@@ -36,9 +36,9 @@ asdf
   "Description": "asdkjfa\nsadfsaa\nmessage!\n",
   "Comment": "# ",
   "Access": true,
-  "HasSymbols": true,
+  "Symbols": true,
   "AccessUsers": null,
-  "Symbols": null,
+  "SymbolMap": null,
   "Locks": [
     {
       "User": "arran",

@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 var (
@@ -28,10 +30,13 @@ func TestParseLocalFiles(t *testing.T) {
 				t.Errorf("ReadFile( %s ) error = %s", path, err)
 				return
 			}
-			_, err = ParseFile(bytes.NewReader(b))
+			got, err := ParseFile(bytes.NewReader(b))
 			if err != nil {
 				t.Errorf("ParseFile( %s ) error = %s", path, err)
 				return
+			}
+			if diff := cmp.Diff(strings.Split(got.String(), "\n"), strings.Split(string(b), "\n")); diff != "" {
+				t.Errorf("String(): %s", diff)
 			}
 		})
 		return nil

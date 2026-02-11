@@ -94,9 +94,9 @@ func TestParseFile(t *testing.T) {
 				if diff := cmp.Diff(got.AccessUsers, []string{"john", "jane"}); diff != "" {
 					t.Errorf("AccessUsers: %s", diff)
 				}
-				expected := []Symbol{{Name: "rel", Revision: "1.1"}, {Name: "tag", Revision: "1.1.0.2"}}
-				if diff := cmp.Diff(expected, got.Symbols); diff != "" {
-					t.Errorf("Symbols: %s", diff)
+				expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
+				if diff := cmp.Diff(expectedMap, got.SymbolMap); diff != "" {
+					t.Errorf("SymbolMap: %s", diff)
 				}
 				if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
 					t.Errorf("Description: %s", diff)
@@ -158,10 +158,10 @@ func TestParseHeader(t *testing.T) {
 				s: NewScanner(bytes.NewReader(testinputv)),
 			},
 			want: &File{
-				Head:       "1.6",
-				Comment:    "# ",
-				Access:     true,
-				HasSymbols: true,
+				Head:    "1.6",
+				Comment: "# ",
+				Access:  true,
+				Symbols: true,
 				Locks: []*Lock{
 					{
 						User:     "arran",
@@ -395,22 +395,22 @@ func TestIsNotFound(t *testing.T) {
 		},
 		{
 			name: "ScanNotFound error is",
-			err:  ScanNotFound([]string{"123", "123"}),
+			err:  ScanNotFound{LookingFor: []string{"123", "123"}},
 			want: true,
 		},
 		{
 			name: "Nested ScanNotFound error is",
-			err:  fmt.Errorf("hi: %w", ScanNotFound([]string{"123", "123"})),
+			err:  fmt.Errorf("hi: %w", ScanNotFound{LookingFor: []string{"123", "123"}}),
 			want: true,
 		},
 		{
 			name: "ScanUntilNotFound error is",
-			err:  ScanUntilNotFound("sadf"),
+			err:  ScanUntilNotFound{Until: "sadf"},
 			want: true,
 		},
 		{
 			name: "Nested ScanUntilNotFound error is",
-			err:  fmt.Errorf("hi: %w", ScanUntilNotFound("123")),
+			err:  fmt.Errorf("hi: %w", ScanUntilNotFound{Until: "123"}),
 			want: true,
 		},
 	}
@@ -1232,27 +1232,5 @@ func TestRevisionHeadStringBranches(t *testing.T) {
 		"next\t;\n"
 	if diff := cmp.Diff(h.String(), want); diff != "" {
 		t.Errorf("RevisionHead.String() diff: %s", diff)
-	}
-}
-
-func TestScanStringsEOF(t *testing.T) {
-	s := NewScanner(strings.NewReader(""))
-	err := ScanStrings(s, "foo")
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !IsEOFError(err) {
-		t.Errorf("expected EOF error, got %v", err)
-	}
-}
-
-func TestScanStringsEOFPartial(t *testing.T) {
-	s := NewScanner(strings.NewReader("fo"))
-	err := ScanStrings(s, "foo")
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !IsEOFError(err) {
-		t.Errorf("expected EOF error, got %v", err)
 	}
 }
