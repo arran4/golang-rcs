@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -25,6 +24,11 @@ func (l *Lock) String() string {
 		return fmt.Sprintf("%s:%s; strict;", l.User, l.Revision)
 	}
 	return fmt.Sprintf("%s:%s;", l.User, l.Revision)
+}
+
+type Symbol struct {
+	Name     string
+	Revision string
 }
 
 type RevisionHead struct {
@@ -81,9 +85,9 @@ type File struct {
 	Description      string
 	Comment          string
 	Access           bool
-	Symbols          bool
+	HasSymbols       bool
 	AccessUsers      []string
-	SymbolMap        map[string]string
+	Symbols          []Symbol
 	Locks            []*Lock
 	Strict           bool
 	Integrity        string
@@ -107,17 +111,12 @@ func (f *File) String() string {
 			sb.WriteString("access;\n")
 		}
 	}
-	if f.Symbols {
-		if len(f.SymbolMap) > 0 {
+	if f.HasSymbols {
+		if len(f.Symbols) > 0 {
 			sb.WriteString("symbols")
-			keys := make([]string, 0, len(f.SymbolMap))
-			for k := range f.SymbolMap {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
+			for _, k := range f.Symbols {
 				sb.WriteString("\n\t")
-				sb.WriteString(fmt.Sprintf("%s:%s", k, f.SymbolMap[k]))
+				sb.WriteString(fmt.Sprintf("%s:%s", k.Name, k.Revision))
 			}
 			sb.WriteString(";\n")
 		} else {
@@ -280,13 +279,13 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.AccessUsers = users
 			}
 		case "symbols":
-			f.Symbols = true
+			f.HasSymbols = true
 			if err := ParseTerminatorFieldLine(s); err != nil {
 				sym, err := ParseHeaderSymbols(s, true)
 				if err != nil {
 					return fmt.Errorf("token %#v: %w", nt, err)
 				}
-				f.SymbolMap = sym
+				f.Symbols = sym
 			}
 		case "locks":
 			if locks, err := ParseHeaderLocks(s, true); err != nil {
@@ -543,7 +542,7 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	return strings.Fields(text), nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]Symbol, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "symbols"); err != nil {
 			return nil, err
@@ -559,12 +558,15 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 	if err := ParseTerminatorFieldLine(s); err != nil {
 		return nil, err
 	}
-	m := map[string]string{}
+	var m []Symbol
 	for _, f := range strings.Fields(line) {
 		f = strings.TrimSuffix(f, ";")
 		parts := strings.SplitN(f, ":", 2)
 		if len(parts) == 2 {
-			m[parts[0]] = parts[1]
+			m = append(m, Symbol{
+				Name:     parts[0],
+				Revision: parts[1],
+			})
 		}
 	}
 	return m, nil
