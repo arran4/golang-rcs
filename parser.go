@@ -127,13 +127,16 @@ func (f *File) String() string {
 	sb.WriteString("locks")
 	if len(f.Locks) == 0 {
 		sb.WriteString(";")
+		if f.Strict {
+			sb.WriteString(" strict;")
+		}
 	}
 	for _, lock := range f.Locks {
 		sb.WriteString("\n\t")
 		sb.WriteString(lock.String())
 	}
 	sb.WriteString("\n")
-	if f.Strict {
+	if f.Strict && len(f.Locks) > 0 {
 		sb.WriteString("strict;\n")
 	}
 	if f.Integrity != "" {

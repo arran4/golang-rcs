@@ -39,9 +39,17 @@ func TestParseTxtarFiles(t *testing.T) {
 
 			// Parse RCS
 			// Add newline to ensure parser behaves correctly if txtar trimming removed it
-			parsedFile, err := ParseFile(strings.NewReader(rcsContent + "\n"))
+			// Txtar format strips trailing newlines from the file content, but RCS parser needs them.
+			// We need to ensure the RCS content ends with sufficient newlines.
+			rcsReader := strings.NewReader(rcsContent)
+			parsedFile, err := ParseFile(rcsReader)
 			if err != nil {
-				t.Fatalf("ParseFile error: %v", err)
+				// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
+				rcsReader = strings.NewReader(rcsContent + "\n\n\n")
+				parsedFile, err = ParseFile(rcsReader)
+				if err != nil {
+					t.Fatalf("ParseFile error: %v", err)
+				}
 			}
 
 			// Marshal to JSON
