@@ -125,6 +125,9 @@ var dateLayouts = []dateLayout{
 	// date(1) variations
 	{"Fri Jan 02 15:04:05 MST 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
 	{"Fri Jan 2 15:04:05 MST 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
+
+	{"2006.01.02.15.04.05", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond},
+	{"06.01.02.15.04.05", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond},
 }
 
 func applyDefaults(t time.Time, now time.Time, fields int, targetZone *time.Location) time.Time {

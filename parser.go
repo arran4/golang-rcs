@@ -663,7 +663,7 @@ func ParseLockLine(s *Scanner) (*Lock, error) {
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
 	if dateStr, err := ParseProperty(s, haveHead, "date", false); err != nil {
 		return err
-	} else if date, err := time.Parse(DateFormat, dateStr); err != nil {
+	} else if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
 		return err
 	} else {
 		rh.Date = date
