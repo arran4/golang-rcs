@@ -1004,7 +1004,11 @@ func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, e
 		if s.Err() != nil {
 			return "", "", s.Err()
 		}
-		return "", "", ScanNotFound(append(strs, "lock_id"))
+		return "", "", ScanNotFound{
+			LookingFor: append(strs, "lock_id"),
+			Pos:        *s.pos,
+			Found:      "",
+		}
 	}
 	text := s.Text()
 	for _, ss := range strs {
