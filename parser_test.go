@@ -15,7 +15,7 @@ var (
 	//go:embed "testdata/testinput.go,v"
 	testinputv []byte
 	//go:embed "testdata/testinput1.go,v"
-	testinputv1 []byte
+	testinputv1   []byte
 	accessSymbols = []byte(
 		"head\t1.1;\n" +
 			"access john jane;\n" +

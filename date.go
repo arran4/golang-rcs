@@ -93,38 +93,38 @@ var dateLayouts = []dateLayout{
 	{time.RFC1123, FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
 	{time.RFC822Z, FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
 	{time.RFC822, FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
-    {"Mon, 2 Jan 2006 15:04:05 -0700", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
+	{"Mon, 2 Jan 2006 15:04:05 -0700", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
 
 	// ctime style
 	{time.ANSIC, FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond}, // "Mon Jan _2 15:04:05 2006"
 
-    // "Thu Jan 11 20:00:00 PST 1990" - Unix date command
-    {time.UnixDate, FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone}, // "Mon Jan _2 15:04:05 MST 2006"
+	// "Thu Jan 11 20:00:00 PST 1990" - Unix date command
+	{time.UnixDate, FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone}, // "Mon Jan _2 15:04:05 MST 2006"
 
 	// Flexible formats
 	{"3:04 pm", FieldHour | FieldMinute},
 	{"3:04 PM", FieldHour | FieldMinute},
-    {"15:04", FieldHour | FieldMinute},
+	{"15:04", FieldHour | FieldMinute},
 	{"3:04 AM, Jan. 2, 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute},
-    {"3:04 AM, Jan. 02, 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute},
+	{"3:04 AM, Jan. 02, 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute},
 
-    // "20, 10:30"
-    {"02, 15:04", FieldDay | FieldHour | FieldMinute},
-    {"2, 15:04", FieldDay | FieldHour | FieldMinute},
+	// "20, 10:30"
+	{"02, 15:04", FieldDay | FieldHour | FieldMinute},
+	{"2, 15:04", FieldDay | FieldHour | FieldMinute},
 
-    // "12-January-1990, 04:00"
-    {"02-January-2006, 15:04", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute},
-    {"2-January-2006, 15:04", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute},
+	// "12-January-1990, 04:00"
+	{"02-January-2006, 15:04", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute},
+	{"2-January-2006, 15:04", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute},
 
-    // With Zone (MST) - explicit layouts because time.Parse with MST requires it to be known or handled?
-    // Actually ParseInLocation handles known abbreviations for that location, but arbitrary ones like WET might fail if not known.
-    // We will trust time.Parse to do its best.
-    {"02-January-2006, 15:04 MST", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldZone},
-    {"2-January-2006, 15:04 MST", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldZone},
+	// With Zone (MST) - explicit layouts because time.Parse with MST requires it to be known or handled?
+	// Actually ParseInLocation handles known abbreviations for that location, but arbitrary ones like WET might fail if not known.
+	// We will trust time.Parse to do its best.
+	{"02-January-2006, 15:04 MST", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldZone},
+	{"2-January-2006, 15:04 MST", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldZone},
 
-    // date(1) variations
-    {"Fri Jan 02 15:04:05 MST 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
-    {"Fri Jan 2 15:04:05 MST 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
+	// date(1) variations
+	{"Fri Jan 02 15:04:05 MST 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
+	{"Fri Jan 2 15:04:05 MST 2006", FieldYear | FieldMonth | FieldDay | FieldHour | FieldMinute | FieldSecond | FieldZone},
 }
 
 func applyDefaults(t time.Time, now time.Time, fields int, targetZone *time.Location) time.Time {
@@ -145,37 +145,43 @@ func applyDefaults(t time.Time, now time.Time, fields int, targetZone *time.Loca
 	}
 
 	// Helper to get current values in target zone
-    // Wait, "For omitted fields that are of higher significance than the highest provided field, the time zone’s current values are assumed."
-    // This implies we should use 'now' converted to 'targetZone'.
-    nowInZone := now.In(targetZone)
+	// Wait, "For omitted fields that are of higher significance than the highest provided field, the time zone’s current values are assumed."
+	// This implies we should use 'now' converted to 'targetZone'.
+	nowInZone := now.In(targetZone)
 
-    year, month, day := t.Date()
-    hour, min, sec := t.Clock()
+	year, month, day := t.Date()
+	hour, min, sec := t.Clock()
 
-    // Defaults
-    dYear, dMonth, dDay := nowInZone.Date()
-    // dHour, dMin, dSec := nowInZone.Clock() // Not used for higher significance?
-    // "For all other omitted fields, the lowest possible values are assumed."
+	// Defaults
+	dYear, dMonth, dDay := nowInZone.Date()
+	// dHour, dMin, dSec := nowInZone.Clock() // Not used for higher significance?
+	// "For all other omitted fields, the lowest possible values are assumed."
 
-    // Apply higher significance defaults
-    if highest > FieldYear { year = dYear }
-    if highest > FieldMonth { month = dMonth }
-    if highest > FieldDay { day = dDay }
+	// Apply higher significance defaults
+	if highest > FieldYear {
+		year = dYear
+	}
+	if highest > FieldMonth {
+		month = dMonth
+	}
+	if highest > FieldDay {
+		day = dDay
+	}
 
-    // Apply lower significance defaults (lowest possible values)
-    // time.Parse already defaults to 0 (or 1 for month/day)
-    // But we need to be careful. time.Parse defaults year to 0, month to 1, day to 1.
-    // If FieldYear is missing, we overwrite with dYear.
-    // If FieldMonth is missing, we overwrite with dMonth ONLY if highest > FieldMonth.
-    // If highest <= FieldMonth (e.g. Year was provided), then missing Month means we use lowest possible (January).
-    // time.Parse already gives us January (1).
+	// Apply lower significance defaults (lowest possible values)
+	// time.Parse already defaults to 0 (or 1 for month/day)
+	// But we need to be careful. time.Parse defaults year to 0, month to 1, day to 1.
+	// If FieldYear is missing, we overwrite with dYear.
+	// If FieldMonth is missing, we overwrite with dMonth ONLY if highest > FieldMonth.
+	// If highest <= FieldMonth (e.g. Year was provided), then missing Month means we use lowest possible (January).
+	// time.Parse already gives us January (1).
 
-    // However, if we parsed "10:30" (highest=Minute), then Year, Month, Day are missing and higher.
-    // So we overwrite them with dYear, dMonth, dDay.
+	// However, if we parsed "10:30" (highest=Minute), then Year, Month, Day are missing and higher.
+	// So we overwrite them with dYear, dMonth, dDay.
 
-    // If we parsed "Jan 2" (highest=Day), then Year is missing and higher.
-    // We overwrite Year with dYear.
-    // Hour, Minute, Second are missing and lower. We leave them as 0 (from time.Parse).
+	// If we parsed "Jan 2" (highest=Day), then Year is missing and higher.
+	// We overwrite Year with dYear.
+	// Hour, Minute, Second are missing and lower. We leave them as 0 (from time.Parse).
 
 	finalZone := targetZone
 	if fields&FieldZone != 0 {
@@ -219,23 +225,23 @@ func parseYearWeekDow(input string, loc *time.Location) (time.Time, bool) {
 	}
 
 	// ISO Week Date calculation
-    // Start of the year
-    t := time.Date(year, 1, 1, 0, 0, 0, 0, loc)
-    // Find the first Thursday of the year
-    // ISO weeks start on Monday. The first week of the year is the one that contains the first Thursday.
-    for t.Weekday() != time.Thursday {
-        t = t.AddDate(0, 0, 1)
-    }
-    // t is now the first Thursday.
-    // The ISO week 1 starts on the Monday before this Thursday.
-    week1Start := t.AddDate(0, 0, -3) // Monday of week 1
+	// Start of the year
+	t := time.Date(year, 1, 1, 0, 0, 0, 0, loc)
+	// Find the first Thursday of the year
+	// ISO weeks start on Monday. The first week of the year is the one that contains the first Thursday.
+	for t.Weekday() != time.Thursday {
+		t = t.AddDate(0, 0, 1)
+	}
+	// t is now the first Thursday.
+	// The ISO week 1 starts on the Monday before this Thursday.
+	week1Start := t.AddDate(0, 0, -3) // Monday of week 1
 
-    // Target week start
-    targetWeekStart := week1Start.AddDate(0, 0, (week-1)*7)
+	// Target week start
+	targetWeekStart := week1Start.AddDate(0, 0, (week-1)*7)
 
-    // Target day
-    // dow: 1=Monday -> offset 0
-    targetDay := targetWeekStart.AddDate(0, 0, dow-1)
+	// Target day
+	// dow: 1=Monday -> offset 0
+	targetDay := targetWeekStart.AddDate(0, 0, dow-1)
 
-    return targetDay, true
+	return targetDay, true
 }

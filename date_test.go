@@ -111,19 +111,19 @@ func TestParseDate(t *testing.T) {
 				t.Fatalf("ParseDate() error = %v", err)
 			}
 
-            // Compare timestamps (ignoring zone name if checkZone is false, but time instant should match)
-            if !got.Equal(tt.want) {
-                t.Errorf("ParseDate() = %v, want %v", got, tt.want)
-            }
+			// Compare timestamps (ignoring zone name if checkZone is false, but time instant should match)
+			if !got.Equal(tt.want) {
+				t.Errorf("ParseDate() = %v, want %v", got, tt.want)
+			}
 
-            if tt.checkZone {
-                // Check zone offset and name if possible
-                _, o1 := got.Zone()
-                _, o2 := tt.want.Zone()
-                if o1 != o2 {
-                     t.Errorf("ParseDate() zone offset = %v, want %v", o1, o2)
-                }
-            }
+			if tt.checkZone {
+				// Check zone offset and name if possible
+				_, o1 := got.Zone()
+				_, o2 := tt.want.Zone()
+				if o1 != o2 {
+					t.Errorf("ParseDate() zone offset = %v, want %v", o1, o2)
+				}
+			}
 		})
 	}
 }
