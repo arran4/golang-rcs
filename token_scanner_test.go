@@ -7,10 +7,10 @@ import (
 
 func TestScanTokenNum(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		want     string
-		wantErr  bool
+		name    string
+		input   string
+		want    string
+		wantErr bool
 	}{
 		{"Simple number", "123;", "123", false},
 		{"Decimal", "1.2;", "1.2", false},
@@ -41,10 +41,10 @@ func TestScanTokenNum(t *testing.T) {
 
 func TestScanTokenId(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		want     string
-		wantErr  bool
+		name    string
+		input   string
+		want    string
+		wantErr bool
 	}{
 		{"Simple ID", "foo;", "foo", false},
 		{"With digits", "foo123;", "foo123", false},
@@ -75,10 +75,10 @@ func TestScanTokenId(t *testing.T) {
 
 func TestScanTokenSym(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		want     string
-		wantErr  bool
+		name    string
+		input   string
+		want    string
+		wantErr bool
 	}{
 		{"Simple Sym", "foo;", "foo", false},
 		{"With digits", "foo123;", "foo123", false},
@@ -106,10 +106,10 @@ func TestScanTokenSym(t *testing.T) {
 
 func TestScanTokenString(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		want     string
-		wantErr  bool
+		name    string
+		input   string
+		want    string
+		wantErr bool
 	}{
 		{"Simple string", "@foo@", "foo", false},
 		{"Doubled @", "@foo@@bar@", "foo@bar", false},
@@ -135,10 +135,10 @@ func TestScanTokenString(t *testing.T) {
 
 func TestScanTokenIntString(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		want     string
-		wantErr  bool
+		name    string
+		input   string
+		want    string
+		wantErr bool
 	}{
 		{"Simple intstring", "@foo@", "foo", false},
 		// The implementation assumes simpler scanning for intstring (scan until @)
