@@ -29,6 +29,8 @@ To install the `gorcs` tool for use on the command line:
 go install github.com/arran4/golang-rcs/cmd/gorcs@latest
 ```
 
+Alternatively, you can download the latest binary from the [Releases](https://github.com/arran4/golang-rcs/releases) page.
+
 ## Usage
 
 Here is a simple example of how to parse an RCS file and list its revision history:
