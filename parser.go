@@ -109,16 +109,14 @@ func (f *File) String() string {
 	}
 	if f.Symbols {
 		if len(f.SymbolMap) > 0 {
-			sb.WriteString("symbols ")
+			sb.WriteString("symbols")
 			keys := make([]string, 0, len(f.SymbolMap))
 			for k := range f.SymbolMap {
 				keys = append(keys, k)
 			}
 			sort.Strings(keys)
-			for i, k := range keys {
-				if i > 0 {
-					sb.WriteString(" ")
-				}
+			for _, k := range keys {
+				sb.WriteString("\n\t")
 				sb.WriteString(fmt.Sprintf("%s:%s", k, f.SymbolMap[k]))
 			}
 			sb.WriteString(";\n")
