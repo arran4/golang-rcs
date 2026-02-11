@@ -662,7 +662,6 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, string, error
 			}
 		}
 	}
-	return locks, "", nil
 }
 
 func ParseLockLine(s *Scanner) (*Lock, error) {
