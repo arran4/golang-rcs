@@ -1,0 +1,54 @@
+-- input.json --
+{
+  "Head": "1.7",
+  "Branch": "",
+  "Description": "",
+  "Comment": "",
+  "Access": false,
+  "Symbols": false,
+  "AccessUsers": null,
+  "SymbolMap": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": [],
+  "RevisionContents": []
+}
+-- expected.rcs --
+head	1.7;
+locks; strict;
+comment	@@;
+
+
+
+desc
+@@
+-- input.rcs --
+head	1.7;
+locks; strict;
+comment	@@;
+
+
+
+desc
+@@
+
+
+-- expected.json --
+{
+  "Head": "1.7",
+  "Branch": "",
+  "Description": "",
+  "Comment": "",
+  "Access": false,
+  "Symbols": false,
+  "AccessUsers": null,
+  "SymbolMap": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": [],
+  "RevisionContents": []
+}
