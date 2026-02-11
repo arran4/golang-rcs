@@ -259,11 +259,19 @@ func ParseHeader(s *Scanner, f *File) error {
 	} else {
 		f.Head = head
 	}
+	var nextToken string
 	for {
-		if err := ScanStrings(s, "branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n", " ", "\t", "\n", "\r\n"); err != nil {
-			return err
+		var nt string
+		if nextToken == "" {
+			if err := ScanStrings(s, "branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n", " ", "\t", "\n", "\r\n"); err != nil {
+				return err
+			}
+			nt = s.Text()
+		} else {
+			nt = nextToken
+			nextToken = ""
 		}
-		nt := s.Text()
+
 		switch nt {
 		case " ", "\t", "\n", "\r\n":
 			continue
@@ -292,7 +300,9 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.SymbolMap = sym
 			}
 		case "locks":
-			if locks, err := ParseHeaderLocks(s, true); err != nil {
+			var err error
+			var locks []*Lock
+			if locks, nextToken, err = ParseHeaderLocks(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Locks = locks
@@ -602,48 +612,74 @@ func ParseAtQuotedString(s *Scanner) (string, error) {
 	}
 }
 
-func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, error) {
+func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, string, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "locks"); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
 	var locks []*Lock
 	for {
-		if err := ScanStrings(s, "\n\t", "\r\n\t", " "); err != nil {
+		// Combine checks for separators AND lock ID
+		id, match, err := ScanLockIdOrStrings(s,
+			"\n\t", "\r\n\t", " ", ";",
+			"branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n", "\n", "\r\n")
+
+		if err != nil {
 			if IsNotFound(err) {
-				if err := ScanFieldTerminator(s); err == nil {
-					break
-				}
-				break
+				// No match found.
+				return locks, "", nil
 			}
-			return nil, err
+			return nil, "", err
 		}
-		nt := s.Text()
-		switch nt {
-		case "\n\t", "\r\n\t":
-			if l, err := ParseLockLine(s); err != nil {
-				return nil, err
+
+		if match != "" {
+			switch match {
+			case ";":
+				// End of locks block
+				return locks, "", nil
+			case "\n\t", "\r\n\t":
+				if l, err := ParseLockLine(s); err != nil {
+					return nil, "", err
+				} else {
+					locks = append(locks, l)
+				}
+			case " ":
+				// continue loop
+			default:
+				// It is a keyword or newline
+				return locks, match, nil
+			}
+			continue
+		}
+
+		if id != "" {
+			if err := ScanStrings(s, ":"); err != nil {
+				return nil, "", err
+			}
+			if l, err := ParseLockBody(s, id); err != nil {
+				return nil, "", err
 			} else {
 				locks = append(locks, l)
+				continue
 			}
-		case " ":
-		default:
-			return nil, fmt.Errorf("unknown token: %s", nt)
 		}
 	}
-	return locks, nil
 }
 
 func ParseLockLine(s *Scanner) (*Lock, error) {
-	l := &Lock{}
 	if err := ScanUntilStrings(s, ":"); err != nil {
 		return nil, err
 	}
-	l.User = s.Text()
+	user := s.Text()
 	if err := ScanStrings(s, ":"); err != nil {
 		return nil, err
 	}
+	return ParseLockBody(s, user)
+}
+
+func ParseLockBody(s *Scanner, user string) (*Lock, error) {
+	l := &Lock{User: user}
 	if err := ScanUntilFieldTerminator(s); err != nil {
 		return nil, err
 	}
@@ -916,6 +952,67 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 		}
 	}
 	return
+}
+
+func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, err error) {
+	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		// Check strings first
+		for _, ss := range strs {
+			if len(ss) == 0 {
+				continue
+			}
+			if len(data) < len(ss) {
+				if atEOF {
+					if bytes.Equal(data, []byte(ss)) {
+						return len(data), data, nil
+					}
+					// mismatch or partial mismatch at EOF
+				} else {
+					if bytes.HasPrefix([]byte(ss), data) {
+						// potential partial match
+						return 0, nil, nil
+					}
+				}
+			} else {
+				if bytes.HasPrefix(data, []byte(ss)) {
+					return len(ss), data[:len(ss)], nil
+				}
+			}
+		}
+
+		// Check Lock ID
+		for i, b := range data {
+			if b == ':' {
+				if i == 0 {
+					return 0, nil, fmt.Errorf("empty id")
+				}
+				return i, data[:i], nil
+			}
+			switch b {
+			case ' ', '\t', '\n', '\r', ';':
+				return 0, nil, bufio.ErrFinalToken
+			}
+		}
+
+		if atEOF {
+			return 0, nil, nil
+		}
+		return 0, nil, nil
+	})
+
+	if !s.Scan() {
+		if s.Err() != nil {
+			return "", "", s.Err()
+		}
+		return "", "", ScanNotFound(append(strs, "lock_id"))
+	}
+	text := s.Text()
+	for _, ss := range strs {
+		if text == ss {
+			return "", text, nil
+		}
+	}
+	return text, "", nil
 }
 
 type ErrEOF struct{ error }

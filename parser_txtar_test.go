@@ -38,11 +38,7 @@ func TestParseTxtarFiles(t *testing.T) {
 			}
 
 			// Parse RCS
-			// Add newline to ensure parser behaves correctly if txtar trimming removed it
-			// Txtar format strips trailing newlines from the file content, but RCS parser needs them.
-			// We need to ensure the RCS content ends with sufficient newlines.
-			rcsReader := strings.NewReader(rcsContent)
-			parsedFile, err := ParseFile(rcsReader)
+			parsedFile, err := ParseFile(strings.NewReader(rcsContent))
 			if err != nil {
 				// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
 				rcsReader = strings.NewReader(rcsContent + "\n\n\n")
@@ -80,7 +76,7 @@ func parseTxtar(content string) map[string]string {
 		line = strings.TrimRight(line, "\r")
 		if strings.HasPrefix(line, "-- ") && strings.HasSuffix(line, " --") {
 			if currentFile != "" {
-				parts[currentFile] = strings.TrimSpace(currentContent.String())
+				parts[currentFile] = currentContent.String()
 				currentContent.Reset()
 			}
 			currentFile = strings.TrimSuffix(strings.TrimPrefix(line, "-- "), " --")
@@ -91,7 +87,7 @@ func parseTxtar(content string) map[string]string {
 		}
 	}
 	if currentFile != "" {
-		parts[currentFile] = strings.TrimSpace(currentContent.String())
+		parts[currentFile] = currentContent.String()
 	}
 	return parts
 }
