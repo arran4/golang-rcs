@@ -573,14 +573,6 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 }
 
 func ParseAtQuotedString(s *Scanner) (string, error) {
-	// Replaced with ScanTokenString which implements the logic
-	// string ::= "@" { any character, with @ doubled }* "@"
-	// But token_scanner.go calls ParseAtQuotedString!
-	// So we need to keep the implementation here, or move it to token_scanner.go and call it here.
-	// Since token_scanner.go is part of the package, we can define ScanTokenString there.
-	// But currently ScanTokenString calls ParseAtQuotedString.
-	// Let's implement the logic here cleanly or ensure circular dependency is fine (it is same package).
-
 	// Implementation of string scanning
 	sb := &strings.Builder{}
 	if err := ScanStrings(s, "@"); err != nil {
@@ -599,11 +591,12 @@ func ParseAtQuotedString(s *Scanner) (string, error) {
 			return "", err
 		}
 		nt := s.Text()
-		if nt == "@@" {
+		switch nt {
+		case "@@":
 			sb.WriteString("@")
-		} else if nt == "@" {
+		case "@":
 			return sb.String(), nil
-		} else {
+		default:
 			// Should not happen if ScanStrings works as expected
 			return "", fmt.Errorf("unexpected token %q", nt)
 		}
@@ -814,6 +807,13 @@ func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name strin
 				return 0, nil, err
 			}
 			if a == 0 && t == nil {
+				if atEOF {
+					if minimum > 0 && minimum > adv {
+						break
+					}
+					f := data[:adv]
+					return adv, f, nil
+				}
 				return 0, nil, nil
 			}
 			if until(t) {
@@ -880,7 +880,7 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 				continue
 			}
 			i := len(ss)
-			if i >= len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
+			if i > len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
 				return 0, nil, nil
 			}
 			if bytes.HasPrefix(data, []byte(ss)) {
@@ -888,8 +888,11 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 				return i, rs, nil
 			}
 		}
-		err = ScanNotFound(strs)
-		return 0, []byte{}, nil
+		if atEOF {
+			err = ScanNotFound(strs)
+			return 0, []byte{}, nil
+		}
+		return 0, nil, nil
 	})
 	if !s.Scan() {
 		if s.Err() != nil {
