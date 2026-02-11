@@ -306,6 +306,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Locks = locks
 				if strict {
 					f.Strict = true
+					// StrictOnOwnLine remains false
 				}
 			}
 		case "strict":
@@ -506,12 +507,19 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 			return err
 		}
 	}
-	if err := ScanUntilFieldTerminator(s); err != nil {
-		return err
-	}
-	rh.Branches = strings.Fields(s.Text())
-	if err := ParseTerminatorFieldLine(s); err != nil {
-		return err
+	rh.Branches = []string{}
+	for {
+		if err := ScanWhiteSpace(s, 0); err != nil {
+			return err
+		}
+		if err := ScanStrings(s, ";"); err == nil {
+			break
+		}
+		num, err := ScanTokenNum(s)
+		if err != nil {
+			return fmt.Errorf("expected num in branches: %w", err)
+		}
+		rh.Branches = append(rh.Branches, num)
 	}
 	return nil
 }
@@ -542,20 +550,21 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 			return nil, err
 		}
 	}
-	if err := ScanWhiteSpace(s, 0); err != nil {
-		return nil, err
+	var ids []string
+	for {
+		if err := ScanWhiteSpace(s, 0); err != nil {
+			return nil, err
+		}
+		if err := ScanStrings(s, ";"); err == nil {
+			break
+		}
+		id, err := ScanTokenId(s)
+		if err != nil {
+			return nil, fmt.Errorf("expected id in access: %w", err)
+		}
+		ids = append(ids, id)
 	}
-	if err := ScanUntilFieldTerminator(s); err != nil {
-		return nil, err
-	}
-	text := s.Text()
-	if err := ParseTerminatorFieldLine(s); err != nil {
-		return nil, err
-	}
-	if text == "" {
-		return []string{}, nil
-	}
-	return strings.Fields(text), nil
+	return ids, nil
 }
 
 func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, error) {
@@ -564,23 +573,29 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 			return nil, err
 		}
 	}
-	if err := ScanWhiteSpace(s, 0); err != nil {
-		return nil, err
-	}
-	if err := ScanUntilFieldTerminator(s); err != nil {
-		return nil, err
-	}
-	line := s.Text()
-	if err := ParseTerminatorFieldLine(s); err != nil {
-		return nil, err
-	}
 	m := map[string]string{}
-	for _, f := range strings.Fields(line) {
-		f = strings.TrimSuffix(f, ";")
-		parts := strings.SplitN(f, ":", 2)
-		if len(parts) == 2 {
-			m[parts[0]] = parts[1]
+	for {
+		if err := ScanWhiteSpace(s, 0); err != nil {
+			return nil, err
 		}
+		if err := ScanStrings(s, ";"); err == nil {
+			break
+		}
+
+		sym, err := ScanTokenSym(s)
+		if err != nil {
+			return nil, fmt.Errorf("expected sym in symbols: %w", err)
+		}
+
+		if err := ScanStrings(s, ":"); err != nil {
+			return nil, fmt.Errorf("expected : after sym %q: %w", sym, err)
+		}
+
+		num, err := ScanTokenNum(s)
+		if err != nil {
+			return nil, fmt.Errorf("expected num for sym %q: %w", sym, err)
+		}
+		m[sym] = num
 	}
 	return m, nil
 }
@@ -601,15 +616,11 @@ func ParseAtQuotedString(s *Scanner) (string, error) {
 		nt := s.Text()
 		switch nt {
 		case "@@":
-			if _, err := sb.WriteString("@"); err != nil {
-				return "", fmt.Errorf("token %#v: %w", nt, err)
-			}
+			sb.WriteString("@")
 		case "@":
 			return sb.String(), nil
 		default:
-			if _, err := sb.WriteString("@"); err != nil {
-				return "", fmt.Errorf("token %#v: %w", nt, err)
-			}
+			return "", fmt.Errorf("unexpected token %q", nt)
 		}
 	}
 }
@@ -623,59 +634,21 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, string,
 	var locks []*Lock
 	var strict bool
 	for {
-		// Combine checks for separators AND lock ID
-		id, match, err := ScanLockIdOrStrings(s,
-			"\n\t", "\r\n\t", "\n ", "\r\n ", " ", ";",
-			"branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n", "\n", "\r\n")
-
-		if err != nil {
-			if IsNotFound(err) {
-				// No match found.
-				return locks, strict, "", nil
-			}
+		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, false, "", err
 		}
-
-		if match != "" {
-			switch match {
-			case ";":
-				// End of locks block
-				if scanInlineStrict(s) {
-					strict = true
-				}
-				return locks, strict, "", nil
-			case "\n\t", "\r\n\t", "\n ", "\r\n ":
-				if l, s, err := ParseLockLine(s); err != nil {
-					return nil, false, "", err
-				} else {
-					locks = append(locks, l)
-					if s {
-						strict = true
-					}
-				}
-			case " ":
-				// continue loop
-			default:
-				// It is a keyword or newline
-				return locks, strict, match, nil
+		if err := ScanStrings(s, ";"); err == nil {
+			if scanInlineStrict(s) {
+				strict = true
 			}
-			continue
+			return locks, strict, "", nil
 		}
 
-		if id != "" {
-			if err := ScanStrings(s, ":"); err != nil {
-				return nil, false, "", err
-			}
-			if l, s, err := ParseLockBody(s, id); err != nil {
-				return nil, false, "", err
-			} else {
-				locks = append(locks, l)
-				if s {
-					strict = true
-				}
-				continue
-			}
+		l, err := ParseLockLine(s)
+		if err != nil {
+			return nil, false, "", err
 		}
+		locks = append(locks, l)
 	}
 }
 
@@ -693,54 +666,32 @@ func scanInlineStrict(s *Scanner) bool {
 	}
 	// Consumed 'strict'. Now expect ';'.
 	if err := ScanFieldTerminator(s); err != nil {
-		return false // Should we error? For now assume false means "not inline strict"
+		return false
 	}
 	return true
 }
 
-func ParseLockLine(s *Scanner) (*Lock, bool, error) {
-	if err := ScanUntilStrings(s, ":"); err != nil {
-		return nil, false, err
+func ParseLockLine(s *Scanner) (*Lock, error) {
+	id, err := ScanTokenId(s)
+	if err != nil {
+		return nil, fmt.Errorf("expected id in lock: %w", err)
 	}
-	user := strings.TrimSpace(s.Text())
+
 	if err := ScanStrings(s, ":"); err != nil {
-		return nil, false, err
+		return nil, fmt.Errorf("expected : after lock id %q: %w", id, err)
 	}
-	return ParseLockBody(s, user)
+
+	return ParseLockBody(s, id)
 }
 
-func ParseLockBody(s *Scanner, user string) (*Lock, bool, error) {
+func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 	l := &Lock{User: user}
-	if err := ScanUntilFieldTerminator(s); err != nil {
-		return nil, false, err
+	num, err := ScanTokenNum(s)
+	if err != nil {
+		return nil, fmt.Errorf("expected num in lock: %w", err)
 	}
-	l.Revision = s.Text()
-	if l.Revision == "" {
-		return nil, false, ErrRevisionEmpty
-	}
-	if err := ScanFieldTerminator(s); err != nil {
-		return nil, false, err
-	}
-	strict := false
-	for {
-		if err := ScanStrings(s, " ", "strict"); err != nil {
-			if IsNotFound(err) {
-				return l, strict, nil
-			}
-			return nil, strict, err
-		}
-		nt := s.Text()
-		switch nt {
-		case "strict":
-			strict = true
-			if err := ScanFieldTerminator(s); err != nil {
-				return nil, false, err
-			}
-		case " ":
-		default:
-			return nil, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
-		}
-	}
+	l.Revision = num
+	return l, nil
 }
 
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
@@ -785,11 +736,45 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 }
 
 func ParseRevisionHeaderNext(s *Scanner, haveHead bool) (string, error) {
-	return ParseProperty(s, haveHead, "next", true)
+	return ParsePropertyNum(s, haveHead, "next", true)
 }
 
 func ParseHeaderHead(s *Scanner, haveHead bool) (string, error) {
-	return ParseProperty(s, haveHead, "head", true)
+	return ParsePropertyNum(s, haveHead, "head", true)
+}
+
+func ParsePropertyNum(s *Scanner, havePropertyName bool, propertyName string, line bool) (string, error) {
+	if !havePropertyName {
+		if err := ScanStrings(s, propertyName); err != nil {
+			return "", err
+		}
+	}
+	if err := ScanWhiteSpace(s, 1); err != nil {
+		return "", err
+	}
+	// Use ScanRunesUntil with minimum 0 because we might have an empty property (no num).
+	// But check if it looks like a number start (digit or .) or stops at something else.
+	// This will scan UNTIL predicate is true.
+	// Predicate: !isDigit && !isDot.
+	err := ScanRunesUntil(s, 0, func(b []byte) bool {
+		r := bytes.Runes(b)[0]
+		return !isDigit(r) && r != '.'
+	}, "num")
+	if err != nil {
+		return "", err
+	}
+	result := s.Text()
+
+	if line {
+		if err := ParseTerminatorFieldLine(s); err != nil {
+			return "", err
+		}
+	} else {
+		if err := ScanFieldTerminator(s); err != nil {
+			return "", err
+		}
+	}
+	return result, nil
 }
 
 func ParseProperty(s *Scanner, havePropertyName bool, propertyName string, line bool) (string, error) {
@@ -851,12 +836,20 @@ func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name strin
 				return 0, nil, err
 			}
 			if a == 0 && t == nil {
+				if atEOF {
+					if minimum > 0 && minimum > adv {
+						break
+					}
+					f := data[:adv]
+					return adv, f, nil
+				}
 				return 0, nil, nil
 			}
 			if until(t) {
 				if minimum > 0 && minimum > adv {
 					break
 				}
+				// STOP and return what we have so far
 				f := data[:adv]
 				return adv, f, nil
 			}
@@ -955,7 +948,7 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 				continue
 			}
 			i := len(ss)
-			if i >= len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
+			if i > len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
 				return 0, nil, nil
 			}
 			if bytes.HasPrefix(data, []byte(ss)) {
@@ -963,12 +956,15 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 				return i, rs, nil
 			}
 		}
-		err = ScanNotFound{
-			LookingFor: strs,
-			Pos:        *s.pos,
-			Found:      string(data),
+		if atEOF {
+			err = ScanNotFound{
+				LookingFor: strs,
+				Pos:        *s.pos,
+				Found:      string(data),
+			}
+			return 0, []byte{}, nil
 		}
-		return 0, []byte{}, nil
+		return 0, nil, nil
 	})
 	if !s.Scan() {
 		if s.Err() != nil {
@@ -984,6 +980,59 @@ func ScanStrings(s *Scanner, strs ...string) (err error) {
 		}
 	}
 	return
+}
+
+type ErrEOF struct{ error }
+
+func (e ErrEOF) Error() string {
+	return "EOF:" + e.error.Error()
+}
+
+func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
+	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		err = nil
+		for o := 0; o < len(data); o++ {
+			for _, ss := range strs {
+				if len(ss) == 0 && atEOF {
+					rs := data[:o]
+					return o, rs, nil
+				} else if len(ss) == 0 {
+					continue
+				}
+				i := len(ss)
+				if i >= len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
+					return 0, nil, nil
+				}
+				if bytes.HasPrefix(data[o:], []byte(ss)) {
+					rs := data[:o]
+					return o, rs, nil
+				}
+			}
+		}
+		if atEOF {
+			err = ErrEOF{ScanNotFound{
+				LookingFor: strs,
+				Pos:        *s.pos,
+				Found:      string(data),
+			}}
+			return 0, []byte{}, nil
+		}
+		return 0, nil, nil
+	})
+	if !s.Scan() {
+		if s.Err() != nil {
+			return s.Err()
+		}
+		if err != nil {
+			return err
+		}
+		return ScanNotFound{
+			LookingFor: strs,
+			Pos:        *s.pos,
+			Found:      "",
+		}
+	}
+	return err
 }
 
 func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, err error) {
@@ -1049,57 +1098,4 @@ func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, e
 		}
 	}
 	return text, "", nil
-}
-
-type ErrEOF struct{ error }
-
-func (e ErrEOF) Error() string {
-	return "EOF:" + e.error.Error()
-}
-
-func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
-	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
-		err = nil
-		for o := 0; o < len(data); o++ {
-			for _, ss := range strs {
-				if len(ss) == 0 && atEOF {
-					rs := data[:o]
-					return o, rs, nil
-				} else if len(ss) == 0 {
-					continue
-				}
-				i := len(ss)
-				if i >= len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
-					return 0, nil, nil
-				}
-				if bytes.HasPrefix(data[o:], []byte(ss)) {
-					rs := data[:o]
-					return o, rs, nil
-				}
-			}
-		}
-		if atEOF {
-			err = ErrEOF{ScanNotFound{
-				LookingFor: strs,
-				Pos:        *s.pos,
-				Found:      string(data),
-			}}
-			return 0, []byte{}, nil
-		}
-		return 0, nil, nil
-	})
-	if !s.Scan() {
-		if s.Err() != nil {
-			return s.Err()
-		}
-		if err != nil {
-			return err
-		}
-		return ScanNotFound{
-			LookingFor: strs,
-			Pos:        *s.pos,
-			Found:      "",
-		}
-	}
-	return err
 }
