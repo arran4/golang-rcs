@@ -17,13 +17,9 @@ const DateFormat = "2006.01.02.15.04.05"
 type Lock struct {
 	User     string
 	Revision string
-	Strict   bool
 }
 
 func (l *Lock) String() string {
-	if l.Strict {
-		return fmt.Sprintf("%s:%s; strict;", l.User, l.Revision)
-	}
 	return fmt.Sprintf("%s:%s;", l.User, l.Revision)
 }
 
@@ -86,6 +82,7 @@ type File struct {
 	SymbolMap        map[string]string
 	Locks            []*Lock
 	Strict           bool
+	StrictOnOwnLine  bool `json:",omitempty"`
 	Integrity        string
 	Expand           string
 	RevisionHeads    []*RevisionHead
@@ -127,16 +124,16 @@ func (f *File) String() string {
 	sb.WriteString("locks")
 	if len(f.Locks) == 0 {
 		sb.WriteString(";")
-		if f.Strict {
-			sb.WriteString(" strict;")
-		}
 	}
 	for _, lock := range f.Locks {
 		sb.WriteString("\n\t")
 		sb.WriteString(lock.String())
 	}
+	if f.Strict && !f.StrictOnOwnLine {
+		sb.WriteString(" strict;")
+	}
 	sb.WriteString("\n")
-	if f.Strict && len(f.Locks) > 0 {
+	if f.Strict && f.StrictOnOwnLine {
 		sb.WriteString("strict;\n")
 	}
 	if f.Integrity != "" {
@@ -302,13 +299,18 @@ func ParseHeader(s *Scanner, f *File) error {
 		case "locks":
 			var err error
 			var locks []*Lock
-			if locks, nextToken, err = ParseHeaderLocks(s, true); err != nil {
+			var strict bool
+			if locks, strict, nextToken, err = ParseHeaderLocks(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Locks = locks
+				if strict {
+					f.Strict = true
+				}
 			}
 		case "strict":
 			f.Strict = true
+			f.StrictOnOwnLine = true
 			if err := ParseTerminatorFieldLine(s); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
@@ -612,101 +614,131 @@ func ParseAtQuotedString(s *Scanner) (string, error) {
 	}
 }
 
-func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, string, error) {
+func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, string, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "locks"); err != nil {
-			return nil, "", err
+			return nil, false, "", err
 		}
 	}
 	var locks []*Lock
+	var strict bool
 	for {
 		// Combine checks for separators AND lock ID
 		id, match, err := ScanLockIdOrStrings(s,
-			"\n\t", "\r\n\t", " ", ";",
+			"\n\t", "\r\n\t", "\n ", "\r\n ", " ", ";",
 			"branch", "access", "symbols", "locks", "strict", "integrity", "comment", "expand", "\n\n", "\r\n\r\n", "\n", "\r\n")
 
 		if err != nil {
 			if IsNotFound(err) {
 				// No match found.
-				return locks, "", nil
+				return locks, strict, "", nil
 			}
-			return nil, "", err
+			return nil, false, "", err
 		}
 
 		if match != "" {
 			switch match {
 			case ";":
 				// End of locks block
-				return locks, "", nil
-			case "\n\t", "\r\n\t":
-				if l, err := ParseLockLine(s); err != nil {
-					return nil, "", err
+				if scanInlineStrict(s) {
+					strict = true
+				}
+				return locks, strict, "", nil
+			case "\n\t", "\r\n\t", "\n ", "\r\n ":
+				if l, s, err := ParseLockLine(s); err != nil {
+					return nil, false, "", err
 				} else {
 					locks = append(locks, l)
+					if s {
+						strict = true
+					}
 				}
 			case " ":
 				// continue loop
 			default:
 				// It is a keyword or newline
-				return locks, match, nil
+				return locks, strict, match, nil
 			}
 			continue
 		}
 
 		if id != "" {
 			if err := ScanStrings(s, ":"); err != nil {
-				return nil, "", err
+				return nil, false, "", err
 			}
-			if l, err := ParseLockBody(s, id); err != nil {
-				return nil, "", err
+			if l, s, err := ParseLockBody(s, id); err != nil {
+				return nil, false, "", err
 			} else {
 				locks = append(locks, l)
+				if s {
+					strict = true
+				}
 				continue
 			}
 		}
 	}
 }
 
-func ParseLockLine(s *Scanner) (*Lock, error) {
-	if err := ScanUntilStrings(s, ":"); err != nil {
-		return nil, err
+func scanInlineStrict(s *Scanner) bool {
+	// We want to scan "strict;" but only if there are NO newlines before it.
+	// We scan horizontal whitespace first.
+	if err := ScanRunesUntil(s, 0, func(i []byte) bool {
+		return i[0] != ' ' && i[0] != '\t'
+	}, "horizontal whitespace"); err != nil {
+		return false
 	}
-	user := s.Text()
+	// Check if next is 'strict'
+	if err := ScanStrings(s, "strict"); err != nil {
+		return false
+	}
+	// Consumed 'strict'. Now expect ';'.
+	if err := ScanFieldTerminator(s); err != nil {
+		return false // Should we error? For now assume false means "not inline strict"
+	}
+	return true
+}
+
+func ParseLockLine(s *Scanner) (*Lock, bool, error) {
+	if err := ScanUntilStrings(s, ":"); err != nil {
+		return nil, false, err
+	}
+	user := strings.TrimSpace(s.Text())
 	if err := ScanStrings(s, ":"); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	return ParseLockBody(s, user)
 }
 
-func ParseLockBody(s *Scanner, user string) (*Lock, error) {
+func ParseLockBody(s *Scanner, user string) (*Lock, bool, error) {
 	l := &Lock{User: user}
 	if err := ScanUntilFieldTerminator(s); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	l.Revision = s.Text()
 	if l.Revision == "" {
-		return nil, ErrRevisionEmpty
+		return nil, false, ErrRevisionEmpty
 	}
 	if err := ScanFieldTerminator(s); err != nil {
-		return nil, err
+		return nil, false, err
 	}
+	strict := false
 	for {
 		if err := ScanStrings(s, " ", "strict"); err != nil {
 			if IsNotFound(err) {
-				return l, nil
+				return l, strict, nil
 			}
-			return nil, err
+			return nil, strict, err
 		}
 		nt := s.Text()
 		switch nt {
 		case "strict":
-			l.Strict = true
+			strict = true
 			if err := ScanFieldTerminator(s); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 		case " ":
 		default:
-			return nil, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
+			return nil, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
 }

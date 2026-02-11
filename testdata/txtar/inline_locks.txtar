@@ -27,8 +27,7 @@ desc
   "Locks": [
     {
       "User": "payne",
-      "Revision": "4.4.2.1",
-      "Strict": false
+      "Revision": "4.4.2.1"
     }
   ],
   "Strict": false,
