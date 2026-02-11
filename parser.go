@@ -434,6 +434,12 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
+	if err := ScanWhiteSpace(s, 0); err != nil {
+		if IsNotFound(err) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
 	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 		if IsEOFError(err) {
 			return nil, false, nil
