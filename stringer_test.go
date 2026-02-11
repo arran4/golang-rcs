@@ -29,9 +29,9 @@ func TestStringTxtarFiles(t *testing.T) {
 				// Skip if no input.json
 				return
 			}
-			expectedRCS, ok := parts["expected.rcs"]
+			expectedRCS, ok := parts["expected,v"]
 			if !ok {
-				// Skip if no expected.rcs
+				// Skip if no expected,v
 				return
 			}
 

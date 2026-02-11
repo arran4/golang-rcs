@@ -15,7 +15,7 @@
   "RevisionHeads": [],
   "RevisionContents": []
 }
--- expected.rcs --
+-- expected,v --
 head	1.7;
 locks; strict;
 comment	@@;
@@ -47,10 +47,10 @@ desc
   "Symbols": false,
   "AccessUsers": null,
   "SymbolMap": null,
-  "Locks": [],
+  "Locks": null,
   "Strict": true,
   "Integrity": "",
   "Expand": "",
-  "RevisionHeads": [],
-  "RevisionContents": []
+  "RevisionHeads": null,
+  "RevisionContents": null
 }
