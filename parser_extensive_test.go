@@ -335,7 +335,7 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 		{
 			name:    "Unknown token inside locks",
 			input:   "locks\n\tuser:1.1;\n\tbad_token", // It expects " " or "\n\t" or "\r\n\t"
-			wantErr: "EOF:looking for \":\"", // Failed inside ParseLockLine scanning user:
+			wantErr: "EOF:looking for \":\"",           // Failed inside ParseLockLine scanning user:
 		},
 	}
 	for _, tt := range tests {
