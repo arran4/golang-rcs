@@ -1,8 +1,13 @@
 -- input.rcs --
 head    1.2;
-access;
+access
+        user1
+        user2
+        user3;
 symbols;
-locks; strict;
+locks
+        arran:1.2;
+strict;
 comment @# @;
 
 
@@ -54,10 +59,20 @@ asdf
   "Comment": "# ",
   "Access": true,
   "Symbols": true,
-  "AccessUsers": null,
+  "AccessUsers": [
+    "user1",
+    "user2",
+    "user3"
+  ],
   "SymbolMap": null,
-  "Locks": null,
+  "Locks": [
+    {
+      "User": "arran",
+      "Revision": "1.2"
+    }
+  ],
   "Strict": true,
+  "StrictOnOwnLine": true,
   "Integrity": "",
   "Expand": "",
   "RevisionHeads": [

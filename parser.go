@@ -128,12 +128,12 @@ func (f *File) String() string {
 			sb.WriteString(" strict;")
 		}
 	}
-	for i, lock := range f.Locks {
+	for _, lock := range f.Locks {
 		sb.WriteString("\n\t")
 		sb.WriteString(lock.String())
-		if i == len(f.Locks)-1 && f.Strict && !f.StrictOnOwnLine {
-			sb.WriteString(" strict;")
-		}
+	}
+	if len(f.Locks) > 0 && f.Strict && !f.StrictOnOwnLine {
+		sb.WriteString(" strict;")
 	}
 	sb.WriteString("\n")
 	if f.Strict && len(f.Locks) > 0 && f.StrictOnOwnLine {
@@ -618,6 +618,9 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, error) 
 		if err := ScanStrings(s, "\n\t", "\r\n\t", "\n ", "\r\n ", " "); err != nil {
 			if IsNotFound(err) {
 				if err := ScanFieldTerminator(s); err == nil {
+					if scanInlineStrict(s) {
+						strict = true
+					}
 					break
 				}
 				break
@@ -641,6 +644,25 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, error) 
 		}
 	}
 	return locks, strict, nil
+}
+
+func scanInlineStrict(s *Scanner) bool {
+	// We want to scan "strict;" but only if there are NO newlines before it.
+	// We scan horizontal whitespace first.
+	if err := ScanRunesUntil(s, 0, func(i []byte) bool {
+		return i[0] != ' ' && i[0] != '\t'
+	}, "horizontal whitespace"); err != nil {
+		return false
+	}
+	// Check if next is 'strict'
+	if err := ScanStrings(s, "strict"); err != nil {
+		return false
+	}
+	// Consumed 'strict'. Now expect ';'.
+	if err := ScanFieldTerminator(s); err != nil {
+		return false // Should we error? For now assume false means "not inline strict"
+	}
+	return true
 }
 
 func ParseLockLine(s *Scanner) (*Lock, bool, error) {
