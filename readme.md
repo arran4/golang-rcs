@@ -29,7 +29,7 @@ To install the `gorcs` tool for use on the command line:
 go install github.com/arran4/golang-rcs/cmd/gorcs@latest
 ```
 
-Alternatively, you can download the latest binary from the [Releases](https://github.com/arran4/golang-rcs/releases) page.
+Alternatively, you can download the latest binary from the [Releases](https://github.com/arran4/golang-rcs/releases) page. Binaries are available for Windows, macOS (Darwin), and Linux (amd64, arm, arm64, 386). Packages are also available in formats: apk, deb, rpm, termux.deb, and archlinux.
 
 ## Usage
 
