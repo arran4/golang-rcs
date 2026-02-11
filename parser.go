@@ -844,7 +844,7 @@ func (se ScanNotFound) Error() string {
 			found = string(runes[:20]) + "..."
 		}
 	}
-	return fmt.Sprintf("looking for %s at %s found %q", lookingFor, se.Pos.String(), found)
+	return fmt.Sprintf("looking for %s at %s but found %q", lookingFor, se.Pos.String(), found)
 }
 
 type ScanUntilNotFound struct {
@@ -861,7 +861,7 @@ func (se ScanUntilNotFound) Error() string {
 			found = string(runes[:20]) + "..."
 		}
 	}
-	return fmt.Sprintf("scanning until %q at %s found %q", se.Until, se.Pos.String(), found)
+	return fmt.Sprintf("scanning until %q at %s but found %q", se.Until, se.Pos.String(), found)
 }
 
 func IsNotFound(err error) bool {
