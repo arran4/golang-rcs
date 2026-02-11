@@ -166,7 +166,6 @@ func TestParseHeader(t *testing.T) {
 					{
 						User:     "arran",
 						Revision: "1.6",
-						Strict:   false,
 					},
 				},
 				Strict: true,
@@ -590,7 +589,6 @@ func TestParseHeaderLocks(t *testing.T) {
 				{
 					User:     "arran",
 					Revision: "1.6",
-					Strict:   false,
 				},
 			},
 			wantErr: false,
@@ -628,7 +626,6 @@ func TestParseLockLine(t *testing.T) {
 			want: &Lock{
 				User:     "arran",
 				Revision: "1.6",
-				Strict:   false,
 			},
 			wantErr: false,
 		},
@@ -1326,7 +1323,6 @@ func TestParseLockBody(t *testing.T) {
 			want: &Lock{
 				User:     "user",
 				Revision: "1.1",
-				Strict:   false,
 			},
 			wantErr: false,
 		},
@@ -1339,7 +1335,6 @@ func TestParseLockBody(t *testing.T) {
 			want: &Lock{
 				User:     "user",
 				Revision: "1.1",
-				Strict:   false,
 			},
 			wantErr: false,
 		},

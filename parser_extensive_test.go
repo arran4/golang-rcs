@@ -30,10 +30,10 @@ func TestFile_String(t *testing.T) {
 		t.Errorf("File.String() = %q, want %q", got, expected)
 	}
 
-	// Test Lock.String strict
-	l := &Lock{User: "u", Revision: "1", Strict: false}
+	// Test Lock.String
+	l := &Lock{User: "u", Revision: "1"}
 	if got := l.String(); got != "u:1;" {
-		t.Errorf("Lock.String() strict=false = %q, want %q", got, "u:1;")
+		t.Errorf("Lock.String() = %q, want %q", got, "u:1;")
 	}
 
 	// Test RevisionHead with branches

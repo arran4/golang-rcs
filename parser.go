@@ -17,13 +17,9 @@ const DateFormat = "2006.01.02.15.04.05"
 type Lock struct {
 	User     string
 	Revision string
-	Strict   bool
 }
 
 func (l *Lock) String() string {
-	if l.Strict {
-		return fmt.Sprintf("%s:%s; strict;", l.User, l.Revision)
-	}
 	return fmt.Sprintf("%s:%s;", l.User, l.Revision)
 }
 
@@ -131,14 +127,14 @@ func (f *File) String() string {
 			sb.WriteString(" strict;")
 		}
 	}
-	for _, lock := range f.Locks {
+	for i, lock := range f.Locks {
 		sb.WriteString("\n\t")
 		sb.WriteString(lock.String())
+		if i == len(f.Locks)-1 && f.Strict {
+			sb.WriteString(" strict;")
+		}
 	}
 	sb.WriteString("\n")
-	if f.Strict && len(f.Locks) > 0 {
-		sb.WriteString("strict;\n")
-	}
 	if f.Integrity != "" {
 		sb.WriteString(fmt.Sprintf("integrity\t%s;\n", AtQuote(f.Integrity)))
 	}

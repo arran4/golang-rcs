@@ -42,8 +42,7 @@ asdf
   "Locks": [
     {
       "User": "arran",
-      "Revision": "1.1",
-      "Strict": false
+      "Revision": "1.1"
     }
   ],
   "Strict": true,
