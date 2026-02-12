@@ -121,6 +121,7 @@ func NewFile() *File {
 	return &File{
 		Symbols: make([]*Symbol, 0),
 		Locks:   make([]*Lock, 0),
+		Strict:  true,
 	}
 }
 

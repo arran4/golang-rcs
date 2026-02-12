@@ -1,0 +1,54 @@
+-- input.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "d\n",
+  "Comment": "c",
+  "Access": false,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": null,
+  "RevisionContents": null
+}
+-- expected,v --
+head	1.1;
+symbols;
+locks; strict;
+comment	@c@;
+
+
+desc
+@d@
+
+
+-- input.rcs --
+head	1.1;
+symbols;
+locks; strict;
+comment	@c@;
+
+
+desc
+@d@
+
+
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "d\n",
+  "Comment": "c",
+  "Access": false,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": null,
+  "RevisionContents": null
+}
