@@ -57,8 +57,7 @@ asdf
     {
       "Revision": "1.1",
       "Log": "Initial revision\n",
-      "Text": "asdf\nasdf\nasdf\n",
-      "RevisionDescriptionNewLineOffset": 2
+      "Text": "asdf\nasdf\nasdf\n"
     }
   ]
 }

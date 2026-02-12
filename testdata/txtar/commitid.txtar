@@ -79,14 +79,12 @@ The quick brown fox jumped over the lazy dog.
     {
       "Revision": "1.2",
       "Log": "Third commit\n",
-      "Text": "And now for something completely different.\n",
-      "RevisionDescriptionNewLineOffset": 2
+      "Text": "And now for something completely different.\n"
     },
     {
       "Revision": "1.1",
       "Log": "First commit\n",
-      "Text": "d1 1\na1 1\nThe quick brown fox jumped over the lazy dog.\n",
-      "RevisionDescriptionNewLineOffset": 2
+      "Text": "d1 1\na1 1\nThe quick brown fox jumped over the lazy dog.\n"
     }
   ]
 }

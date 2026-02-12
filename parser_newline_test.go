@@ -117,7 +117,7 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 			// 1.1
 			// It looks like 3 empty lines.
 			// PrecedingNewLines is 1.
-			// Offset = 2 - PrecedingNewLines = 2 - 1 = 1.
+			// Offset = PrecedingNewLines = 1.
 			if rc.RevisionDescriptionNewLineOffset != 1 {
 				t.Errorf("Revision 1.1 RevisionDescriptionNewLineOffset = %d, want 1", rc.RevisionDescriptionNewLineOffset)
 			}
@@ -135,9 +135,9 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 			// 1.1.1.1
 			// ParseRevisionContent(1.1) consumes \n\n (1 and 2).
 			// Left 3 and 4. So 2.
-			// Offset = 2 - 2 = 0.
-			if rc.RevisionDescriptionNewLineOffset != 0 {
-				t.Errorf("Revision 1.1.1.1 RevisionDescriptionNewLineOffset = %d, want 0", rc.RevisionDescriptionNewLineOffset)
+			// Offset = 2.
+			if rc.RevisionDescriptionNewLineOffset != 2 {
+				t.Errorf("Revision 1.1.1.1 RevisionDescriptionNewLineOffset = %d, want 2", rc.RevisionDescriptionNewLineOffset)
 			}
 		} else {
 			t.Errorf("Unexpected revision %s", rc.Revision)

@@ -62,11 +62,7 @@ type RevisionContent struct {
 
 func (c *RevisionContent) String() string {
 	sb := strings.Builder{}
-	count := 2 - c.RevisionDescriptionNewLineOffset
-	if count < 0 {
-		count = 0
-	}
-	sb.WriteString(strings.Repeat("\n", count))
+	sb.WriteString(strings.Repeat("\n", c.RevisionDescriptionNewLineOffset))
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
 	sb.WriteString(AtQuote(c.Log))
@@ -471,7 +467,7 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		}
 		if rev != "" {
 			rh.Revision = rev
-			rh.RevisionDescriptionNewLineOffset = 2 - precedingNewLines
+			rh.RevisionDescriptionNewLineOffset = precedingNewLines
 			break
 		}
 		precedingNewLines++
