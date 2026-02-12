@@ -37,17 +37,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 	}
 
 	targetStdout := stdoutFlag || (!overwrite && output == "")
-
-	if targetStdout && len(files) > 1 {
-		// Txtar format
-		for _, fn := range files {
-			r := parseFileOrStdin(stdin, fn)
-			content := r.String()
-			_, _ = fmt.Fprintf(stdout, "-- %s --\n", fn)
-			_, _ = fmt.Fprint(stdout, content)
-		}
-		return
-	}
+	useTxtar := targetStdout && len(files) > 1
 
 	for _, fn := range files {
 		r := parseFileOrStdin(stdin, fn)
@@ -59,7 +49,11 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		}
 		content := r.String()
 
-		if overwrite {
+		if useTxtar {
+			// Txtar format
+			_, _ = fmt.Fprintf(stdout, "-- %s --\n", fn)
+			_, _ = fmt.Fprint(stdout, content)
+		} else if overwrite {
 			if fn == "-" {
 				log.Panicf("Cannot overwrite stdin")
 			}

@@ -3,6 +3,8 @@ package cli
 import (
 	"bytes"
 	_ "embed"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -38,5 +40,49 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 	// Check output for 4-digit year (1999) - Default behavior matches backward compatibility (Normalize)
 	if !strings.Contains(output, "date\t1999.01.01.00.00.00;") {
 		t.Errorf("Expected 4-digit year in output when keepTruncatedYears=false (default), got:\n%s", output)
+	}
+}
+
+func TestFormat_Txtar_KeepTruncatedYears(t *testing.T) {
+	// Create temp files
+	tmpDir := t.TempDir()
+	file1 := filepath.Join(tmpDir, "file1.rcs")
+	file2 := filepath.Join(tmpDir, "file2.rcs")
+
+	if err := os.WriteFile(file1, truncatedDateTestFile, 0644); err != nil {
+		t.Fatalf("Failed to write temp file: %v", err)
+	}
+	if err := os.WriteFile(file2, truncatedDateTestFile, 0644); err != nil {
+		t.Fatalf("Failed to write temp file: %v", err)
+	}
+
+	var buf bytes.Buffer
+
+	// Run Format with keepTruncatedYears=false (should expand)
+	runFormat(nil, &buf, "", false, false, true, false, file1, file2)
+
+	output := buf.String()
+
+	// Check Txtar headers
+	if !strings.Contains(output, "-- "+file1+" --") {
+		t.Errorf("Expected Txtar header for file1")
+	}
+	if !strings.Contains(output, "-- "+file2+" --") {
+		t.Errorf("Expected Txtar header for file2")
+	}
+
+	// Check expansion (should happen for both files)
+	// We count occurrences or just check presence.
+	if !strings.Contains(output, "date\t1999.01.01.00.00.00;") {
+		t.Errorf("Expected expanded year in Txtar output, got:\n%s", output)
+	}
+
+	// Run Format with keepTruncatedYears=true (should keep)
+	buf.Reset()
+	runFormat(nil, &buf, "", false, false, true, true, file1, file2)
+	output = buf.String()
+
+	if !strings.Contains(output, "date\t99.01.01.00.00.00;") {
+		t.Errorf("Expected kept year in Txtar output, got:\n%s", output)
 	}
 }
