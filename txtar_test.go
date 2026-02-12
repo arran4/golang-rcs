@@ -30,13 +30,14 @@ func TestTxtarFiles(t *testing.T) {
 			parts := parseTxtar(string(content))
 
 			// Check for input,v (preferred) or input.rcs
-			rcsContent, ok := parts["input,v"]
-			if !ok {
-				rcsContent, ok = parts["input.rcs"]
+			rcsContent, rcsok := parts["input,v"]
+			if !rcsok {
+				rcsContent, rcsok = parts["input.rcs"]
 			}
+			inputJSON, jsonok := parts["input.json"]
 
-			// Parse Test
-			if ok {
+			// Parse Test: input,v -> expected.json
+			if rcsok {
 				expectedJSON, hasExpectedJSON := parts["expected.json"]
 				if hasExpectedJSON {
 					t.Run("Parse", func(t *testing.T) {
@@ -66,32 +67,57 @@ func TestTxtarFiles(t *testing.T) {
 						}
 					})
 				}
-			}
 
-			// Stringer Test
-			inputJSON, hasInputJSON := parts["input.json"]
-			expectedRCS, hasExpectedRCS := parts["expected,v"]
-
-			if hasInputJSON && hasExpectedRCS {
-				t.Run("String", func(t *testing.T) {
-					// Unmarshal JSON
-					var file File
-					if err := json.Unmarshal([]byte(inputJSON), &file); err != nil {
-						t.Fatalf("json.Unmarshal error: %v", err)
+				// Circular Test: input,v -> Parse -> String -> input,v (or expected,v if present)
+				t.Run("Circular", func(t *testing.T) {
+					parsedFile, err := ParseFile(strings.NewReader(rcsContent))
+					if err != nil {
+						// Retry with added newlines
+						parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n\n\n"))
+						if err != nil {
+							t.Fatalf("ParseFile error: %v", err)
+						}
 					}
 
-					// Generate RCS string
-					gotRCS := file.String()
-
-					// Normalize RCS for comparison (trim whitespace)
+					gotRCS := parsedFile.String()
 					gotRCS = strings.TrimSpace(gotRCS)
-					expectedRCS = strings.TrimSpace(expectedRCS)
+
+					expectedRCS := strings.TrimSpace(rcsContent)
+					if exp, ok := parts["expected,v"]; ok {
+						expectedRCS = strings.TrimSpace(exp)
+					}
 
 					if diff := cmp.Diff(expectedRCS, gotRCS); diff != "" {
-						t.Errorf("RCS mismatch (-want +got):\n%s", diff)
+						t.Errorf("Circular RCS mismatch (-want +got):\n%s", diff)
 						t.Logf("Got RCS:\n%q", gotRCS)
 					}
 				})
+			}
+
+			// Stringer Test: input.json -> expected,v
+			if jsonok {
+				expectedRCS, hasExpectedRCS := parts["expected,v"]
+				if hasExpectedRCS {
+					t.Run("String", func(t *testing.T) {
+						// Unmarshal JSON
+						var file File
+						if err := json.Unmarshal([]byte(inputJSON), &file); err != nil {
+							t.Fatalf("json.Unmarshal error: %v", err)
+						}
+
+						// Generate RCS string
+						gotRCS := file.String()
+
+						// Normalize RCS for comparison (trim whitespace)
+						gotRCS = strings.TrimSpace(gotRCS)
+						expectedRCS = strings.TrimSpace(expectedRCS)
+
+						if diff := cmp.Diff(expectedRCS, gotRCS); diff != "" {
+							t.Errorf("RCS mismatch (-want +got):\n%s", diff)
+							t.Logf("Got RCS:\n%q", gotRCS)
+						}
+					})
+				}
 			}
 		})
 	}

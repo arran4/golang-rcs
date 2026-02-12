@@ -1,20 +1,20 @@
 -- input,v --
-head    1.2;
+head	1.2;
 access;
 symbols;
 locks; strict;
-comment @# @;
+comment	@# @;
 
 
 1.2
-date    2026.02.10.10.39.46;    author arran;   state Exp;
+date	2026.02.10.10.39.46;	author arran;	state Exp;
 branches;
-next    1.1;
+next	1.1;
 
 1.1
-date    2026.02.10.10.35.45;    author arran;   state Exp;
+date	2026.02.10.10.35.45;	author arran;	state Exp;
 branches;
-next    ;
+next	;
 
 
 desc

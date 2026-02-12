@@ -5,7 +5,7 @@
   "Description": "",
   "Comment": "",
   "Access": false,
-  "Symbols": [],
+  "Symbols": null,
   "AccessUsers": null,
   "Locks": null,
   "Strict": true,
@@ -16,7 +16,6 @@
 }
 -- expected,v --
 head	1.7;
-symbols;
 locks; strict;
 comment	@@;
 
