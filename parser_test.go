@@ -196,7 +196,7 @@ func TestParseFile(t *testing.T) {
 		r        string
 		b        []byte
 		checkErr func(*testing.T, error)
-		check    func(*testing.T, *File)
+		verify   func(*testing.T, *File)
 		wantDesc string
 	}{
 		{
@@ -204,7 +204,7 @@ func TestParseFile(t *testing.T) {
 			r:        string(testinputv),
 			b:        testinputv,
 			checkErr: noError,
-			check:    checkTestInput,
+			verify:   checkTestInput,
 			wantDesc: "This is a test file.\n",
 		},
 		{
@@ -212,7 +212,7 @@ func TestParseFile(t *testing.T) {
 			r:        string(testinputv1) + "\n",
 			b:        testinputv1,
 			checkErr: noError,
-			check:    checkTestInput,
+			verify:   checkTestInput,
 			wantDesc: "This is a test file.\n",
 		},
 		{
@@ -224,7 +224,7 @@ func TestParseFile(t *testing.T) {
 			// Let's verify accessSymbolsv content.
 			// The original test said: len(got.Locks) 1.
 			// Let's use checkAccessSymbols here if that's what the original code did.
-			check:    checkAccessSymbols,
+			verify:   checkAccessSymbols,
 			wantDesc: "Sample\n",
 		},
 		{
@@ -289,8 +289,8 @@ func TestParseFile(t *testing.T) {
 				}
 			}
 
-			if tt.check != nil {
-				tt.check(t, got)
+			if tt.verify != nil {
+				tt.verify(t, got)
 			}
 
 			if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
