@@ -23,6 +23,8 @@ comment	@# Test old-fashioned format of tags.@;
 
 
 
+
+
 1.2
 date	2002.10.06.03.23.17;	author esr;	state Exp;
 branches;
