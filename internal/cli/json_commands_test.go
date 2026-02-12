@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -47,7 +46,7 @@ func TestCircularJson(t *testing.T) {
 
 func TestJsonCommandsStdIO(t *testing.T) {
 	input := loadTestInput(t)
-	tmpFile, err := ioutil.TempFile("", "rcs_input_*.v")
+	tmpFile, err := os.CreateTemp("", "rcs_input_*.v")
 	if err != nil {
 		t.Fatalf("temp file: %v", err)
 	}

@@ -24,19 +24,29 @@ func (l *Lock) String() string {
 }
 
 type RevisionHead struct {
-	Revision     string
-	Date         time.Time
-	Author       string
-	State        string
-	Branches     []string
-	NextRevision string
-	CommitID     string
+	Revision      string
+	Date          time.Time
+	YearTruncated bool `json:",omitempty"`
+	Author        string
+	State         string
+	Branches      []string
+	NextRevision  string
+	CommitID      string
+	Owner         string `json:",omitempty"`
+	Group         string `json:",omitempty"`
+	Permissions   string `json:",omitempty"`
+	Hardlinks     string `json:",omitempty"`
 }
 
 func (h *RevisionHead) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("%s\n", h.Revision))
-	sb.WriteString(fmt.Sprintf("date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State))
+	sb.WriteString(h.Revision)
+	sb.WriteByte('\n')
+	dateFormat := DateFormat
+	if h.YearTruncated {
+		dateFormat = DateFormatTruncated
+	}
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(dateFormat), h.Author, h.State)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		sb.WriteString("\n\t")
@@ -46,21 +56,35 @@ func (h *RevisionHead) String() string {
 		sb.WriteString(";")
 	}
 	sb.WriteString("\n")
-	sb.WriteString(fmt.Sprintf("next\t%s;\n", h.NextRevision))
+	fmt.Fprintf(&sb, "next\t%s;\n", h.NextRevision)
 	if h.CommitID != "" {
-		sb.WriteString(fmt.Sprintf("commitid\t%s;\n", h.CommitID))
+		fmt.Fprintf(&sb, "commitid\t%s;\n", h.CommitID)
+	}
+	if h.Owner != "" {
+		sb.WriteString(fmt.Sprintf("owner\t%s;\n", h.Owner))
+	}
+	if h.Group != "" {
+		sb.WriteString(fmt.Sprintf("group\t%s;\n", h.Group))
+	}
+	if h.Permissions != "" {
+		sb.WriteString(fmt.Sprintf("permissions\t%s;\n", h.Permissions))
+	}
+	if h.Hardlinks != "" {
+		sb.WriteString(fmt.Sprintf("hardlinks\t%s;\n", AtQuote(h.Hardlinks)))
 	}
 	return sb.String()
 }
 
 type RevisionContent struct {
-	Revision string
-	Log      string
-	Text     string
+	Revision                         string
+	Log                              string
+	Text                             string
+	RevisionDescriptionNewLineOffset int `json:",omitempty"`
 }
 
 func (c *RevisionContent) String() string {
 	sb := strings.Builder{}
+	sb.WriteString(strings.Repeat("\n", c.RevisionDescriptionNewLineOffset))
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
 	sb.WriteString(AtQuote(c.Log))
@@ -72,21 +96,22 @@ func (c *RevisionContent) String() string {
 }
 
 type File struct {
-	Head             string
-	Branch           string
-	Description      string
-	Comment          string
-	Access           bool
-	Symbols          bool
-	AccessUsers      []string
-	SymbolMap        map[string]string
-	Locks            []*Lock
-	Strict           bool
-	StrictOnOwnLine  bool `json:",omitempty"`
-	Integrity        string
-	Expand           string
-	RevisionHeads    []*RevisionHead
-	RevisionContents []*RevisionContent
+	Head                    string
+	Branch                  string
+	Description             string
+	Comment                 string
+	Access                  bool
+	Symbols                 bool
+	AccessUsers             []string
+	SymbolMap               map[string]string
+	Locks                   []*Lock
+	Strict                  bool
+	StrictOnOwnLine         bool `json:",omitempty"`
+	DateYearPrefixTruncated bool `json:",omitempty"`
+	Integrity               string
+	Expand                  string
+	RevisionHeads           []*RevisionHead
+	RevisionContents        []*RevisionContent
 }
 
 func (f *File) String() string {
@@ -177,6 +202,12 @@ func ParseFile(r io.Reader) (*File, error) {
 	} else {
 		descConsumed = dc
 		f.RevisionHeads = rhs
+		for _, h := range rhs {
+			if h.YearTruncated {
+				f.DateYearPrefixTruncated = true
+				break
+			}
+		}
 	}
 	if desc, err := ParseDescription(s, descConsumed); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
@@ -316,10 +347,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "integrity":
-			// TODO: Integrity parsing might need AtQuote string parsing similar to comment/desc?
-			// RCS usually has simple strings? integrity @...@;
-			// Let's assume quoted string for integrity.
-			if integrity, err := ParseHeaderComment(s, true); err != nil { // Reusing ParseHeaderComment logic (quote + terminator)
+			if integrity, err := ParseHeaderComment(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Integrity = integrity
@@ -390,7 +418,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 		return nil, false, true, nil
 	}
 	for {
-		if err := ScanStrings(s, "branches", "date", "next", "commitid", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
 			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
 		}
 		nt := s.Text()
@@ -414,6 +442,30 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.CommitID = c
+			}
+		case "owner":
+			if o, err := ParseProperty(s, true, "owner", true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Owner = o
+			}
+		case "group":
+			if g, err := ParseProperty(s, true, "group", true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Group = g
+			}
+		case "permissions":
+			if p, err := ParseProperty(s, true, "permissions", true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Permissions = p
+			}
+		case "hardlinks":
+			if h, err := ParseHeaderComment(s, true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Hardlinks = h
 			}
 		case "\n\n", "\r\n\r\n":
 			return rh, true, false, nil
@@ -443,18 +495,27 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
-	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
-		if IsEOFError(err) {
-			return nil, false, nil
+	precedingNewLines := 0
+	for {
+		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
+			if IsEOFError(err) {
+				return nil, false, nil
+			}
+			return nil, false, err
 		}
-		return nil, false, err
-	}
-	rh.Revision = s.Text()
-	if rh.Revision == "" {
-		return nil, false, ErrRevisionEmpty
-	}
-	if err := ScanNewLine(s, false); err != nil {
-		return nil, false, err
+		rev := s.Text()
+		if err := ScanNewLine(s, false); err != nil {
+			return nil, false, err
+		}
+		if rev != "" {
+			rh.Revision = rev
+			rh.RevisionDescriptionNewLineOffset = precedingNewLines
+			break
+		}
+		precedingNewLines++
+		if precedingNewLines > 4 {
+			return nil, false, fmt.Errorf("%w: %d", ErrTooManyNewLines, precedingNewLines)
+		}
 	}
 	for {
 		if err := ScanStrings(s, "log", "text", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
@@ -693,10 +754,16 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 	}
 	if dateStr, err := ParseOptionalToken(s, ScanTokenNum, opts...); err != nil {
 		return err
-	} else if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
-		return err
 	} else {
-		rh.Date = date
+		dateStr = strings.TrimSpace(dateStr)
+		if i := strings.Index(dateStr, "."); i == 2 {
+			rh.YearTruncated = true
+		}
+		if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
+			return err
+		} else {
+			rh.Date = date
+		}
 	}
 	for {
 		if err := ScanStrings(s, " ", "\t", "author", "state"); err != nil {
