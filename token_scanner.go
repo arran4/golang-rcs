@@ -144,10 +144,9 @@ func ScanTokenStringOrId(s *Scanner) (string, error) {
 							return 0, nil, nil
 						}
 					} else if size == 1 && !atEOF && len(data)-i < 4 { // Simplified check for potential incomplete rune
-						// utf8.DecodeRune returns RuneError for incomplete runes too?
-						// It returns RuneError, 1 if invalid.
-						// If it's partial, we might need more data.
-						// But assuming valid UTF8 or ASCII for now.
+						if !utf8.FullRune(data[i:]) {
+							return 0, nil, nil
+						}
 					}
 				}
 
