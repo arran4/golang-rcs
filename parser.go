@@ -54,9 +54,9 @@ func (h *RevisionHead) String() string {
 }
 
 type RevisionContent struct {
-	Revision                       string
-	Log                            string
-	Text                           string
+	Revision                         string
+	Log                              string
+	Text                             string
 	RevisionDescriptionNewLineOffset int `json:",omitempty"`
 }
 
