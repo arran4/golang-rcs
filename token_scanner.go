@@ -116,13 +116,15 @@ func ScanTokenIntString(s *Scanner) (string, error) {
 	return val, nil
 }
 
-func ScanTokenWord(s *Scanner) (string, error) {
-	// word ::= id | num | string | ":"
+func ScanTokenAuthor(s *Scanner) (string, error) {
 	if err := ScanStrings(s, "@"); err == nil {
 		return ParseAtQuotedStringBody(s)
 	}
-	if err := ScanStrings(s, ":"); err == nil {
-		return ":", nil
+	err := ScanRunesUntil(s, 1, func(b []byte) bool {
+		return b[0] == ';'
+	}, "author")
+	if err != nil {
+		return "", err
 	}
-	return ScanTokenId(s)
+	return s.Text(), nil
 }

@@ -230,7 +230,7 @@ func TestParseRevisionContent_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewScanner(strings.NewReader(tt.input))
-			_, _, err := ParseRevisionContent(s)
+			_, _, err := ParseRevisionContent(s, 0)
 			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
 				t.Errorf("ParseRevisionContent() error = %v, wantErr containing %q", err, tt.wantErr)
 			}

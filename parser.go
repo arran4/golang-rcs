@@ -179,8 +179,6 @@ func (f *File) String() string {
 	sb.WriteString(fmt.Sprintf("%s\n", AtQuote(f.Description)))
 
 	for _, content := range f.RevisionContents {
-		sb.WriteString("\n")
-		sb.WriteString("\n")
 		sb.WriteString(content.String())
 	}
 	return sb.String()
@@ -239,9 +237,7 @@ func ParseDescription(s *Scanner, havePropertyName bool) (string, error) {
 			return "", fmt.Errorf("description tag: %s", err)
 		}
 	}
-	if err = ScanStrings(s, "\n\n", "\r\n\r\n"); err != nil {
-		return "", fmt.Errorf("description scan string: %s", err)
-	}
+	// ScanStrings(s, "\n\n", "\r\n\r\n") check removed to support files with less spacing
 	return d, nil
 }
 
@@ -486,8 +482,9 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
+	initialOffset := 0
 	for {
-		rc, next, err := ParseRevisionContent(s)
+		rc, next, err := ParseRevisionContent(s, initialOffset)
 		if err != nil {
 			return nil, err
 		}
@@ -497,12 +494,13 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 		if !next {
 			return rcs, nil
 		}
+		initialOffset = 2
 	}
 }
 
-func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
+func ParseRevisionContent(s *Scanner, initialOffset int) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
-	precedingNewLines := 0
+	precedingNewLines := initialOffset
 	for {
 		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 			if IsEOFError(err) {
@@ -788,7 +786,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		case " ", "\t":
 			continue
 		case "author":
-			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author"), WithConsumed(true)); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenAuthor, WithPropertyName("author"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Author = s
