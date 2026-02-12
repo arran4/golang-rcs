@@ -1,13 +1,44 @@
+-- input.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# Reduced version of an old repo with an empty branch label.",
+  "Access": false,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [
+    {
+      "User": "payne",
+      "Revision": "4.4.2.1"
+    }
+  ],
+  "Strict": false,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": [],
+  "RevisionContents": []
+}
+-- expected,v --
+head	1.1;
+symbols;
+locks
+	payne:4.4.2.1;
+comment	@# Reduced version of an old repo with an empty branch label.@;
+
+
+
+desc
+@@
+
+
 -- input.rcs --
-head     1.1;
-locks    payne:4.4.2.1;
-comment  @# Reduced version of an old repo with an empty branch label.@;
+head	1.1;
+symbols;
+locks
+	payne:4.4.2.1;
+comment	@# Reduced version of an old repo with an empty branch label.@;
 
-
-1.1
-date    2021.01.01.00.00.00;    author payne;    state Exp;
-branches;
-next    ;
 
 
 desc
@@ -21,9 +52,8 @@ desc
   "Description": "",
   "Comment": "# Reduced version of an old repo with an empty branch label.",
   "Access": false,
-  "Symbols": false,
-  "AccessUsers": null,
   "Symbols": [],
+  "AccessUsers": null,
   "Locks": [
     {
       "User": "payne",
@@ -33,16 +63,6 @@ desc
   "Strict": false,
   "Integrity": "",
   "Expand": "",
-  "RevisionHeads": [
-    {
-      "Revision": "1.1",
-      "Date": "2021-01-01T00:00:00Z",
-      "Author": "payne",
-      "State": "Exp",
-      "Branches": [],
-      "NextRevision": "",
-      "CommitID": ""
-    }
-  ],
+  "RevisionHeads": null,
   "RevisionContents": null
 }
