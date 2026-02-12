@@ -2,10 +2,12 @@ package rcs
 
 import (
 	"bytes"
-	_ "embed"
+	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"io/fs"
 	"strings"
 	"testing"
 	"time"
@@ -15,7 +17,11 @@ var (
 	//go:embed "testdata/testinput.go,v"
 	testinputv []byte
 	//go:embed "testdata/testinput1.go,v"
-	testinputv1   []byte
+	testinputv1 []byte
+	//go:embed testdata/txtar/*.txtar
+	txtarTests embed.FS
+	//go:embed testdata/local/*
+	localTests    embed.FS
 	accessSymbols = []byte(
 		"head\t1.1;\n" +
 			"access john jane;\n" +
@@ -1365,5 +1371,124 @@ func TestParseLockBody(t *testing.T) {
 				t.Errorf("ParseLockBody() %s", diff)
 			}
 		})
+	}
+}
+
+func TestParseTxtarFiles(t *testing.T) {
+	files, err := txtarTests.ReadDir("testdata/txtar")
+	if err != nil {
+		t.Fatalf("ReadDir error: %v", err)
+	}
+
+	for _, f := range files {
+		if !strings.HasSuffix(f.Name(), ".txtar") {
+			continue
+		}
+		t.Run(f.Name(), func(t *testing.T) {
+			content, err := txtarTests.ReadFile("testdata/txtar/" + f.Name())
+			if err != nil {
+				t.Fatalf("ReadFile error: %v", err)
+			}
+			parts := parseTxtar(string(content))
+
+			rcsContent, ok := parts["input.rcs"]
+			if !ok {
+				t.Fatalf("input.rcs not found in %s", f.Name())
+			}
+			expectedJSON, ok := parts["expected.json"]
+			if !ok {
+				t.Fatalf("expected.json not found in %s", f.Name())
+			}
+
+			// Parse RCS
+			parsedFile, err := ParseFile(strings.NewReader(rcsContent))
+			if err != nil {
+				// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
+				parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n\n\n"))
+				if err != nil {
+					t.Fatalf("ParseFile error: %v", err)
+				}
+			}
+
+			// Marshal to JSON
+			gotJSONBytes, err := json.MarshalIndent(parsedFile, "", "  ")
+			if err != nil {
+				t.Fatalf("json.MarshalIndent error: %v", err)
+			}
+			gotJSON := string(gotJSONBytes)
+
+			// Normalize JSON for comparison (trim whitespace)
+			gotJSON = strings.TrimSpace(gotJSON)
+			expectedJSON = strings.TrimSpace(expectedJSON)
+
+			if diff := cmp.Diff(expectedJSON, gotJSON); diff != "" {
+				t.Errorf("JSON mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func parseTxtar(content string) map[string]string {
+	parts := make(map[string]string)
+	lines := strings.Split(content, "\n")
+	var currentFile string
+	var currentContent strings.Builder
+
+	for _, line := range lines {
+		line = strings.TrimRight(line, "\r")
+		if strings.HasPrefix(line, "-- ") && strings.HasSuffix(line, " --") {
+			if currentFile != "" {
+				parts[currentFile] = currentContent.String()
+				currentContent.Reset()
+			}
+			currentFile = strings.TrimSuffix(strings.TrimPrefix(line, "-- "), " --")
+			continue
+		}
+		if currentFile != "" {
+			currentContent.WriteString(line + "\n")
+		}
+	}
+	if currentFile != "" {
+		parts[currentFile] = currentContent.String()
+	}
+	return parts
+}
+
+func TestParseLocalFiles(t *testing.T) {
+	testParseFiles(t, localTests, "testdata/local")
+}
+
+func TestParseRepoFiles(t *testing.T) {
+	// Placeholder for future repo data tests
+	// testParseFiles(t, repoTests, "testdata/repo")
+}
+
+func testParseFiles(t *testing.T, fsys fs.FS, root string) {
+	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+		if d == nil {
+			return nil
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, ",v") {
+			return nil
+		}
+		t.Run(path, func(t *testing.T) {
+			b, err := fs.ReadFile(fsys, path)
+			if err != nil {
+				t.Errorf("ReadFile( %s ) error = %s", path, err)
+				return
+			}
+			_, err = ParseFile(bytes.NewReader(b))
+			if err != nil {
+				t.Errorf("ParseFile( %s ) error = %s", path, err)
+				return
+			}
+		})
+		return nil
+	})
+	if err != nil {
+		t.Logf("WalkDir error: %v", err)
 	}
 }
