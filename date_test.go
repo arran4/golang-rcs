@@ -1,6 +1,7 @@
 package rcs
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -123,6 +124,33 @@ func TestParseDate(t *testing.T) {
 				if o1 != o2 {
 					t.Errorf("ParseDate() zone offset = %v, want %v", o1, o2)
 				}
+			}
+		})
+	}
+}
+
+func TestParseDate_Errors(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{"Empty string", ""},
+		{"Invalid text", "not a date"},
+		{"Invalid Year-DOY", "2018-400"},
+		{"Invalid Year-Week-Day", "2018-w54-8"},
+		{"Invalid Month", "2018-13-01"},
+		{"Invalid Day", "2018-01-32"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ParseDate(tt.input, time.Now(), time.UTC)
+			if err == nil {
+				t.Errorf("ParseDate(%q) expected error, got nil", tt.input)
+				return
+			}
+			if !errors.Is(err, ErrDateParse) {
+				t.Errorf("ParseDate(%q) expected error wrapping ErrDateParse, got %v", tt.input, err)
 			}
 		})
 	}
