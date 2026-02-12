@@ -115,14 +115,3 @@ func ScanTokenIntString(s *Scanner) (string, error) {
 	}
 	return val, nil
 }
-
-func ScanTokenWord(s *Scanner) (string, error) {
-	// word ::= id | num | string | ":"
-	if err := ScanStrings(s, "@"); err == nil {
-		return ParseAtQuotedStringBody(s)
-	}
-	if err := ScanStrings(s, ":"); err == nil {
-		return ":", nil
-	}
-	return ScanTokenId(s)
-}
