@@ -1110,21 +1110,13 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 				} else if len(ss) == 0 {
 					continue
 				}
-				// Fix: Logic was returning 0 (need more data) if prefix matched partially at end of buffer
-				// BUT we are iterating `o` (offset).
-				// We should check if `ss` matches at `data[o:]`.
-
-				if len(ss) > len(data[o:]) {
-					if !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
-						return 0, nil, nil
-					}
-					// If atEOF, it's not a match unless exact? No, ScanUntilStrings looks for occurrence.
-					// If partial match at EOF, it's not a match.
-				} else {
-					if bytes.HasPrefix(data[o:], []byte(ss)) {
-						rs := data[:o]
-						return o, rs, nil
-					}
+				i := len(ss)
+				if i >= len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
+					return 0, nil, nil
+				}
+				if bytes.HasPrefix(data[o:], []byte(ss)) {
+					rs := data[:o]
+					return o, rs, nil
 				}
 			}
 		}
