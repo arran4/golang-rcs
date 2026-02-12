@@ -36,9 +36,9 @@ type RevisionHead struct {
 	Branches      []string
 	NextRevision  string
 	CommitID      string
-	Owner         string `json:",omitempty"`
-	Group         string `json:",omitempty"`
-	Permissions   string `json:",omitempty"`
+	Owner         string   `json:",omitempty"`
+	Group         string   `json:",omitempty"`
+	Permissions   string   `json:",omitempty"`
 	Hardlinks     []string `json:",omitempty"`
 }
 

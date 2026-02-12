@@ -1568,7 +1568,6 @@ func TestParseLockBody(t *testing.T) {
 	}
 }
 
-
 func TestParseLocalFiles(t *testing.T) {
 	testParseFiles(t, localTests, "testdata/local")
 }

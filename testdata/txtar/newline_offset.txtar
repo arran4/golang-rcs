@@ -108,8 +108,8 @@ head	1.1;
 branch	1.1.1;
 access;
 symbols
-	ic:1.1.1
-	rc1:1.1.1.1;
+	rc1:1.1.1.1
+	ic:1.1.1;
 locks; strict;
 comment	@# Master with an expand field that's data, not a token.@;
 expand	@b@;
