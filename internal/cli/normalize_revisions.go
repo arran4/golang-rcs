@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
-	"io/ioutil"
 	"log"
 	"os"
 	"sort"
@@ -29,8 +28,9 @@ func (d DateSorter) Swap(i, j int) {
 // NormalizeRevisions is a subcommand `gorcs normalize-revisions`
 //
 // Flags:
-//   padCommits: -p --pad-commits pad commits with empty commits
-//   files: ... List of files to process
+//
+//	padCommits: -p --pad-commits pad commits with empty commits
+//	files: ... List of files to process
 func NormalizeRevisions(padCommits bool, files ...string) {
 	type Pair struct {
 		Rcs *rcs.File
@@ -127,7 +127,7 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 
 func WriteFile(fn string, file *rcs.File) {
 	fmt.Println("Saving: ", fn)
-	if err := ioutil.WriteFile(fn, []byte(file.String()), 0644); err != nil {
+	if err := os.WriteFile(fn, []byte(file.String()), 0644); err != nil {
 		log.Panicf("Error saving file: %s: %s", fn, err)
 	}
 }
