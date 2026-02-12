@@ -161,3 +161,33 @@ func TestScanTokenIntString(t *testing.T) {
 		})
 	}
 }
+
+func TestScanTokenWord(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    string
+		wantErr bool
+	}{
+		{"Quoted string", "@foo@", "foo", false},
+		{"Unquoted ID", "foo;", "foo", false},
+		{"Number with dot", "1.2.3;", "1.2.3", false},
+		{"Colon", ":", ":", false},
+		{"Stops at space", "foo ", "foo", false},
+		{"Stops at semicolon", "foo;", "foo", false},
+		{"Empty", ";", "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewScanner(strings.NewReader(tt.input))
+			got, err := ScanTokenWord(s)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ScanTokenWord() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ScanTokenWord() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
