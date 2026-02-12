@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const DateFormatTruncated = "06.01.02.15.04.05"
+
 // ParseDate parses a date string according to RCS date formats.
 // It accepts a reference time 'now' to fill in missing fields.
 // If 'now' is zero, it uses time.Now().

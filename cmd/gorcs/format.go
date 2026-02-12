@@ -14,13 +14,14 @@ var _ Cmd = (*Format)(nil)
 
 type Format struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	output      string
-	force       bool
-	overwrite   bool
-	stdout      bool
-	files       []string
-	SubCommands map[string]Cmd
+	Flags              *flag.FlagSet
+	output             string
+	force              bool
+	overwrite          bool
+	stdout             bool
+	keepTruncatedYears bool
+	files              []string
+	SubCommands        map[string]Cmd
 }
 
 type UsageDataFormat struct {
@@ -107,6 +108,16 @@ func (c *Format) Execute(args []string) error {
 				} else {
 					c.stdout = true
 				}
+			case "keep-truncated-years":
+				if hasValue {
+					b, err := strconv.ParseBool(value)
+					if err != nil {
+						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
+					}
+					c.keepTruncatedYears = b
+				} else {
+					c.keepTruncatedYears = true
+				}
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -127,7 +138,7 @@ func (c *Format) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.Format(c.output, c.force, c.overwrite, c.stdout, c.files...)
+	cli.Format(c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.files...)
 
 	return nil
 }
@@ -151,6 +162,8 @@ func (c *RootCmd) NewFormat() *Format {
 
 	set.BoolVar(&v.stdout, "s", false, "Force output to stdout")
 	set.BoolVar(&v.stdout, "stdout", false, "Force output to stdout")
+
+	set.BoolVar(&v.keepTruncatedYears, "keep-truncated-years", false, "Keep truncated years (do not expand to 4 digits)")
 
 	set.Usage = v.Usage
 
