@@ -11,11 +11,12 @@ import (
 // Format is a subcommand `gorcs format`
 //
 // Flags:
-//   output: -o --output Output file path
-//   force: -f --force Force overwrite output
-//   overwrite: -w --overwrite Overwrite input file
-//   stdout: -s --stdout Force output to stdout
-//   files: ... List of files to process, or - for stdin
+//
+//	output: -o --output Output file path
+//	force: -f --force Force overwrite output
+//	overwrite: -w --overwrite Overwrite input file
+//	stdout: -s --stdout Force output to stdout
+//	files: ... List of files to process, or - for stdin
 func Format(output string, force, overwrite, stdout, ignoreTruncation bool, files ...string) {
 	runFormat(output, force, overwrite, stdout, ignoreTruncation, files...)
 }

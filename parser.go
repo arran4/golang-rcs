@@ -79,22 +79,22 @@ func (c *RevisionContent) String() string {
 }
 
 type File struct {
-	Head             string
-	Branch           string
-	Description      string
-	Comment          string
-	Access           bool
-	Symbols          bool
-	AccessUsers      []string
-	SymbolMap        map[string]string
-	Locks            []*Lock
+	Head                    string
+	Branch                  string
+	Description             string
+	Comment                 string
+	Access                  bool
+	Symbols                 bool
+	AccessUsers             []string
+	SymbolMap               map[string]string
+	Locks                   []*Lock
 	Strict                  bool
 	StrictOnOwnLine         bool `json:",omitempty"`
 	DateYearPrefixTruncated bool `json:",omitempty"`
 	Integrity               string
 	Expand                  string
-	RevisionHeads    []*RevisionHead
-	RevisionContents []*RevisionContent
+	RevisionHeads           []*RevisionHead
+	RevisionContents        []*RevisionContent
 }
 
 func (f *File) String() string {

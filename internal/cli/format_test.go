@@ -60,7 +60,9 @@ text
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("io.Copy error: %v", err)
+	}
 	output := buf.String()
 
 	// Check output for 4-digit year (1999)
@@ -76,7 +78,9 @@ text
 	os.Stdout = oldStdout
 
 	buf.Reset()
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("io.Copy error: %v", err)
+	}
 	output = buf.String()
 
 	// Check output for 2-digit year (99)
