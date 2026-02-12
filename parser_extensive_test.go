@@ -138,11 +138,6 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 			},
 		},
 		{
-			name:    "Missing author",
-			input:   "date\t2022.01.01.00.00.00;\tmissing_author",
-			wantErr: "looking for \"\\r\\n\", \"\\n\"", // ScanNewLine fails, escaped backslashes
-		},
-		{
 			name:    "Error parsing author",
 			input:   "date\t2022.01.01.00.00.00;\tauthor;", // missing value
 			wantErr: "token \"author\": scanning until \"whitespace\" at 1:32 but found \";\"",

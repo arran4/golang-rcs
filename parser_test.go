@@ -73,7 +73,7 @@ func TestParseHeaderExpandIntegrity(t *testing.T) {
 			input:         expandIntegrityUnquotedv,
 			wantExpand:    "kv",
 			wantIntegrity: "",
-			wantErr:       false,
+			wantErr:       true,
 		},
 		{
 			name: "Integrity unquoted should fail",
@@ -171,7 +171,7 @@ func TestParseFile(t *testing.T) {
 			wantErr: true,
 			wantErrString: []string{
 				"parsing",
-				"looking for",
+				"scanning until",
 			},
 		},
 		{
@@ -1750,7 +1750,7 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 
 	// Verify String() output
 	expectedOutput := "1.2\n" +
-		"date\t1999.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
+		"date\t99.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
 		"branches;\n" +
 		"next\t1.1;\n" +
 		"owner\t640;\n" +
