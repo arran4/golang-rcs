@@ -1,0 +1,100 @@
+-- input.rcs --
+head     1.1;
+branch   1.1.1;
+access   ;
+symbols  rc1:1.1.1.1 ic:1.1.1;
+locks    ; strict;
+comment  @# Master with an expand field that's data, not a token.@;
+expand   @b@;
+
+
+1.1
+date     2004.09.07.08.24.09;  author cisers;  state Exp;
+branches 1.1.1.1;
+next     ;
+
+1.1.1.1
+date     2004.09.07.08.24.09;  author cisers;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+
+1.1
+log
+@da28248b4ec75efbe0ba7461142ed60d
+@
+text
+@projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1
+@
+
+
+
+
+1.1.1.1
+log
+@03a6ecc1dbc74cfaacfeb8b1f09b8998
+@
+text
+@d1 1
+a1 1
+projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
+@
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "1.1.1",
+  "Description": "",
+  "Comment": "# Master with an expand field that's data, not a token.",
+  "Access": true,
+  "Symbols": true,
+  "AccessUsers": null,
+  "SymbolMap": {
+    "ic": "1.1.1",
+    "rc1": "1.1.1.1"
+  },
+  "Locks": null,
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "b",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2004-09-07T08:24:09Z",
+      "Author": "cisers",
+      "State": "Exp",
+      "Branches": [
+        "1.1.1.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Date": "2004-09-07T08:24:09Z",
+      "Author": "cisers",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "da28248b4ec75efbe0ba7461142ed60d\n",
+      "Text": "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n",
+      "RevisionDescriptionNewLineOffset": 1
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Log": "03a6ecc1dbc74cfaacfeb8b1f09b8998\n",
+      "Text": "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n",
+      "RevisionDescriptionNewLineOffset": 2
+    }
+  ]
+}
