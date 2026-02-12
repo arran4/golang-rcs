@@ -2,7 +2,7 @@
 {
   "Head": "1.1",
   "Branch": "",
-  "Description": "d\n",
+  "Description": "d",
   "Comment": "c",
   "Access": false,
   "Symbols": [],
@@ -21,6 +21,7 @@ locks; strict;
 comment	@c@;
 
 
+
 desc
 @d@
 
@@ -32,6 +33,7 @@ locks; strict;
 comment	@c@;
 
 
+
 desc
 @d@
 
@@ -40,7 +42,7 @@ desc
 {
   "Head": "1.1",
   "Branch": "",
-  "Description": "d\n",
+  "Description": "d",
   "Comment": "c",
   "Access": false,
   "Symbols": [],

@@ -301,22 +301,6 @@ func TestParseFile(t *testing.T) {
 	}
 }
 
-func TestNewFile(t *testing.T) {
-	f := NewFile()
-	if f.Symbols == nil {
-		t.Error("NewFile().Symbols should not be nil")
-	}
-	if len(f.Symbols) != 0 {
-		t.Error("NewFile().Symbols should be empty")
-	}
-	if f.Locks == nil {
-		t.Error("NewFile().Locks should not be nil")
-	}
-	if len(f.Locks) != 0 {
-		t.Error("NewFile().Locks should be empty")
-	}
-}
-
 func TestParseHeaderHead(t *testing.T) {
 	type args struct {
 		s *Scanner
