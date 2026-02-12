@@ -1,6 +1,7 @@
 package rcs
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -123,6 +124,43 @@ func TestParseDate(t *testing.T) {
 				if o1 != o2 {
 					t.Errorf("ParseDate() zone offset = %v, want %v", o1, o2)
 				}
+			}
+		})
+	}
+}
+
+func TestParseDate_Errors(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{"Empty string", ""},
+		{"Invalid text", "not a date"},
+		{"Invalid Year-DOY", "2018-400"},
+		{"Invalid Year-Week-Day", "2018-w54-8"},
+		{"Invalid Month", "2018-13-01"},
+		{"Invalid Day", "2018-01-32"},
+		// Additional invalid formats
+		{"Invalid ISO 8601", "2006-13-02 15:04:05"},   // Month 13
+		{"Invalid Time", "2006-01-02 25:00:00"},       // Hour 25
+		{"Invalid Minute", "2006-01-02 15:60:00"},     // Minute 60 (leap seconds usually not supported in standard parsing this way or simply out of range)
+		{"Invalid Second", "2006-01-02 15:04:61"},     // Second 61
+		{"Invalid Zone", "2006-01-02 15:04:05 +2500"}, // Offset too large
+		{"Garbage ISO 8601", "2006-01-02T15:04:05ZGarbage"},
+		{"Invalid RFC1123", "Mon, 02 Jan 2006 25:04:05 MST"},
+		{"Invalid RFC822", "02 Jan 06 25:04 MST"},
+		{"Invalid Traditional RCS", "2006/13/02 15:04:05"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ParseDate(tt.input, time.Now(), time.UTC)
+			if err == nil {
+				t.Errorf("ParseDate(%q) expected error, got nil", tt.input)
+				return
+			}
+			if !errors.Is(err, ErrDateParse) {
+				t.Errorf("ParseDate(%q) expected error wrapping ErrDateParse, got %v", tt.input, err)
 			}
 		})
 	}
