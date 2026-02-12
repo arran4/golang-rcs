@@ -16,7 +16,7 @@ import (
 //			force: -f --force Force overwrite output
 //			overwrite: -w --overwrite Overwrite input file
 //			stdout: -s --stdout Force output to stdout
-//	  keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
+//	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
 func Format(output string, force, overwrite, stdout, keepTruncatedYears bool, files ...string) {
 	runFormat(output, force, overwrite, stdout, keepTruncatedYears, files...)
