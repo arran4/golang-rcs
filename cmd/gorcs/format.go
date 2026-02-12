@@ -138,7 +138,7 @@ func (c *Format) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.Format(c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.files...)
+	cli.Format(os.Stdin, os.Stdout, c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.files...)
 
 	return nil
 }
