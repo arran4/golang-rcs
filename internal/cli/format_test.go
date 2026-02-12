@@ -24,7 +24,9 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 	if _, err := f.Write(truncatedDateTestFile); err != nil {
 		t.Fatal(err)
 	}
-	_ = f.Close()
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
 
 	// Capture stdout
 	oldStdout := os.Stdout
@@ -35,7 +37,9 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 	// Signature: func Format(output string, force, overwrite, stdout, keepTruncatedYears bool, files ...string)
 	Format("", false, false, true, true, f.Name())
 
-	_ = w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
@@ -53,7 +57,9 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	Format("", false, false, true, false, f.Name())
-	_ = w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
 	os.Stdout = oldStdout
 
 	buf.Reset()
