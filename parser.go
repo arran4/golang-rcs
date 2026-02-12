@@ -749,7 +749,7 @@ func ParseOptionalToken(s *Scanner, havePropertyName bool, propertyName string, 
 	}
 	val, err := scannerFunc(s)
 	if err != nil {
-		return "", fmt.Errorf("expected value for %s: %w", propertyName, err)
+		return "", ErrParseProperty{Property: propertyName, Err: err}
 	}
 	if line {
 		if err := ParseTerminatorFieldLine(s); err != nil {
