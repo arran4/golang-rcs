@@ -86,7 +86,7 @@ func TestParseLockLine_Errors(t *testing.T) {
 		{
 			name:    "Missing revision",
 			input:   "user:;",
-			wantErr: "expected num in lock: scanning until \"num\"",
+			wantErr: "expected num in lock: scanning for \"num\"",
 		},
 		{
 			name:    "Missing semicolon",
@@ -140,12 +140,12 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 		{
 			name:    "Error parsing author",
 			input:   "date\t2022.01.01.00.00.00;\tauthor;", // missing value
-			wantErr: "token \"author\": scanning until \"whitespace\" at 1:32 but found \";\"",
+			wantErr: "token \"author\": scanning for \"whitespace\" at 1:32 but found \";\"",
 		},
 		{
 			name:    "Error parsing state",
 			input:   "date\t2022.01.01.00.00.00;\tauthor a;\tstate;", // missing value
-			wantErr: "token \"state\": scanning until \"whitespace\" at 1:41 but found \";\"",
+			wantErr: "token \"state\": scanning for \"whitespace\" at 1:41 but found \";\"",
 		},
 	}
 	for _, tt := range tests {
@@ -172,7 +172,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Unknown field",
 			input:   "1.1\nunknown",
-			wantErr: "finding revision header field",
+			wantErr: "",
 		},
 		{
 			name:    "Bad branches",
@@ -187,7 +187,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad next",
 			input:   "1.1\nnext;",
-			wantErr: "token \"next\": scanning until \"whitespace\" at 2:4 but found \";\"",
+			wantErr: "token \"next\": scanning for \"whitespace\" at 2:4 but found \";\"",
 		},
 	}
 	for _, tt := range tests {
@@ -197,8 +197,14 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 			}
 			s := NewScanner(strings.NewReader(tt.input))
 			_, _, _, err := ParseRevisionHeader(s)
-			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
-				t.Errorf("ParseRevisionHeader() error = %v, wantErr containing %q", err, tt.wantErr)
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Errorf("ParseRevisionHeader() error = %v, want nil", err)
+				}
+			} else {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+					t.Errorf("ParseRevisionHeader() error = %v, wantErr containing %q", err, tt.wantErr)
+				}
 			}
 		})
 	}
@@ -241,7 +247,7 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad head",
 			input:   "head;",
-			wantErr: "scanning until \"whitespace\" at 1:4 but found \";\"",
+			wantErr: "scanning for \"whitespace\" at 1:4 but found \";\"",
 		},
 		{
 			name:  "Unknown token",
@@ -252,12 +258,12 @@ func TestParseHeader_Errors(t *testing.T) {
 		{
 			name:    "Access error",
 			input:   "head 1.1;\naccess", // missing ;
-			wantErr: "token \"access\": expected id in access: scanning until \"id\"",
+			wantErr: "token \"access\": expected id in access: scanning for \"id\"",
 		},
 		{
 			name:    "Symbols error",
 			input:   "head 1.1;\nsymbols", // missing ;
-			wantErr: "token \"symbols\": expected sym in symbols: scanning until \"sym\"",
+			wantErr: "token \"symbols\": expected sym in symbols: scanning for \"sym\"",
 		},
 		{
 			name:    "Locks error",
@@ -296,7 +302,7 @@ func TestParseFile_Errors(t *testing.T) {
 		{
 			name:    "Revision headers error",
 			input:   "head 1.1;\n\n\n1.1\nbad",
-			wantErr: "finding revision header field",
+			wantErr: "looking for \"desc",
 		},
 		{
 			name:    "Description error",

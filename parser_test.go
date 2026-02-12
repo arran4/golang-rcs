@@ -135,90 +135,102 @@ text
 }
 
 func TestParseFile(t *testing.T) {
+	noError := func(t *testing.T, err error) {
+		if err != nil {
+			t.Errorf("ParseFile() error = %v, wantErr nil", err)
+		}
+	}
+	expectErrorStrings := func(strs ...string) func(*testing.T, error) {
+		return func(t *testing.T, err error) {
+			if err == nil {
+				t.Errorf("ParseFile() error = nil, wantErr containing %v", strs)
+				return
+			}
+			for _, s := range strs {
+				if !strings.Contains(err.Error(), s) {
+					t.Errorf("ParseFile() error = %v, want to contain %v", err, s)
+				}
+			}
+		}
+	}
+
 	tests := []struct {
-		name          string
-		r             string
-		b             []byte
-		wantErr       bool
-		wantErrString []string
+		name     string
+		r        string
+		b        []byte
+		checkErr func(*testing.T, error)
 	}{
 		{
-			name:    "Test parse of testinput.go,v",
-			r:       string(testinputv),
-			b:       testinputv,
-			wantErr: false,
+			name:     "Test parse of testinput.go,v",
+			r:        string(testinputv),
+			b:        testinputv,
+			checkErr: noError,
 		},
 		{
-			name:    "Test parse of testinput1.go,v - add a new line for the missing one",
-			r:       string(testinputv1) + "\n",
-			b:       testinputv1,
-			wantErr: false,
+			name:     "Test parse of testinput1.go,v - add a new line for the missing one",
+			r:        string(testinputv1) + "\n",
+			b:        testinputv1,
+			checkErr: noError,
 		},
 		{
-			name:    "Invalid header - missing head",
-			r:       "invalid",
-			b:       []byte("invalid"),
-			wantErr: true,
-			wantErrString: []string{
+			name:     "Parse file with access and symbols",
+			r:        string(accessSymbols),
+			b:        accessSymbols,
+			checkErr: noError,
+		},
+		{
+			name: "Invalid header - missing head",
+			r:    "invalid",
+			b:    []byte("invalid"),
+			checkErr: expectErrorStrings(
 				"parsing",
 				"looking for \"head\"",
-			},
+			),
 		},
 		{
-			name:    "Invalid property in header",
-			r:       "head invalid",
-			b:       []byte("head invalid"),
-			wantErr: true,
-			wantErrString: []string{
+			name: "Invalid property in header",
+			r:    "head invalid",
+			b:    []byte("head invalid"),
+			checkErr: expectErrorStrings(
 				"parsing",
-				"scanning until",
-			},
+				"scanning for \"num\"",
+			),
 		},
 		{
-			name:    "Invalid revision header",
-			r:       "head 1.1;\n\ninvalid\n",
-			b:       []byte("head 1.1;\n\ninvalid\n"),
-			wantErr: true,
-			wantErrString: []string{
+			name: "Invalid revision header",
+			r:    "head 1.1;\n\ninvalid\n",
+			b:    []byte("head 1.1;\n\ninvalid\n"),
+			checkErr: expectErrorStrings(
 				"parsing",
-				"finding revision header field",
-			},
+				"looking for \"desc",
+			),
 		},
 		{
-			name:    "Invalid description",
-			r:       "head 1.1;\n\ndesc\ninvalid",
-			b:       []byte("head 1.1;\n\ndesc\ninvalid"),
-			wantErr: true,
-			wantErrString: []string{
+			name: "Invalid description",
+			r:    "head 1.1;\n\ndesc\ninvalid",
+			b:    []byte("head 1.1;\n\ndesc\ninvalid"),
+			checkErr: expectErrorStrings(
 				"parsing",
 				"quote string",
-			},
+			),
 		},
 		{
-			name:    "Invalid revision content",
-			r:       "head 1.1;\n\ndesc\n@@\n\ninvalid\ninvalid",
-			b:       []byte("head 1.1;\n\ndesc\n@@\n\ninvalid\ninvalid"),
-			wantErr: true,
-			wantErrString: []string{
+			name: "Invalid revision content",
+			r:    "head 1.1;\n\ndesc\n@@\n\ninvalid\ninvalid",
+			b:    []byte("head 1.1;\n\ndesc\n@@\n\ninvalid\ninvalid"),
+			checkErr: expectErrorStrings(
 				"parsing",
 				"looking for",
-			},
+			),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseFile(bytes.NewReader(tt.b))
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseFile() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if tt.checkErr != nil {
+				tt.checkErr(t, err)
 			}
-			if err != nil && tt.wantErrString != nil {
-				for _, s := range tt.wantErrString {
-					if !strings.Contains(err.Error(), s) {
-						t.Errorf("ParseFile() error = %v, want to contain %v", err, s)
-					}
-				}
-				// If we expect an error, we don't need to check the rest
+			if err != nil {
 				return
 			}
 
