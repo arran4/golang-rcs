@@ -1,5 +1,7 @@
 package cli
 
+import "io"
+
 // Validate is a subcommand `gorcs validate`
 //
 // Flags:
@@ -9,8 +11,8 @@ package cli
 //	overwrite: -w --overwrite Overwrite input file
 //	stdout: -s --stdout Force output to stdout
 //	files: ... List of files to process, or - for stdin
-func Validate(output string, force, overwrite, stdout bool, files ...string) {
+func Validate(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag bool, files ...string) {
 	// Validate is currently functionally identical to Format (parse and re-serialize).
 	// If validation rules diverge in future, logic can be separated here.
-	runFormat(output, force, overwrite, stdout, false, files...)
+	runFormat(stdin, stdout, output, force, overwrite, stdoutFlag, false, files...)
 }
