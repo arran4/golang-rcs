@@ -54,15 +54,19 @@ func (h *RevisionHead) String() string {
 }
 
 type RevisionContent struct {
-	Revision          string
-	Log               string
-	Text              string
-	PrecedingNewLines int `json:",omitempty"`
+	Revision                       string
+	Log                            string
+	Text                           string
+	RevisionDescriptionNewLineOffset int `json:",omitempty"`
 }
 
 func (c *RevisionContent) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(strings.Repeat("\n", c.PrecedingNewLines))
+	count := 2 - c.RevisionDescriptionNewLineOffset
+	if count < 0 {
+		count = 0
+	}
+	sb.WriteString(strings.Repeat("\n", count))
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
 	sb.WriteString(AtQuote(c.Log))
@@ -453,6 +457,7 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
+	precedingNewLines := 0
 	for {
 		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 			if IsEOFError(err) {
@@ -466,11 +471,12 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		}
 		if rev != "" {
 			rh.Revision = rev
+			rh.RevisionDescriptionNewLineOffset = 2 - precedingNewLines
 			break
 		}
-		rh.PrecedingNewLines++
-		if rh.PrecedingNewLines > 4 {
-			return nil, false, fmt.Errorf("too many empty lines before revision: %d", rh.PrecedingNewLines)
+		precedingNewLines++
+		if precedingNewLines > 4 {
+			return nil, false, fmt.Errorf("%w: %d", ErrTooManyNewLines, precedingNewLines)
 		}
 	}
 	for {

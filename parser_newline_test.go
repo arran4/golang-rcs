@@ -116,9 +116,10 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 			//
 			// 1.1
 			// It looks like 3 empty lines.
-			// Let's verify what happens.
-			if rc.PrecedingNewLines != 1 {
-				t.Errorf("Revision 1.1 PrecedingNewLines = %d, want 1", rc.PrecedingNewLines)
+			// PrecedingNewLines is 1.
+			// Offset = 2 - PrecedingNewLines = 2 - 1 = 1.
+			if rc.RevisionDescriptionNewLineOffset != 1 {
+				t.Errorf("Revision 1.1 RevisionDescriptionNewLineOffset = %d, want 1", rc.RevisionDescriptionNewLineOffset)
 			}
 		} else if rc.Revision == "1.1.1.1" {
 			expectedText := "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n"
@@ -134,8 +135,9 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 			// 1.1.1.1
 			// ParseRevisionContent(1.1) consumes \n\n (1 and 2).
 			// Left 3 and 4. So 2.
-			if rc.PrecedingNewLines != 2 {
-				t.Errorf("Revision 1.1.1.1 PrecedingNewLines = %d, want 2", rc.PrecedingNewLines)
+			// Offset = 2 - 2 = 0.
+			if rc.RevisionDescriptionNewLineOffset != 0 {
+				t.Errorf("Revision 1.1.1.1 RevisionDescriptionNewLineOffset = %d, want 0", rc.RevisionDescriptionNewLineOffset)
 			}
 		} else {
 			t.Errorf("Unexpected revision %s", rc.Revision)
@@ -193,7 +195,7 @@ text
 	if err == nil {
 		t.Fatal("ParseFile() expected error for too many newlines, got nil")
 	}
-	expectedErr := "too many empty lines before revision: 5"
+	expectedErr := "too many new lines: 5"
 	if !strings.Contains(err.Error(), expectedErr) {
 		t.Errorf("ParseFile() error = %v, want error containing %q", err, expectedErr)
 	}
