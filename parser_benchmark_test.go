@@ -26,7 +26,7 @@ func BenchmarkWriteAtQuote_Stream(b *testing.B) {
 	var sb strings.Builder
 	for i := 0; i < b.N; i++ {
 		sb.Reset()
-		WriteAtQuote(&sb, s)
+		_, _ = WriteAtQuote(&sb, s)
 	}
 }
 
@@ -35,7 +35,7 @@ func BenchmarkWriteAtQuote_Stream_Long(b *testing.B) {
 	var sb strings.Builder
 	for i := 0; i < b.N; i++ {
 		sb.Reset()
-		WriteAtQuote(&sb, s)
+		_, _ = WriteAtQuote(&sb, s)
 	}
 }
 
@@ -57,7 +57,7 @@ func BenchmarkStringer_Usage_WriteAtQuote(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		sb.Reset()
 		sb.WriteString("prefix")
-		WriteAtQuote(&sb, s)
+		_, _ = WriteAtQuote(&sb, s)
 		sb.WriteString("suffix")
 	}
 }

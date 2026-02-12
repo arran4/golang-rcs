@@ -71,7 +71,7 @@ func (h *RevisionHead) String() string {
 	}
 	if h.Hardlinks != "" {
 		sb.WriteString("hardlinks\t")
-		WriteAtQuote(&sb, h.Hardlinks)
+		_, _ = WriteAtQuote(&sb, h.Hardlinks)
 		sb.WriteString(";\n")
 	}
 	return sb.String()
@@ -89,10 +89,10 @@ func (c *RevisionContent) String() string {
 	sb.WriteString(strings.Repeat("\n", c.RevisionDescriptionNewLineOffset))
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
-	WriteAtQuote(&sb, c.Log)
+	_, _ = WriteAtQuote(&sb, c.Log)
 	sb.WriteString("\n")
 	sb.WriteString("text\n")
-	WriteAtQuote(&sb, c.Text)
+	_, _ = WriteAtQuote(&sb, c.Text)
 	sb.WriteString("\n")
 	return sb.String()
 }
@@ -165,15 +165,15 @@ func (f *File) String() string {
 	}
 	if f.Integrity != "" {
 		sb.WriteString("integrity\t")
-		WriteAtQuote(&sb, f.Integrity)
+		_, _ = WriteAtQuote(&sb, f.Integrity)
 		sb.WriteString(";\n")
 	}
 	sb.WriteString("comment\t")
-	WriteAtQuote(&sb, f.Comment)
+	_, _ = WriteAtQuote(&sb, f.Comment)
 	sb.WriteString(";\n")
 	if f.Expand != "" {
 		sb.WriteString("expand\t")
-		WriteAtQuote(&sb, f.Expand)
+		_, _ = WriteAtQuote(&sb, f.Expand)
 		sb.WriteString(";\n")
 	}
 	sb.WriteString("\n")
@@ -184,7 +184,7 @@ func (f *File) String() string {
 	}
 	sb.WriteString("\n")
 	sb.WriteString("desc\n")
-	WriteAtQuote(&sb, f.Description)
+	_, _ = WriteAtQuote(&sb, f.Description)
 	sb.WriteString("\n")
 
 	for _, content := range f.RevisionContents {
@@ -199,18 +199,37 @@ func AtQuote(s string) string {
 	return "@" + strings.ReplaceAll(s, "@", "@@") + "@"
 }
 
-func WriteAtQuote(sb *strings.Builder, s string) {
-	sb.WriteString("@")
+func WriteAtQuote(w io.Writer, s string) (int, error) {
+	n, err := io.WriteString(w, "@")
+	if err != nil {
+		return n, err
+	}
+	total := n
+
 	start := 0
 	for i := 0; i < len(s); i++ {
 		if s[i] == '@' {
-			sb.WriteString(s[start : i+1])
-			sb.WriteString("@")
+			n, err = io.WriteString(w, s[start:i+1])
+			total += n
+			if err != nil {
+				return total, err
+			}
+			n, err = io.WriteString(w, "@")
+			total += n
+			if err != nil {
+				return total, err
+			}
 			start = i + 1
 		}
 	}
-	sb.WriteString(s[start:])
-	sb.WriteString("@")
+	n, err = io.WriteString(w, s[start:])
+	total += n
+	if err != nil {
+		return total, err
+	}
+	n, err = io.WriteString(w, "@")
+	total += n
+	return total, err
 }
 
 func ParseFile(r io.Reader) (*File, error) {
