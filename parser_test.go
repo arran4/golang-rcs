@@ -1737,49 +1737,78 @@ func TestStringIntegrity(t *testing.T) {
 }
 
 func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
-	input := "1.2\n" +
-		"date\t99.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
-		"branches;\n" +
-		"next\t1.1;\n" +
-		"owner\t640;\n" +
-		"group\t15;\n" +
-		"permissions\t644;\n" +
-		"hardlinks\t@stringize.m4@;\n" +
-		"\n\n"
-
-	s := NewScanner(strings.NewReader(input))
-	rh, _, _, err := ParseRevisionHeader(s)
-	if err != nil {
-		t.Fatalf("ParseRevisionHeader returned error: %v", err)
+	tests := []struct {
+		name           string
+		inputDate      string
+		expectedOutput string // date line in expected output
+		wantTruncated  bool
+	}{
+		{
+			name:      "Truncated Year",
+			inputDate: "date\t99.01.12.14.05.31;",
+			// Output should preserve 99...
+			expectedOutput: "date\t99.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n",
+			wantTruncated:  true,
+		},
+		{
+			name:      "Full Year",
+			inputDate: "date\t1999.01.12.14.05.31;",
+			// Output should preserve 1999...
+			expectedOutput: "date\t1999.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n",
+			wantTruncated:  false,
+		},
 	}
 
-	if rh.Revision != "1.2" {
-		t.Errorf("Revision = %q, want %q", rh.Revision, "1.2")
-	}
-	if rh.Owner != "640" {
-		t.Errorf("Owner = %q, want %q", rh.Owner, "640")
-	}
-	if rh.Group != "15" {
-		t.Errorf("Group = %q, want %q", rh.Group, "15")
-	}
-	if rh.Permissions != "644" {
-		t.Errorf("Permissions = %q, want %q", rh.Permissions, "644")
-	}
-	if rh.Hardlinks != "stringize.m4" {
-		t.Errorf("Hardlinks = %q, want %q", rh.Hardlinks, "stringize.m4")
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input := "1.2\n" +
+				tt.inputDate + "\tauthor lhecking;\tstate dead;\n" +
+				"branches;\n" +
+				"next\t1.1;\n" +
+				"owner\t640;\n" +
+				"group\t15;\n" +
+				"permissions\t644;\n" +
+				"hardlinks\t@stringize.m4@;\n" +
+				"\n\n"
 
-	// Verify String() output
-	expectedOutput := "1.2\n" +
-		"date\t1999.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
-		"branches;\n" +
-		"next\t1.1;\n" +
-		"owner\t640;\n" +
-		"group\t15;\n" +
-		"permissions\t644;\n" +
-		"hardlinks\t@stringize.m4@;\n"
+			s := NewScanner(strings.NewReader(input))
+			rh, _, _, err := ParseRevisionHeader(s)
+			if err != nil {
+				t.Fatalf("ParseRevisionHeader returned error: %v", err)
+			}
 
-	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
-		t.Errorf("String() mismatch (-want +got):\n%s", diff)
-  }
+			if rh.Revision != "1.2" {
+				t.Errorf("Revision = %q, want %q", rh.Revision, "1.2")
+			}
+			if rh.Owner != "640" {
+				t.Errorf("Owner = %q, want %q", rh.Owner, "640")
+			}
+			if rh.Group != "15" {
+				t.Errorf("Group = %q, want %q", rh.Group, "15")
+			}
+			if rh.Permissions != "644" {
+				t.Errorf("Permissions = %q, want %q", rh.Permissions, "644")
+			}
+			if rh.Hardlinks != "stringize.m4" {
+				t.Errorf("Hardlinks = %q, want %q", rh.Hardlinks, "stringize.m4")
+			}
+			if rh.YearTruncated != tt.wantTruncated {
+				t.Errorf("YearTruncated = %v, want %v", rh.YearTruncated, tt.wantTruncated)
+			}
+
+			// Verify String() output
+			expectedOutput := "1.2\n" +
+				tt.expectedOutput +
+				"branches;\n" +
+				"next\t1.1;\n" +
+				"owner\t640;\n" +
+				"group\t15;\n" +
+				"permissions\t644;\n" +
+				"hardlinks\t@stringize.m4@;\n"
+
+			if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
+				t.Errorf("String() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
 }
