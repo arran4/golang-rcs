@@ -12,12 +12,12 @@ import (
 //
 // Flags:
 //
-//	output: -o --output Output file path
-//	force: -f --force Force overwrite output
-//	overwrite: -w --overwrite Overwrite input file
-//	stdout: -s --stdout Force output to stdout
-//   expand-years: --expand-years Expand truncated years to 4 digits
-//	files: ... List of files to process, or - for stdin
+//		output: -o --output Output file path
+//		force: -f --force Force overwrite output
+//		overwrite: -w --overwrite Overwrite input file
+//		stdout: -s --stdout Force output to stdout
+//	  expand-years: --expand-years Expand truncated years to 4 digits
+//		files: ... List of files to process, or - for stdin
 func Format(output string, force, overwrite, stdout, expandYears bool, files ...string) {
 	runFormat(output, force, overwrite, stdout, expandYears, files...)
 }
