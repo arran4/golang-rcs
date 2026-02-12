@@ -1,0 +1,24 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+expand	@kv@;
+integrity	@int123@;
+comment	@# @;
+
+
+1.1
+date	2022.01.01.00.00.00;	author arran;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@

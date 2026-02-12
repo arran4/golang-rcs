@@ -15,8 +15,12 @@ var (
 	//go:embed "testdata/testinput.go,v"
 	testinputv []byte
 	//go:embed "testdata/testinput1.go,v"
-	testinputv1   []byte
-	accessSymbols = []byte(
+	testinputv1 []byte
+	//go:embed "testdata/expand_integrity.go,v"
+	expandIntegrityv []byte
+	//go:embed "testdata/expand_integrity_unquoted.go,v"
+	expandIntegrityUnquotedv []byte
+	accessSymbols            = []byte(
 		"head\t1.1;\n" +
 			"access john jane;\n" +
 			"symbols\n" +
@@ -43,6 +47,87 @@ var (
 			"text\n" +
 			"@hello@\n")
 )
+
+func TestParseHeaderExpandIntegrity(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         []byte
+		wantExpand    string
+		wantIntegrity string
+		wantErr       bool
+	}{
+		{
+			name:          "Expand and Integrity with quotes",
+			input:         expandIntegrityv,
+			wantExpand:    "kv",
+			wantIntegrity: "int123",
+			wantErr:       false,
+		},
+		{
+			name:          "Expand without quotes",
+			input:         expandIntegrityUnquotedv,
+			wantExpand:    "kv",
+			wantIntegrity: "",
+			wantErr:       false,
+		},
+		{
+			name: "Integrity unquoted should fail",
+			input: []byte(`head	1.1;
+integrity	unquoted;
+comment	@# @;
+
+
+1.1
+date	2022.01.01.00.00.00;	author arran;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+`),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f, err := ParseFile(bytes.NewReader(tt.input))
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ParseFile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			if f.Expand != tt.wantExpand {
+				t.Errorf("Expand = %q, want %q", f.Expand, tt.wantExpand)
+			}
+			if f.Integrity != tt.wantIntegrity {
+				t.Errorf("Integrity = %q, want %q", f.Integrity, tt.wantIntegrity)
+			}
+
+			gotString := f.String()
+			f2, err := ParseFile(strings.NewReader(gotString))
+			if err != nil {
+				t.Errorf("ParseFile(f.String()) error = %v", err)
+			} else {
+				if f2.Expand != f.Expand {
+					t.Errorf("RoundTrip Expand = %q, want %q", f2.Expand, f.Expand)
+				}
+				if f2.Integrity != f.Integrity {
+					t.Errorf("RoundTrip Integrity = %q, want %q", f2.Integrity, f.Integrity)
+				}
+			}
+		})
+	}
+}
 
 func TestParseFile(t *testing.T) {
 	tests := []struct {
