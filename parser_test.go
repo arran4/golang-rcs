@@ -1502,7 +1502,7 @@ func TestStringIntegrity(t *testing.T) {
 	expected := "integrity\t@some @@ value@;\n"
 	if !strings.Contains(s, expected) {
 		t.Errorf("expected output to contain %q, got:\n%s", expected, s)
-  }
+	}
 }
 
 func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
