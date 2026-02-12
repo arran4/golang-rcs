@@ -251,7 +251,7 @@ func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, 
 }
 
 func ParseHeader(s *Scanner, f *File) error {
-	if head, err := ParseHeaderHead(s, false); err != nil {
+	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine()); err != nil {
 		return err
 	} else {
 		f.Head = head
@@ -273,7 +273,7 @@ func ParseHeader(s *Scanner, f *File) error {
 		case " ", "\t", "\n", "\r\n":
 			continue
 		case "branch":
-			if branch, err := ParseOptionalToken(s, true, "branch", ScanTokenNum, true); err != nil {
+			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithLine()); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Branch = branch
@@ -331,7 +331,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, true, "expand", ScanTokenString, true); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithLine()); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
@@ -404,13 +404,13 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
-			if n, err := ParseRevisionHeaderNext(s, true); err != nil {
+			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithLine()); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.NextRevision = n
 			}
 		case "commitid":
-			if c, err := ParseOptionalToken(s, true, "commitid", ScanTokenId, true); err != nil {
+			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithLine()); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.CommitID = c
@@ -687,7 +687,11 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 }
 
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
-	if dateStr, err := ParseOptionalToken(s, haveHead, "date", ScanTokenNum, false); err != nil {
+	var opts []ParseOption
+	if !haveHead {
+		opts = append(opts, WithPropertyName("date"))
+	}
+	if dateStr, err := ParseOptionalToken(s, ScanTokenNum, opts...); err != nil {
 		return err
 	} else if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
 		return err
@@ -706,13 +710,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		case " ", "\t":
 			continue
 		case "author":
-			if s, err := ParseOptionalToken(s, true, "author", ScanTokenId, false); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author")); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Author = s
 			}
 		case "state":
-			if s, err := ParseOptionalToken(s, true, "state", ScanTokenId, false); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state")); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.State = s
@@ -727,31 +731,79 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 	return nil
 }
 
-func ParseRevisionHeaderNext(s *Scanner, haveHead bool) (string, error) {
-	return ParseOptionalToken(s, haveHead, "next", ScanTokenNum, true)
+
+type parseConfig struct {
+	havePropertyName bool
+	propertyName     string
+	line             bool
 }
 
-func ParseHeaderHead(s *Scanner, haveHead bool) (string, error) {
-	return ParseOptionalToken(s, haveHead, "head", ScanTokenNum, true)
+type ParseOption func(*parseConfig)
+
+func WithPropertyName(name string) ParseOption {
+	return func(c *parseConfig) {
+		c.havePropertyName = true
+		c.propertyName = name
+	}
 }
 
-func ParseOptionalToken(s *Scanner, havePropertyName bool, propertyName string, scannerFunc func(*Scanner) (string, error), line bool) (string, error) {
-	if !havePropertyName {
-		if err := ScanStrings(s, propertyName); err != nil {
+func WithLine() ParseOption {
+	return func(c *parseConfig) {
+		c.line = true
+	}
+}
+
+func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), options ...ParseOption) (string, error) {
+	config := &parseConfig{}
+	for _, opt := range options {
+		opt(config)
+	}
+
+	if !config.havePropertyName {
+		if err := ScanStrings(s, config.propertyName); err != nil {
 			return "", err
 		}
 	}
 	if err := ScanWhiteSpace(s, 1); err != nil {
 		return "", err
 	}
+	// Important: Check for terminator *before* value scan.
+	// If ";" is found, it means the value is empty/missing, which is valid for optional tokens.
+	// ScanStrings does not consume if it doesn't match? Wait.
+	// ScanStrings consumes if it matches.
+	// So if we see ";", we consume it and return empty.
 	if err := ScanStrings(s, ";"); err == nil {
+		// Found terminator immediately, so value is empty.
+		// If line=true, we still need to consume the newline after the terminator?
+		// ScanStrings(";") consumes the semicolon.
+		// ParseTerminatorFieldLine expects to consume a semicolon then a newline.
+		// If ScanStrings(";") already consumed the semicolon, ParseTerminatorFieldLine will fail looking for ";".
+		//
+		// If line=true:
+		// We expect [optional_value] ";" "\n"
+		// If value is missing: ";" "\n"
+		//
+		// If line=false:
+		// We expect [optional_value] ";"
+		// If value is missing: ";"
+		//
+		// Current logic:
+		// if err := ScanStrings(s, ";"); err == nil { return "", nil }
+		// This consumes ";".
+		// But if line=true, we missed consuming "\n".
+		if config.line {
+			if err := ScanNewLine(s, false); err != nil {
+				return "", err
+			}
+		}
 		return "", nil
 	}
+	// If we didn't find ";", we expect a value.
 	val, err := scannerFunc(s)
 	if err != nil {
-		return "", ErrParseProperty{Property: propertyName, Err: err}
+		return "", ErrParseProperty{Property: config.propertyName, Err: err}
 	}
-	if line {
+	if config.line {
 		if err := ParseTerminatorFieldLine(s); err != nil {
 			return "", err
 		}
