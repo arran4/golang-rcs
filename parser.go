@@ -31,12 +31,17 @@ type RevisionHead struct {
 	Branches     []string
 	NextRevision string
 	CommitID     string
+	Owner        string `json:",omitempty"`
+	Group        string `json:",omitempty"`
+	Permissions  string `json:",omitempty"`
+	Hardlinks    string `json:",omitempty"`
 }
 
 func (h *RevisionHead) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("%s\n", h.Revision))
-	sb.WriteString(fmt.Sprintf("date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State))
+	sb.WriteString(h.Revision)
+	sb.WriteByte('\n')
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		sb.WriteString("\n\t")
@@ -46,9 +51,21 @@ func (h *RevisionHead) String() string {
 		sb.WriteString(";")
 	}
 	sb.WriteString("\n")
-	sb.WriteString(fmt.Sprintf("next\t%s;\n", h.NextRevision))
+	fmt.Fprintf(&sb, "next\t%s;\n", h.NextRevision)
 	if h.CommitID != "" {
-		sb.WriteString(fmt.Sprintf("commitid\t%s;\n", h.CommitID))
+		fmt.Fprintf(&sb, "commitid\t%s;\n", h.CommitID)
+	}
+	if h.Owner != "" {
+		sb.WriteString(fmt.Sprintf("owner\t%s;\n", h.Owner))
+	}
+	if h.Group != "" {
+		sb.WriteString(fmt.Sprintf("group\t%s;\n", h.Group))
+	}
+	if h.Permissions != "" {
+		sb.WriteString(fmt.Sprintf("permissions\t%s;\n", h.Permissions))
+	}
+	if h.Hardlinks != "" {
+		sb.WriteString(fmt.Sprintf("hardlinks\t%s;\n", AtQuote(h.Hardlinks)))
 	}
 	return sb.String()
 }
@@ -316,10 +333,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "integrity":
-			// TODO: Integrity parsing might need AtQuote string parsing similar to comment/desc?
-			// RCS usually has simple strings? integrity @...@;
-			// Let's assume quoted string for integrity.
-			if integrity, err := ParseHeaderComment(s, true); err != nil { // Reusing ParseHeaderComment logic (quote + terminator)
+			if integrity, err := ParseHeaderComment(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Integrity = integrity
@@ -398,7 +412,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 		return nil, false, true, nil
 	}
 	for {
-		if err := ScanStrings(s, "branches", "date", "next", "commitid", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
 			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
 		}
 		nt := s.Text()
@@ -422,6 +436,30 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.CommitID = c
+			}
+		case "owner":
+			if o, err := ParseProperty(s, true, "owner", true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Owner = o
+			}
+		case "group":
+			if g, err := ParseProperty(s, true, "group", true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Group = g
+			}
+		case "permissions":
+			if p, err := ParseProperty(s, true, "permissions", true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Permissions = p
+			}
+		case "hardlinks":
+			if h, err := ParseHeaderComment(s, true); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Hardlinks = h
 			}
 		case "\n\n", "\r\n\r\n":
 			return rh, true, false, nil
