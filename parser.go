@@ -251,7 +251,7 @@ func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, 
 }
 
 func ParseHeader(s *Scanner, f *File) error {
-	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine()); err != nil {
+	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine(true)); err != nil {
 		return err
 	} else {
 		f.Head = head
@@ -273,7 +273,7 @@ func ParseHeader(s *Scanner, f *File) error {
 		case " ", "\t", "\n", "\r\n":
 			continue
 		case "branch":
-			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(), WithLine()); err != nil {
+			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Branch = branch
@@ -331,7 +331,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(), WithLine()); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
@@ -404,13 +404,13 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
-			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(), WithLine()); err != nil {
+			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.NextRevision = n
 			}
 		case "commitid":
-			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(), WithLine()); err != nil {
+			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.CommitID = c
@@ -687,9 +687,9 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 }
 
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
-	opts := []ParseOption{WithPropertyName("date")}
+	opts := []interface{}{WithPropertyName("date")}
 	if haveHead {
-		opts = append(opts, WithConsumed())
+		opts = append(opts, WithConsumed(true))
 	}
 	if dateStr, err := ParseOptionalToken(s, ScanTokenNum, opts...); err != nil {
 		return err
@@ -710,13 +710,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		case " ", "\t":
 			continue
 		case "author":
-			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author"), WithConsumed()); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Author = s
 			}
 		case "state":
-			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state"), WithConsumed()); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.State = s
@@ -731,40 +731,28 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 	return nil
 }
 
-type parseConfig struct {
-	havePropertyName bool
-	propertyName     string
-	line             bool
-}
+type WithPropertyName string
+type WithConsumed bool
+type WithLine bool
 
-type ParseOption func(*parseConfig)
+func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), options ...interface{}) (string, error) {
+	var propertyName string
+	var havePropertyName bool
+	var line bool
 
-func WithPropertyName(name string) ParseOption {
-	return func(c *parseConfig) {
-		c.propertyName = name
-	}
-}
-
-func WithConsumed() ParseOption {
-	return func(c *parseConfig) {
-		c.havePropertyName = true
-	}
-}
-
-func WithLine() ParseOption {
-	return func(c *parseConfig) {
-		c.line = true
-	}
-}
-
-func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), options ...ParseOption) (string, error) {
-	config := &parseConfig{}
 	for _, opt := range options {
-		opt(config)
+		switch v := opt.(type) {
+		case WithPropertyName:
+			propertyName = string(v)
+		case WithConsumed:
+			havePropertyName = bool(v)
+		case WithLine:
+			line = bool(v)
+		}
 	}
 
-	if !config.havePropertyName {
-		if err := ScanStrings(s, config.propertyName); err != nil {
+	if !havePropertyName {
+		if err := ScanStrings(s, propertyName); err != nil {
 			return "", err
 		}
 	}
@@ -773,29 +761,8 @@ func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), 
 	}
 	// Important: Check for terminator *before* value scan.
 	// If ";" is found, it means the value is empty/missing, which is valid for optional tokens.
-	// ScanStrings does not consume if it doesn't match? Wait.
-	// ScanStrings consumes if it matches.
-	// So if we see ";", we consume it and return empty.
 	if err := ScanStrings(s, ";"); err == nil {
-		// Found terminator immediately, so value is empty.
-		// If line=true, we still need to consume the newline after the terminator?
-		// ScanStrings(";") consumes the semicolon.
-		// ParseTerminatorFieldLine expects to consume a semicolon then a newline.
-		// If ScanStrings(";") already consumed the semicolon, ParseTerminatorFieldLine will fail looking for ";".
-		//
-		// If line=true:
-		// We expect [optional_value] ";" "\n"
-		// If value is missing: ";" "\n"
-		//
-		// If line=false:
-		// We expect [optional_value] ";"
-		// If value is missing: ";"
-		//
-		// Current logic:
-		// if err := ScanStrings(s, ";"); err == nil { return "", nil }
-		// This consumes ";".
-		// But if line=true, we missed consuming "\n".
-		if config.line {
+		if line {
 			if err := ScanNewLine(s, false); err != nil {
 				return "", err
 			}
@@ -805,9 +772,9 @@ func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), 
 	// If we didn't find ";", we expect a value.
 	val, err := scannerFunc(s)
 	if err != nil {
-		return "", ErrParseProperty{Property: config.propertyName, Err: err}
+		return "", ErrParseProperty{Property: propertyName, Err: err}
 	}
-	if config.line {
+	if line {
 		if err := ParseTerminatorFieldLine(s); err != nil {
 			return "", err
 		}
