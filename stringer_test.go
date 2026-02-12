@@ -50,6 +50,7 @@ func TestStringTxtarFiles(t *testing.T) {
 
 			if diff := cmp.Diff(expectedRCS, gotRCS); diff != "" {
 				t.Errorf("RCS mismatch (-want +got):\n%s", diff)
+				t.Logf("Got RCS:\n%q", gotRCS)
 			}
 		})
 	}
