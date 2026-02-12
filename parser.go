@@ -484,17 +484,20 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
+	var initialOffset int
 	for {
 		rc, next, err := ParseRevisionContent(s)
 		if err != nil {
 			return nil, err
 		}
 		if rc != nil {
+			rc.DescriptionSeparatorNewLineOffset += initialOffset
 			rcs = append(rcs, rc)
 		}
 		if !next {
 			return rcs, nil
 		}
+		initialOffset = 2
 	}
 }
 
