@@ -249,8 +249,6 @@ func TestParseFile(t *testing.T) {
 				if diff := cmp.Diff(got.Description, tt.wantDesc); diff != "" {
 					t.Errorf("Description: %s", diff)
 				}
-			} else if tt.name == "Test parse of testinput.go,v" { // fallback for others if I missed setting wantDesc (I set it for success cases)
-				// Should not happen for success cases I modified
 			}
 
 			// Skipping Locks/RevisionHeads/RevisionContents checks for access_symbols because they differ
