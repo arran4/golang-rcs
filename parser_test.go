@@ -22,7 +22,7 @@ var (
 	//go:embed testdata/txtar/*.txtar
 	txtarTests embed.FS
 	//go:embed testdata/local/*
-	localTests    embed.FS
+	localTests embed.FS
 	//go:embed "testdata/expand_integrity.go,v"
 	expandIntegrityv []byte
 	//go:embed "testdata/expand_integrity_unquoted.go,v"
@@ -1526,7 +1526,6 @@ func TestParseLockBody(t *testing.T) {
 	}
 }
 
-
 func TestParseTxtarFiles(t *testing.T) {
 	files, err := txtarTests.ReadDir("testdata/txtar")
 	if err != nil {
@@ -1660,7 +1659,6 @@ text
 	if err != nil {
 		t.Fatalf("ParseFile failed: %v", err)
 	}
-  
 
 	// Check if the date was parsed correctly as 1999
 	expectedDate := time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -1680,7 +1678,7 @@ text
 		t.Errorf("Output for revision head should contain truncated date '99.01.01.00.00.00;', got:\n%s\nwant:\n%s", got, want)
 	}
 }
-  
+
 func TestParseIntegrity(t *testing.T) {
 	input := `head	1.1;
 integrity	@some @@ value@;
@@ -1696,12 +1694,10 @@ desc
 		t.Fatalf("ParseFile failed: %v", err)
 	}
 
-
 	if f.Integrity != "some @ value" {
 		t.Errorf("expected Integrity 'some @ value', got %q", f.Integrity)
 	}
 }
-
 
 func TestParseIntegrityUnquoted(t *testing.T) {
 	input := `head	1.1;
@@ -1781,5 +1777,5 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 
 	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
 		t.Errorf("String() mismatch (-want +got):\n%s", diff)
-  }
+	}
 }
