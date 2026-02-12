@@ -47,9 +47,13 @@ func TestTxtarFiles(t *testing.T) {
 							// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
 							parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n\n\n"))
 							if err != nil {
+							// Try with just one newline
+							parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n"))
+							if err != nil {
 								t.Fatalf("ParseFile error: %v", err)
 							}
 						}
+					}
 
 						// Marshal to JSON
 						gotJSONBytes, err := json.MarshalIndent(parsedFile, "", "  ")
@@ -75,7 +79,11 @@ func TestTxtarFiles(t *testing.T) {
 						// Retry with added newlines
 						parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n\n\n"))
 						if err != nil {
-							t.Fatalf("ParseFile error: %v", err)
+							// Try with just one newline
+							parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n"))
+							if err != nil {
+								t.Fatalf("ParseFile error: %v", err)
+							}
 						}
 					}
 

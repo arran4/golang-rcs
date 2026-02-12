@@ -1,4 +1,34 @@
--- input,v --
+-- input.rcs --
+head    1.1;
+access;
+symbols;
+locks; strict;
+comment @# @;
+
+
+1.1
+date    2026.02.10.10.35.45;    author arran;   state Exp;
+branches;
+next    ;
+
+
+desc
+@asdkjfa
+sadfsaa
+message!
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@asdf
+asdf
+asdf
+@
+-- expected,v --
 head	1.1;
 access;
 symbols;
@@ -28,6 +58,7 @@ text
 asdf
 asdf
 @
+
 -- expected.json --
 {
   "Head": "1.1",

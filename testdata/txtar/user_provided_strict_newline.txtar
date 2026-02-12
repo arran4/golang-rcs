@@ -1,4 +1,57 @@
--- input,v --
+-- input.rcs --
+head    1.2;
+access
+        user1
+        user2
+        user3;
+symbols;
+locks
+        arran:1.2;
+strict;
+comment @# @;
+
+
+1.2
+date    2026.02.10.10.39.46;    author arran;   state Exp;
+branches;
+next    1.1;
+
+1.1
+date    2026.02.10.10.35.45;    author arran;   state Exp;
+branches;
+next    ;
+
+
+desc
+@asdkjfa
+sadfsaa
+message!
+@
+
+
+1.2
+log
+@next commit.
+@
+text
+@1asdf
+2asdf
+3asdf
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 3
+a3 3
+asdf
+asdf
+asdf
+@
+-- expected,v --
 head	1.2;
 access user1 user2 user3;
 symbols;
@@ -48,6 +101,7 @@ asdf
 asdf
 asdf
 @
+
 -- expected.json --
 {
   "Head": "1.2",
