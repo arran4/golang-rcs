@@ -197,6 +197,7 @@ func TestParseFile(t *testing.T) {
 		b        []byte
 		checkErr func(*testing.T, error)
 		wantDesc string
+		check    func(*testing.T, *File)
 	}{
 		{
 			name:     "Test parse of testinput.go,v",
@@ -204,6 +205,7 @@ func TestParseFile(t *testing.T) {
 			b:        testinputv,
 			checkErr: noError,
 			wantDesc: "This is a test file.\n",
+			check:    checkTestInput,
 		},
 		{
 			name:     "Test parse of testinput1.go,v - add a new line for the missing one",
@@ -211,6 +213,7 @@ func TestParseFile(t *testing.T) {
 			b:        testinputv1,
 			checkErr: noError,
 			wantDesc: "This is a test file.\n",
+			check:    checkTestInput,
 		},
 		{
 			name:     "Parse file with access and symbols",
@@ -218,6 +221,7 @@ func TestParseFile(t *testing.T) {
 			b:        accessSymbolsv,
 			checkErr: noError,
 			wantDesc: "Sample\n",
+			check:    checkAccessSymbols,
 		},
 		{
 			name: "Invalid header - missing head",
@@ -281,23 +285,8 @@ func TestParseFile(t *testing.T) {
 				}
 			}
 
-			// Skipping Locks/RevisionHeads/RevisionContents checks for access_symbols because they differ
-			// The original test blindly asserted length 1, 6, 6 which was tailored for testinput.go,v
-			if tt.name == "Parse file with access and symbols" {
-				// Specific checks for this file are done in TestParseAccessSymbols
-				// But here we can skip the hardcoded checks or verify based on expected content
-				// access_symbols.go,v has 0 locks, 1 revision head?
-				// I'll skip the hardcoded checks below for this case.
-			} else {
-				if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-					t.Errorf("Locks: %s", diff)
-				}
-				if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
-					t.Errorf("RevisionHeads: %s", diff)
-				}
-				if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
-					t.Errorf("RevisionContents: %s", diff)
-				}
+			if tt.check != nil {
+				tt.check(t, got)
 			}
 
 			if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
