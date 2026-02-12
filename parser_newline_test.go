@@ -95,7 +95,8 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 
 	// Check specific revisions
 	for _, rc := range got.RevisionContents {
-		if rc.Revision == "1.1" {
+		switch rc.Revision {
+		case "1.1":
 			expectedText := "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n"
 			if rc.Text != expectedText {
 				t.Errorf("Revision 1.1 text = %q, want %q", rc.Text, expectedText)
@@ -121,7 +122,7 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 			if rc.RevisionDescriptionNewLineOffset != 1 {
 				t.Errorf("Revision 1.1 RevisionDescriptionNewLineOffset = %d, want 1", rc.RevisionDescriptionNewLineOffset)
 			}
-		} else if rc.Revision == "1.1.1.1" {
+		case "1.1.1.1":
 			expectedText := "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n"
 			if rc.Text != expectedText {
 				t.Errorf("Revision 1.1.1.1 text = %q, want %q", rc.Text, expectedText)
@@ -139,7 +140,7 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 			if rc.RevisionDescriptionNewLineOffset != 2 {
 				t.Errorf("Revision 1.1.1.1 RevisionDescriptionNewLineOffset = %d, want 2", rc.RevisionDescriptionNewLineOffset)
 			}
-		} else {
+		default:
 			t.Errorf("Unexpected revision %s", rc.Revision)
 		}
 	}
