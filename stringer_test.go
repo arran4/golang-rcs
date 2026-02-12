@@ -30,10 +30,10 @@ func TestStringTxtarFiles(t *testing.T) {
 			var inputJSON, expectedRCS string
 			for _, f := range ar.Files {
 				if f.Name == "input.json" {
-					inputJSON = string(f.Data)
+					inputJSON = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
 				}
 				if f.Name == "expected,v" {
-					expectedRCS = string(f.Data)
+					expectedRCS = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
 				}
 			}
 

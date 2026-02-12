@@ -1395,10 +1395,10 @@ func TestParseTxtarFiles(t *testing.T) {
 			var rcsContent, expectedJSON string
 			for _, f := range ar.Files {
 				if f.Name == "input.rcs" {
-					rcsContent = string(f.Data)
+					rcsContent = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
 				}
 				if f.Name == "expected.json" {
-					expectedJSON = string(f.Data)
+					expectedJSON = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
 				}
 			}
 
