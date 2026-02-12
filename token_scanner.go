@@ -2,7 +2,11 @@ package rcs
 
 import (
 	"bytes"
+	"fmt"
+	"io"
+	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 // Grammar Rules:
@@ -89,6 +93,111 @@ func ScanTokenSym(s *Scanner) (string, error) {
 func ScanTokenString(s *Scanner) (string, error) {
 	// string ::= "@" { any character, with @ doubled }* "@"
 	return ParseAtQuotedString(s)
+}
+
+func ScanTokenWord(s *Scanner) (string, error) {
+	// word ::= id | num | string | ":"
+	// string starts with @
+	// id starts with idchar
+	// num starts with digit or .
+	// : is :
+
+	// Note: This function assumes whitespace has already been consumed (e.g. by ParseOptionalToken).
+	// It relies on rcs.Scanner wrapping bufio.Scanner and allowing dynamic switching of SplitFunc via s.Split.
+
+	s.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+
+		first := data[0]
+
+		if first == '@' {
+			// Quoted string logic
+			// Look for matching @ that is not doubled (@@)
+			i := 1
+			for i < len(data) {
+				if data[i] == '@' {
+					// Check if next char is also @ (doubled)
+					if i+1 < len(data) {
+						if data[i+1] == '@' {
+							i += 2 // Skip @@
+							continue
+						}
+					} else if !atEOF {
+						// Need more data to check if next char is @
+						return 0, nil, nil
+					}
+					// Found closing quote at i (and next char is NOT @ or EOF)
+					// Token is everything from start to i (inclusive of quotes)
+					// We return it as raw bytes.
+					return i + 1, data[:i+1], nil
+				}
+				i++
+			}
+			if atEOF {
+				return 0, nil, fmt.Errorf("open quote: %w", io.ErrUnexpectedEOF)
+			}
+			return 0, nil, nil
+		}
+
+		if first == ':' {
+			return 1, data[:1], nil
+		}
+
+		// ID/Num logic: consume until invalid char
+		i := 0
+		for i < len(data) {
+			r, w := utf8.DecodeRune(data[i:])
+			if r == utf8.RuneError && w == 1 {
+				// Invalid rune? Maybe just consume it as part of ID if isIdChar allows?
+				// isIdChar(utf8.RuneError) is likely false.
+			}
+
+			if !isIdChar(r) && r != '.' {
+				if i == 0 {
+					// Found invalid char at start (but we checked @ and :)
+					// This should be treated as end of token if we scanned something?
+					// But we are at 0.
+					return 0, nil, fmt.Errorf("invalid character %q at start of word", r)
+				}
+				return i, data[:i], nil
+			}
+			i += w
+		}
+		if atEOF {
+			return len(data), data, nil
+		}
+		return 0, nil, nil
+	})
+
+	if !s.Scan() {
+		// If Scan returns false, Err() returns the error.
+		// If Err() is nil, it means EOF.
+		if s.Err() == nil {
+			return "", io.EOF
+		}
+		return "", s.Err()
+	}
+
+	token := s.Text()
+	if len(token) == 0 {
+		return "", nil
+	}
+
+	if token[0] == '@' {
+		// Unquote and unescape
+		// Token is @content@
+		// Content is token[1:len(token)-1]
+		// Replace @@ with @
+		if len(token) < 2 {
+			return "", fmt.Errorf("invalid quoted string: %q", token)
+		}
+		content := token[1 : len(token)-1]
+		return strings.ReplaceAll(content, "@@", "@"), nil
+	}
+
+	return token, nil
 }
 
 func ScanTokenIntString(s *Scanner) (string, error) {

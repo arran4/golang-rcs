@@ -359,7 +359,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenWord, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
