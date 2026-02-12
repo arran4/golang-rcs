@@ -141,10 +141,10 @@ func TestParseDate_Errors(t *testing.T) {
 		{"Invalid Month", "2018-13-01"},
 		{"Invalid Day", "2018-01-32"},
 		// Additional invalid formats
-		{"Invalid ISO 8601", "2006-13-02 15:04:05"}, // Month 13
-		{"Invalid Time", "2006-01-02 25:00:00"},     // Hour 25
-		{"Invalid Minute", "2006-01-02 15:60:00"},   // Minute 60 (leap seconds usually not supported in standard parsing this way or simply out of range)
-		{"Invalid Second", "2006-01-02 15:04:61"},   // Second 61
+		{"Invalid ISO 8601", "2006-13-02 15:04:05"},   // Month 13
+		{"Invalid Time", "2006-01-02 25:00:00"},       // Hour 25
+		{"Invalid Minute", "2006-01-02 15:60:00"},     // Minute 60 (leap seconds usually not supported in standard parsing this way or simply out of range)
+		{"Invalid Second", "2006-01-02 15:04:61"},     // Second 61
 		{"Invalid Zone", "2006-01-02 15:04:05 +2500"}, // Offset too large
 		{"Garbage ISO 8601", "2006-01-02T15:04:05ZGarbage"},
 		{"Invalid RFC1123", "Mon, 02 Jan 2006 25:04:05 MST"},
