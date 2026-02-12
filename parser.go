@@ -39,7 +39,7 @@ type RevisionHead struct {
 	Owner         string `json:",omitempty"`
 	Group         string `json:",omitempty"`
 	Permissions   string `json:",omitempty"`
-	Hardlinks     string `json:",omitempty"`
+	Hardlinks     []string `json:",omitempty"`
 }
 
 func (h *RevisionHead) String() string {
@@ -73,9 +73,14 @@ func (h *RevisionHead) String() string {
 	if h.Permissions != "" {
 		sb.WriteString(fmt.Sprintf("permissions\t%s;\n", h.Permissions))
 	}
-	if h.Hardlinks != "" {
-		sb.WriteString("hardlinks\t")
-		_, _ = WriteAtQuote(&sb, h.Hardlinks)
+	if len(h.Hardlinks) > 0 {
+		sb.WriteString("hardlinks")
+		sep := "\t"
+		for _, hl := range h.Hardlinks {
+			sb.WriteString(sep)
+			_, _ = WriteAtQuote(&sb, hl)
+			sep = " "
+		}
 		sb.WriteString(";\n")
 	}
 	return sb.String()
@@ -534,7 +539,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				rh.Permissions = p
 			}
 		case "hardlinks":
-			if h, err := ParseHeaderComment(s, true); err != nil {
+			if h, err := ParseHeaderHardlinks(s, true); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Hardlinks = h
@@ -690,6 +695,29 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+func ParseHeaderHardlinks(s *Scanner, havePropertyName bool) ([]string, error) {
+	if !havePropertyName {
+		if err := ScanStrings(s, "hardlinks"); err != nil {
+			return nil, err
+		}
+	}
+	var hls []string
+	for {
+		if err := ScanWhiteSpace(s, 0); err != nil {
+			return nil, err
+		}
+		if err := ScanStrings(s, ";"); err == nil {
+			break
+		}
+		hl, err := ScanTokenWord(s)
+		if err != nil {
+			return nil, fmt.Errorf("expected value in hardlinks: %w", err)
+		}
+		hls = append(hls, hl)
+	}
+	return hls, nil
 }
 
 func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {

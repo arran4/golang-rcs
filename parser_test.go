@@ -1742,8 +1742,8 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 	if rh.Permissions != "644" {
 		t.Errorf("Permissions = %q, want %q", rh.Permissions, "644")
 	}
-	if rh.Hardlinks != "stringize.m4" {
-		t.Errorf("Hardlinks = %q, want %q", rh.Hardlinks, "stringize.m4")
+	if diff := cmp.Diff(rh.Hardlinks, []string{"stringize.m4"}); diff != "" {
+		t.Errorf("Hardlinks mismatch (-want +got):\n%s", diff)
 	}
 
 	// Verify String() output
@@ -1758,5 +1758,52 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 
 	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
 		t.Errorf("String() mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestParseHardlinksMulti(t *testing.T) {
+	input := `head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+hardlinks	README @install.txt@ @Installation Notes@;
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+`
+	f, err := ParseFile(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("ParseFile failed: %v", err)
+	}
+
+	// The input had: hardlinks	README @install.txt@ @Installation Notes@;
+	// We expect 3 items.
+	// "README" -> "README" (ID)
+	// "@install.txt@" -> "install.txt" (string)
+	// "@Installation Notes@" -> "Installation Notes" (string)
+
+	expected := []string{"README", "install.txt", "Installation Notes"}
+	// Access the first revision's hardlinks. The input has one revision 1.1.
+	if len(f.RevisionHeads) < 1 {
+		t.Fatalf("Expected at least 1 revision head, got %d", len(f.RevisionHeads))
+	}
+	rh := f.RevisionHeads[0]
+
+	if diff := cmp.Diff(rh.Hardlinks, expected); diff != "" {
+		t.Errorf("Hardlinks mismatch (-want +got):\n%s", diff)
 	}
 }
