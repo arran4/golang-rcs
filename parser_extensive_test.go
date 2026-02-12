@@ -124,7 +124,7 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 		{
 			name:    "Invalid date format",
 			input:   "date\tbad-date;",
-			wantErr: "unable to parse date",
+			wantErr: "expected value for date",
 		},
 		{
 			name:    "Missing author",
@@ -173,7 +173,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad date",
 			input:   "1.1\ndate bad;",
-			wantErr: "token \"date\": unable to parse date",
+			wantErr: "expected value for date",
 		},
 		{
 			name:    "Bad next",
