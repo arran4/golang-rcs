@@ -1367,3 +1367,51 @@ func TestParseLockBody(t *testing.T) {
 		})
 	}
 }
+
+func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
+	input := "1.2\n" +
+		"date\t99.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
+		"branches;\n" +
+		"next\t1.1;\n" +
+		"owner\t640;\n" +
+		"group\t15;\n" +
+		"permissions\t644;\n" +
+		"hardlinks\t@stringize.m4@;\n" +
+		"\n\n"
+
+	s := NewScanner(strings.NewReader(input))
+	rh, _, _, err := ParseRevisionHeader(s)
+	if err != nil {
+		t.Fatalf("ParseRevisionHeader returned error: %v", err)
+	}
+
+	if rh.Revision != "1.2" {
+		t.Errorf("Revision = %q, want %q", rh.Revision, "1.2")
+	}
+	if rh.Owner != "640" {
+		t.Errorf("Owner = %q, want %q", rh.Owner, "640")
+	}
+	if rh.Group != "15" {
+		t.Errorf("Group = %q, want %q", rh.Group, "15")
+	}
+	if rh.Permissions != "644" {
+		t.Errorf("Permissions = %q, want %q", rh.Permissions, "644")
+	}
+	if rh.Hardlinks != "stringize.m4" {
+		t.Errorf("Hardlinks = %q, want %q", rh.Hardlinks, "stringize.m4")
+	}
+
+	// Verify String() output
+	expectedOutput := "1.2\n" +
+		"date\t1999.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
+		"branches;\n" +
+		"next\t1.1;\n" +
+		"owner\t640;\n" +
+		"group\t15;\n" +
+		"permissions\t644;\n" +
+		"hardlinks\t@stringize.m4@;\n"
+
+	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
+		t.Errorf("String() mismatch (-want +got):\n%s", diff)
+	}
+}
