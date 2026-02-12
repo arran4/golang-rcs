@@ -1037,9 +1037,9 @@ func TestParseRevisionHeaderNext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var opts []ParseOption
-			if !tt.args.haveHead {
-				opts = append(opts, WithPropertyName("next"))
+			opts := []ParseOption{WithPropertyName("next")}
+			if tt.args.haveHead {
+				opts = append(opts, WithConsumed())
 			}
 			opts = append(opts, WithLine())
 			got, err := ParseOptionalToken(tt.args.s, ScanTokenNum, opts...)

@@ -273,7 +273,7 @@ func ParseHeader(s *Scanner, f *File) error {
 		case " ", "\t", "\n", "\r\n":
 			continue
 		case "branch":
-			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithLine()); err != nil {
+			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(), WithLine()); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Branch = branch
@@ -331,7 +331,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithLine()); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(), WithLine()); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
@@ -404,13 +404,13 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
-			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithLine()); err != nil {
+			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(), WithLine()); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.NextRevision = n
 			}
 		case "commitid":
-			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithLine()); err != nil {
+			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(), WithLine()); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.CommitID = c
@@ -687,9 +687,9 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 }
 
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
-	var opts []ParseOption
-	if !haveHead {
-		opts = append(opts, WithPropertyName("date"))
+	opts := []ParseOption{WithPropertyName("date")}
+	if haveHead {
+		opts = append(opts, WithConsumed())
 	}
 	if dateStr, err := ParseOptionalToken(s, ScanTokenNum, opts...); err != nil {
 		return err
@@ -710,13 +710,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		case " ", "\t":
 			continue
 		case "author":
-			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author")); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author"), WithConsumed()); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Author = s
 			}
 		case "state":
-			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state")); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state"), WithConsumed()); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.State = s
@@ -731,7 +731,6 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 	return nil
 }
 
-
 type parseConfig struct {
 	havePropertyName bool
 	propertyName     string
@@ -742,8 +741,13 @@ type ParseOption func(*parseConfig)
 
 func WithPropertyName(name string) ParseOption {
 	return func(c *parseConfig) {
-		c.havePropertyName = true
 		c.propertyName = name
+	}
+}
+
+func WithConsumed() ParseOption {
+	return func(c *parseConfig) {
+		c.havePropertyName = true
 	}
 }
 
