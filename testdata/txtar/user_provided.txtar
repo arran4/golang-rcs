@@ -97,12 +97,14 @@ asdf
     {
       "Revision": "1.2",
       "Log": "next commit.\n",
-      "Text": "1asdf\n2asdf\n3asdf\n"
+      "Text": "1asdf\n2asdf\n3asdf\n",
+      "DescriptionSeparatorNewLineOffset": -2
     },
     {
       "Revision": "1.1",
       "Log": "Initial revision\n",
-      "Text": "d1 3\na3 3\nasdf\nasdf\nasdf\n"
+      "Text": "d1 3\na3 3\nasdf\nasdf\nasdf\n",
+      "DescriptionSeparatorNewLineOffset": -2
     }
   ]
 }

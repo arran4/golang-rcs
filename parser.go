@@ -1101,24 +1101,20 @@ func (e ErrEOF) Error() string {
 
 func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
-		err = nil
-		for o := 0; o < len(data); o++ {
-			for _, ss := range strs {
-				if len(ss) == 0 && atEOF {
-					rs := data[:o]
-					return o, rs, nil
-				} else if len(ss) == 0 {
-					continue
-				}
-				i := len(ss)
-				if i >= len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
-					return 0, nil, nil
-				}
-				if bytes.HasPrefix(data[o:], []byte(ss)) {
-					rs := data[:o]
-					return o, rs, nil
+		bestIdx := -1
+		for _, ss := range strs {
+			if len(ss) == 0 {
+				continue
+			}
+			idx := bytes.Index(data, []byte(ss))
+			if idx >= 0 {
+				if bestIdx == -1 || idx < bestIdx {
+					bestIdx = idx
 				}
 			}
+		}
+		if bestIdx >= 0 {
+			return bestIdx, data[:bestIdx], nil
 		}
 		if atEOF {
 			err = ErrEOF{ScanNotFound{
