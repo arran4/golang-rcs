@@ -187,7 +187,7 @@ log
 text
 @text@
 `
-    // Added one more newline to trigger > 4.
+	// Added one more newline to trigger > 4.
 
 	_, err := ParseFile(strings.NewReader(rcsContent))
 	if err == nil {
