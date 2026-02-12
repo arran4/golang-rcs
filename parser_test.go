@@ -142,6 +142,7 @@ text
 }
 
 func TestParseFile(t *testing.T) {
+	// Updated for slice refactor
 	noError := func(t *testing.T, err error) {
 		if err != nil {
 			t.Errorf("ParseFile() error = %v, wantErr nil", err)
