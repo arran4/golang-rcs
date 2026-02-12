@@ -76,15 +76,17 @@ func (h *RevisionHead) String() string {
 }
 
 type RevisionContent struct {
-	Revision                         string
-	Log                              string
-	Text                             string
-	RevisionDescriptionNewLineOffset int `json:",omitempty"`
+	Revision                          string
+	Log                               string
+	Text                              string
+	DescriptionSeparatorNewLineOffset int `json:",omitempty"`
 }
 
 func (c *RevisionContent) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(strings.Repeat("\n", c.RevisionDescriptionNewLineOffset))
+	if 2+c.DescriptionSeparatorNewLineOffset > 0 {
+		sb.WriteString(strings.Repeat("\n", 2+c.DescriptionSeparatorNewLineOffset))
+	}
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
 	sb.WriteString(AtQuote(c.Log))
@@ -482,20 +484,17 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
-	var initialOffset int
 	for {
 		rc, next, err := ParseRevisionContent(s)
 		if err != nil {
 			return nil, err
 		}
 		if rc != nil {
-			rc.RevisionDescriptionNewLineOffset += initialOffset
 			rcs = append(rcs, rc)
 		}
 		if !next {
 			return rcs, nil
 		}
-		initialOffset = 2
 	}
 }
 
@@ -515,7 +514,7 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		}
 		if rev != "" {
 			rh.Revision = rev
-			rh.RevisionDescriptionNewLineOffset = precedingNewLines
+			rh.DescriptionSeparatorNewLineOffset = precedingNewLines - 2
 			break
 		}
 		precedingNewLines++
@@ -1111,13 +1110,21 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 				} else if len(ss) == 0 {
 					continue
 				}
-				i := len(ss)
-				if i >= len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
-					return 0, nil, nil
-				}
-				if bytes.HasPrefix(data[o:], []byte(ss)) {
-					rs := data[:o]
-					return o, rs, nil
+				// Fix: Logic was returning 0 (need more data) if prefix matched partially at end of buffer
+				// BUT we are iterating `o` (offset).
+				// We should check if `ss` matches at `data[o:]`.
+
+				if len(ss) > len(data[o:]) {
+					if !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
+						return 0, nil, nil
+					}
+					// If atEOF, it's not a match unless exact? No, ScanUntilStrings looks for occurrence.
+					// If partial match at EOF, it's not a match.
+				} else {
+					if bytes.HasPrefix(data[o:], []byte(ss)) {
+						rs := data[:o]
+						return o, rs, nil
+					}
 				}
 			}
 		}
