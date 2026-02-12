@@ -36,28 +36,34 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		log.Panicf("Cannot specify both output and stdout")
 	}
 
-	targetStdout := stdoutFlag || (!overwrite && output == "")
-
-	if targetStdout && len(files) > 1 {
-		// Txtar format
-		for _, fn := range files {
-			r := parseFileOrStdin(stdin, fn)
-			content := r.String()
-			_, _ = fmt.Fprintf(stdout, "-- %s --\n", fn)
-			_, _ = fmt.Fprint(stdout, content)
-		}
-		return
-	}
-
 	for _, fn := range files {
-		r := parseFileOrStdin(stdin, fn)
-		if !keepTruncatedYears {
-			r.DateYearPrefixTruncated = false
-			for _, h := range r.RevisionHeads {
-				h.YearTruncated = false
+		var content string
+		var err error
+
+		if fn == "-" {
+			content, err = processReader(stdin, keepTruncatedYears)
+			if err != nil {
+				log.Panicf("Error parsing stdin: %s", err)
+			}
+		} else {
+			// Using closure to ensure Close is called immediately after use
+			func() {
+				f, openErr := os.Open(fn)
+				if openErr != nil {
+					log.Panicf("Error opening file %s: %s", fn, openErr)
+				}
+				defer func() {
+					if closeErr := f.Close(); closeErr != nil {
+						log.Panicf("Error closing file %s: %s", fn, closeErr)
+					}
+				}()
+
+				content, err = processReader(f, keepTruncatedYears)
+			}()
+			if err != nil {
+				log.Panicf("Error parsing file %s: %s", fn, err)
 			}
 		}
-		content := r.String()
 
 		if overwrite {
 			if fn == "-" {
@@ -75,27 +81,16 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 	}
 }
 
-func parseFileOrStdin(stdin io.Reader, fn string) *rcs.File {
-	var f io.Reader
-	var file *os.File
-	var err error
-	if fn == "-" {
-		f = stdin
-	} else {
-		file, err = os.Open(fn)
-		if err != nil {
-			log.Panicf("Error opening file %s: %s", fn, err)
-		}
-		f = file
-	}
-	r, err := rcs.ParseFile(f)
-	if file != nil {
-		if err := file.Close(); err != nil {
-			log.Panicf("Error closing file %s: %s", fn, err)
-		}
-	}
+func processReader(r io.Reader, keepTruncatedYears bool) (string, error) {
+	parsedFile, err := rcs.ParseFile(r)
 	if err != nil {
-		log.Panicf("Error parsing %s: %s", fn, err)
+		return "", err
 	}
-	return r
+	if !keepTruncatedYears {
+		parsedFile.DateYearPrefixTruncated = false
+		for _, h := range parsedFile.RevisionHeads {
+			h.YearTruncated = false
+		}
+	}
+	return parsedFile.String(), nil
 }

@@ -199,6 +199,7 @@ func TestParseFile(t *testing.T) {
 		checkErr func(*testing.T, error)
 		verify   func(*testing.T, *File)
 		wantDesc string
+		check    func(*testing.T, *File)
 	}{
 		{
 			name:     "Test parse of testinput.go,v",
@@ -207,6 +208,7 @@ func TestParseFile(t *testing.T) {
 			checkErr: noError,
 			verify:   checkTestInput,
 			wantDesc: "This is a test file.\n",
+			check:    checkTestInput,
 		},
 		{
 			name:     "Test parse of testinput1.go,v - add a new line for the missing one",
@@ -215,6 +217,7 @@ func TestParseFile(t *testing.T) {
 			checkErr: noError,
 			verify:   checkTestInput,
 			wantDesc: "This is a test file.\n",
+			check:    checkTestInput,
 		},
 		{
 			name:     "Parse file with access and symbols",
@@ -227,6 +230,7 @@ func TestParseFile(t *testing.T) {
 			// Let's use checkAccessSymbols here if that's what the original code did.
 			verify:   checkAccessSymbols,
 			wantDesc: "Sample\n",
+			check:    checkAccessSymbols,
 		},
 		{
 			name: "Invalid header - missing head",
