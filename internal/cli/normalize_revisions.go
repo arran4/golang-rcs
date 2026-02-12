@@ -29,8 +29,9 @@ func (d DateSorter) Swap(i, j int) {
 // NormalizeRevisions is a subcommand `gorcs normalize-revisions`
 //
 // Flags:
-//   padCommits: -p --pad-commits pad commits with empty commits
-//   files: ... List of files to process
+//
+//	padCommits: -p --pad-commits pad commits with empty commits
+//	files: ... List of files to process
 func NormalizeRevisions(padCommits bool, files ...string) {
 	type Pair struct {
 		Rcs *rcs.File

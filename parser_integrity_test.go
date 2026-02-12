@@ -45,9 +45,9 @@ desc
 
 func TestStringIntegrity(t *testing.T) {
 	f := &File{
-		Head:      "1.1",
-		Integrity: "some @ value",
-		Comment:   "This is a comment",
+		Head:        "1.1",
+		Integrity:   "some @ value",
+		Comment:     "This is a comment",
 		Description: "",
 	}
 	s := f.String()

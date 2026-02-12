@@ -11,7 +11,8 @@ import (
 // ListHeads is a subcommand `gorcs list-heads`
 //
 // Flags:
-//   files: ... List of files to process
+//
+//	files: ... List of files to process
 func ListHeads(files ...string) {
 	for _, f := range files {
 		listHeadsFile(f)
