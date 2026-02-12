@@ -15,8 +15,12 @@ var (
 	//go:embed "testdata/testinput.go,v"
 	testinputv []byte
 	//go:embed "testdata/testinput1.go,v"
-	testinputv1   []byte
-	accessSymbols = []byte(
+	testinputv1 []byte
+	//go:embed "testdata/expand_integrity.go,v"
+	expandIntegrityv []byte
+	//go:embed "testdata/expand_integrity_unquoted.go,v"
+	expandIntegrityUnquotedv []byte
+	accessSymbols            = []byte(
 		"head\t1.1;\n" +
 			"access john jane;\n" +
 			"symbols\n" +
@@ -43,6 +47,87 @@ var (
 			"text\n" +
 			"@hello@\n")
 )
+
+func TestParseHeaderExpandIntegrity(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         []byte
+		wantExpand    string
+		wantIntegrity string
+		wantErr       bool
+	}{
+		{
+			name:          "Expand and Integrity with quotes",
+			input:         expandIntegrityv,
+			wantExpand:    "kv",
+			wantIntegrity: "int123",
+			wantErr:       false,
+		},
+		{
+			name:          "Expand without quotes",
+			input:         expandIntegrityUnquotedv,
+			wantExpand:    "kv",
+			wantIntegrity: "",
+			wantErr:       false,
+		},
+		{
+			name: "Integrity unquoted should fail",
+			input: []byte(`head	1.1;
+integrity	unquoted;
+comment	@# @;
+
+
+1.1
+date	2022.01.01.00.00.00;	author arran;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+`),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f, err := ParseFile(bytes.NewReader(tt.input))
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ParseFile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			if f.Expand != tt.wantExpand {
+				t.Errorf("Expand = %q, want %q", f.Expand, tt.wantExpand)
+			}
+			if f.Integrity != tt.wantIntegrity {
+				t.Errorf("Integrity = %q, want %q", f.Integrity, tt.wantIntegrity)
+			}
+
+			gotString := f.String()
+			f2, err := ParseFile(strings.NewReader(gotString))
+			if err != nil {
+				t.Errorf("ParseFile(f.String()) error = %v", err)
+			} else {
+				if f2.Expand != f.Expand {
+					t.Errorf("RoundTrip Expand = %q, want %q", f2.Expand, f.Expand)
+				}
+				if f2.Integrity != f.Integrity {
+					t.Errorf("RoundTrip Integrity = %q, want %q", f2.Integrity, f.Integrity)
+				}
+			}
+		})
+	}
+}
 
 func TestParseFile(t *testing.T) {
 	tests := []struct {
@@ -1417,5 +1502,53 @@ func TestStringIntegrity(t *testing.T) {
 	expected := "integrity\t@some @@ value@;\n"
 	if !strings.Contains(s, expected) {
 		t.Errorf("expected output to contain %q, got:\n%s", expected, s)
+  }
+}
+
+func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
+	input := "1.2\n" +
+		"date\t99.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
+		"branches;\n" +
+		"next\t1.1;\n" +
+		"owner\t640;\n" +
+		"group\t15;\n" +
+		"permissions\t644;\n" +
+		"hardlinks\t@stringize.m4@;\n" +
+		"\n\n"
+
+	s := NewScanner(strings.NewReader(input))
+	rh, _, _, err := ParseRevisionHeader(s)
+	if err != nil {
+		t.Fatalf("ParseRevisionHeader returned error: %v", err)
+	}
+
+	if rh.Revision != "1.2" {
+		t.Errorf("Revision = %q, want %q", rh.Revision, "1.2")
+	}
+	if rh.Owner != "640" {
+		t.Errorf("Owner = %q, want %q", rh.Owner, "640")
+	}
+	if rh.Group != "15" {
+		t.Errorf("Group = %q, want %q", rh.Group, "15")
+	}
+	if rh.Permissions != "644" {
+		t.Errorf("Permissions = %q, want %q", rh.Permissions, "644")
+	}
+	if rh.Hardlinks != "stringize.m4" {
+		t.Errorf("Hardlinks = %q, want %q", rh.Hardlinks, "stringize.m4")
+	}
+
+	// Verify String() output
+	expectedOutput := "1.2\n" +
+		"date\t1999.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
+		"branches;\n" +
+		"next\t1.1;\n" +
+		"owner\t640;\n" +
+		"group\t15;\n" +
+		"permissions\t644;\n" +
+		"hardlinks\t@stringize.m4@;\n"
+
+	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
+		t.Errorf("String() mismatch (-want +got):\n%s", diff)
 	}
 }

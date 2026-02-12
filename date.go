@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -194,10 +195,23 @@ func applyDefaults(t time.Time, now time.Time, fields int, targetZone *time.Loca
 	return time.Date(year, month, day, hour, min, sec, 0, finalZone)
 }
 
+var (
+	reYearDOY     *regexp.Regexp
+	reYearWeekDow *regexp.Regexp
+	reOnce        sync.Once
+)
+
+func initRegex() {
+	reOnce.Do(func() {
+		reYearDOY = regexp.MustCompile(`^(\d{4})-(\d{1,3})$`)
+		reYearWeekDow = regexp.MustCompile(`^(\d{4})-w(\d{1,2})-(\d)$`)
+	})
+}
+
 // parseYearDOY handles format YEAR-DOY (e.g., 2018-110)
 func parseYearDOY(input string, loc *time.Location) (time.Time, bool) {
-	re := regexp.MustCompile(`^(\d{4})-(\d{1,3})$`)
-	matches := re.FindStringSubmatch(input)
+	initRegex()
+	matches := reYearDOY.FindStringSubmatch(input)
 	if matches == nil {
 		return time.Time{}, false
 	}
@@ -214,8 +228,8 @@ func parseYearDOY(input string, loc *time.Location) (time.Time, bool) {
 
 // parseYearWeekDow handles format YEAR-wWEEK-DOW (e.g., 2018-w16-5)
 func parseYearWeekDow(input string, loc *time.Location) (time.Time, bool) {
-	re := regexp.MustCompile(`^(\d{4})-w(\d{1,2})-(\d)$`)
-	matches := re.FindStringSubmatch(input)
+	initRegex()
+	matches := reYearWeekDow.FindStringSubmatch(input)
 	if matches == nil {
 		return time.Time{}, false
 	}
