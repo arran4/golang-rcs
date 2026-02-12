@@ -2,47 +2,24 @@ package cli
 
 import (
 	"bytes"
+	_ "embed"
 	"io"
 	"os"
 	"strings"
 	"testing"
 )
 
+//go:embed testdata/truncated_date.go,v
+var truncatedDateTestFile []byte
+
 func TestFormat_IgnoreTruncation(t *testing.T) {
-	// Create a temp file with truncated date
-	content := `head	1.1;
-access;
-symbols;
-locks; strict;
-comment	@# @;
-
-
-1.1
-date	99.01.01.00.00.00;	author user;	state Exp;
-branches;
-next	;
-
-
-desc
-@Description
-@
-
-
-1.1
-log
-@Initial revision
-@
-text
-@Content
-@
-`
 	tmpDir := t.TempDir()
 	f, err := os.CreateTemp(tmpDir, "test*.v")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Remove(f.Name())
-	if _, err := f.WriteString(content); err != nil {
+	if _, err := f.Write(truncatedDateTestFile); err != nil {
 		t.Fatal(err)
 	}
 	f.Close()

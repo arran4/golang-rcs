@@ -16,6 +16,7 @@ import (
 //	force: -f --force Force overwrite output
 //	overwrite: -w --overwrite Overwrite input file
 //	stdout: -s --stdout Force output to stdout
+//   ignore-truncation: --ignore-truncation Ignore year truncation
 //	files: ... List of files to process, or - for stdin
 func Format(output string, force, overwrite, stdout, ignoreTruncation bool, files ...string) {
 	runFormat(output, force, overwrite, stdout, ignoreTruncation, files...)
