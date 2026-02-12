@@ -66,3 +66,34 @@ asdf
     }
   ]
 }
+-- expected,v --
+head	1.1;
+access;
+symbols;
+locks
+	arran:1.1; strict;
+comment	@# @;
+
+
+1.1
+date	2026.02.10.10.35.45;	author arran;	state Exp;
+branches;
+next	;
+
+
+desc
+@asdkjfa
+sadfsaa
+message!
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@asdf
+asdf
+asdf
+@
