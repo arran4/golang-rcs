@@ -202,11 +202,6 @@ func TestParseRevisionContent_Errors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "Empty revision",
-			input:   "\n",
-			wantErr: "revision empty",
-		},
-		{
 			name:    "Bad log",
 			input:   "1.1\nlog\nbad", // Expects @
 			wantErr: "token \"log\": quote string: open quote: looking for \"@\"",

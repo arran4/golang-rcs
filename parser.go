@@ -451,18 +451,21 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 
 func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
-	if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
-		if IsEOFError(err) {
-			return nil, false, nil
+	for {
+		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
+			if IsEOFError(err) {
+				return nil, false, nil
+			}
+			return nil, false, err
 		}
-		return nil, false, err
-	}
-	rh.Revision = s.Text()
-	if rh.Revision == "" {
-		return nil, false, ErrRevisionEmpty
-	}
-	if err := ScanNewLine(s, false); err != nil {
-		return nil, false, err
+		rev := s.Text()
+		if err := ScanNewLine(s, false); err != nil {
+			return nil, false, err
+		}
+		if rev != "" {
+			rh.Revision = rev
+			break
+		}
 	}
 	for {
 		if err := ScanStrings(s, "log", "text", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {

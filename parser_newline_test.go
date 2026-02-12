@@ -1,0 +1,124 @@
+package rcs
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+)
+
+func TestParseFile_NewLines(t *testing.T) {
+	rcsContent := `head     1.1;
+branch   1.1.1;
+access   ;
+symbols  rc1:1.1.1.1 ic:1.1.1;
+locks    ; strict;
+comment  @# Master with an expand field that's data, not a token.@;
+expand   @b@;
+
+
+1.1
+date     2004.09.07.08.24.09;  author cisers;  state Exp;
+branches 1.1.1.1;
+next     ;
+
+1.1.1.1
+date     2004.09.07.08.24.09;  author cisers;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+
+1.1
+log
+@da28248b4ec75efbe0ba7461142ed60d
+@
+text
+@projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1
+@
+
+
+1.1.1.1
+log
+@03a6ecc1dbc74cfaacfeb8b1f09b8998
+@
+text
+@d1 1
+a1 1
+projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
+@
+`
+
+	got, err := ParseFile(strings.NewReader(rcsContent))
+	if err != nil {
+		t.Fatalf("ParseFile() error = %v", err)
+	}
+
+	if got.Head != "1.1" {
+		t.Errorf("Head = %q, want 1.1", got.Head)
+	}
+	if got.Branch != "1.1.1" {
+		t.Errorf("Branch = %q, want 1.1.1", got.Branch)
+	}
+	if len(got.Locks) != 0 {
+		t.Errorf("Locks count = %d, want 0", len(got.Locks))
+	}
+	if !got.Strict {
+		t.Errorf("Strict = %v, want true", got.Strict)
+	}
+	if got.StrictOnOwnLine {
+		t.Errorf("StrictOnOwnLine = %v, want false", got.StrictOnOwnLine)
+	}
+	if got.Comment != "# Master with an expand field that's data, not a token." {
+		t.Errorf("Comment = %q", got.Comment)
+	}
+	if got.Expand != "b" {
+		t.Errorf("Expand = %q, want b", got.Expand)
+	}
+	if got.Description != "" {
+		t.Errorf("Description = %q, want empty", got.Description)
+	}
+
+	if len(got.RevisionHeads) != 2 {
+		t.Errorf("RevisionHeads count = %d, want 2", len(got.RevisionHeads))
+	}
+
+	if len(got.RevisionContents) != 2 {
+		t.Errorf("RevisionContents count = %d, want 2", len(got.RevisionContents))
+	}
+
+	// Check specific revisions
+	for _, rc := range got.RevisionContents {
+		if rc.Revision == "1.1" {
+			expectedText := "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n"
+			if rc.Text != expectedText {
+				t.Errorf("Revision 1.1 text = %q, want %q", rc.Text, expectedText)
+			}
+		} else if rc.Revision == "1.1.1.1" {
+			expectedText := "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n"
+			if rc.Text != expectedText {
+				t.Errorf("Revision 1.1.1.1 text = %q, want %q", rc.Text, expectedText)
+			}
+		} else {
+			t.Errorf("Unexpected revision %s", rc.Revision)
+		}
+	}
+
+	// Check round trip
+	// Note: The original input has varying amounts of whitespace which might not be preserved exactly by String()
+	// But we can check if it parses back to the same structure.
+
+	output := got.String()
+	got2, err := ParseFile(strings.NewReader(output))
+	if err != nil {
+		t.Fatalf("ParseFile() round trip error = %v", err)
+	}
+
+	if diff := cmp.Diff(got, got2); diff != "" {
+		t.Errorf("Round trip diff: %s", diff)
+	}
+}
