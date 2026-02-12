@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"math"
 )
 
 type Scanner struct {
@@ -73,7 +72,7 @@ func NewScanner(r io.Reader, opts ...ScannerOpt) *Scanner {
 		sf: bufio.ScanLines,
 	}
 	scanner.Scanner.Split(scanner.scannerWrapper)
-	scanner.Buffer(nil, math.MaxInt/2)
+	scanner.Buffer(nil, 64*1024*1024)
 	for _, opt := range opts {
 		opt.ScannerOpt(scanner)
 	}
