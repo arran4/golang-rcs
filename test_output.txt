@@ -1,0 +1,451 @@
+=== RUN   TestParseFile_BigFile
+    big_test.go:59: Parsed 1000 revisions in 111.538799ms
+--- PASS: TestParseFile_BigFile (0.11s)
+=== RUN   TestParseDate
+=== RUN   TestParseDate/Time_only_(8:00_pm)
+=== RUN   TestParseDate/Time_with_LT_(8:00_pm_lt)
+=== RUN   TestParseDate/Date_and_Time_(4:00_AM,_Jan._12,_1990)
+=== RUN   TestParseDate/ISO_8601_UTC_(1990-01-12_04:00:00+00)
+=== RUN   TestParseDate/ISO_8601_Offset_(1990-01-11_20:00:00-08)
+=== RUN   TestParseDate/Traditional_RCS_(1990/01/12_04:00:00)
+=== RUN   TestParseDate/ctime_+_LT_(Thu_Jan_11_20:00:00_1990_LT)
+=== RUN   TestParseDate/GMT_(Fri_Jan_12_04:00:00_GMT_1990)
+=== RUN   TestParseDate/RFC_822_(Thu,_11_Jan_1990_20:00:00_-0800)
+=== RUN   TestParseDate/Day,_Time_(20,_10:30)
+=== RUN   TestParseDate/YEAR-DOY_(2018-110)
+=== RUN   TestParseDate/YEAR-wWEEK-DOW_(2018-w16-5)
+--- PASS: TestParseDate (0.00s)
+    --- PASS: TestParseDate/Time_only_(8:00_pm) (0.00s)
+    --- PASS: TestParseDate/Time_with_LT_(8:00_pm_lt) (0.00s)
+    --- PASS: TestParseDate/Date_and_Time_(4:00_AM,_Jan._12,_1990) (0.00s)
+    --- PASS: TestParseDate/ISO_8601_UTC_(1990-01-12_04:00:00+00) (0.00s)
+    --- PASS: TestParseDate/ISO_8601_Offset_(1990-01-11_20:00:00-08) (0.00s)
+    --- PASS: TestParseDate/Traditional_RCS_(1990/01/12_04:00:00) (0.00s)
+    --- PASS: TestParseDate/ctime_+_LT_(Thu_Jan_11_20:00:00_1990_LT) (0.00s)
+    --- PASS: TestParseDate/GMT_(Fri_Jan_12_04:00:00_GMT_1990) (0.00s)
+    --- PASS: TestParseDate/RFC_822_(Thu,_11_Jan_1990_20:00:00_-0800) (0.00s)
+    --- PASS: TestParseDate/Day,_Time_(20,_10:30) (0.00s)
+    --- PASS: TestParseDate/YEAR-DOY_(2018-110) (0.00s)
+    --- PASS: TestParseDate/YEAR-wWEEK-DOW_(2018-w16-5) (0.00s)
+=== RUN   TestParseFile_NewFeatures
+--- PASS: TestParseFile_NewFeatures (0.00s)
+=== RUN   TestParseRevisionHeaderDateLine_Compat
+=== RUN   TestParseRevisionHeaderDateLine_Compat/2-digit_year_(1997)
+=== RUN   TestParseRevisionHeaderDateLine_Compat/4-digit_year_(1997)
+=== RUN   TestParseRevisionHeaderDateLine_Compat/2-digit_year_(2020)_-_assuming_00-68_maps_to_2000-2068
+--- PASS: TestParseRevisionHeaderDateLine_Compat (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine_Compat/2-digit_year_(1997) (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine_Compat/4-digit_year_(1997) (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine_Compat/2-digit_year_(2020)_-_assuming_00-68_maps_to_2000-2068 (0.00s)
+=== RUN   TestFile_String
+--- PASS: TestFile_String (0.00s)
+=== RUN   TestParseAtQuotedString_Errors
+=== RUN   TestParseAtQuotedString_Errors/Missing_start_quote
+=== RUN   TestParseAtQuotedString_Errors/Missing_end_quote
+--- PASS: TestParseAtQuotedString_Errors (0.00s)
+    --- PASS: TestParseAtQuotedString_Errors/Missing_start_quote (0.00s)
+    --- PASS: TestParseAtQuotedString_Errors/Missing_end_quote (0.00s)
+=== RUN   TestParseLockLine_Errors
+=== RUN   TestParseLockLine_Errors/Missing_colon
+=== RUN   TestParseLockLine_Errors/Missing_revision
+=== RUN   TestParseLockLine_Errors/Missing_semicolon
+=== RUN   TestParseLockLine_Errors/Unknown_token_at_end
+--- PASS: TestParseLockLine_Errors (0.00s)
+    --- PASS: TestParseLockLine_Errors/Missing_colon (0.00s)
+    --- PASS: TestParseLockLine_Errors/Missing_revision (0.00s)
+    --- PASS: TestParseLockLine_Errors/Missing_semicolon (0.00s)
+    --- PASS: TestParseLockLine_Errors/Unknown_token_at_end (0.00s)
+=== RUN   TestParseRevisionHeaderDateLine_Errors
+=== RUN   TestParseRevisionHeaderDateLine_Errors/Invalid_date_format
+=== RUN   TestParseRevisionHeaderDateLine_Errors/Missing_author
+=== RUN   TestParseRevisionHeaderDateLine_Errors/Error_parsing_author
+=== RUN   TestParseRevisionHeaderDateLine_Errors/Error_parsing_state
+--- PASS: TestParseRevisionHeaderDateLine_Errors (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine_Errors/Invalid_date_format (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine_Errors/Missing_author (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine_Errors/Error_parsing_author (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine_Errors/Error_parsing_state (0.00s)
+=== RUN   TestParseRevisionHeader_Errors
+=== RUN   TestParseRevisionHeader_Errors/Unknown_field
+=== RUN   TestParseRevisionHeader_Errors/Bad_branches
+=== RUN   TestParseRevisionHeader_Errors/Bad_date
+=== RUN   TestParseRevisionHeader_Errors/Bad_next
+--- PASS: TestParseRevisionHeader_Errors (0.00s)
+    --- PASS: TestParseRevisionHeader_Errors/Unknown_field (0.00s)
+    --- PASS: TestParseRevisionHeader_Errors/Bad_branches (0.00s)
+    --- PASS: TestParseRevisionHeader_Errors/Bad_date (0.00s)
+    --- PASS: TestParseRevisionHeader_Errors/Bad_next (0.00s)
+=== RUN   TestParseRevisionContent_Errors
+=== RUN   TestParseRevisionContent_Errors/Empty_revision
+=== RUN   TestParseRevisionContent_Errors/Bad_log
+=== RUN   TestParseRevisionContent_Errors/Bad_text
+--- PASS: TestParseRevisionContent_Errors (0.00s)
+    --- PASS: TestParseRevisionContent_Errors/Empty_revision (0.00s)
+    --- PASS: TestParseRevisionContent_Errors/Bad_log (0.00s)
+    --- PASS: TestParseRevisionContent_Errors/Bad_text (0.00s)
+=== RUN   TestParseHeader_Errors
+=== RUN   TestParseHeader_Errors/Bad_head
+=== RUN   TestParseHeader_Errors/Unknown_token
+=== RUN   TestParseHeader_Errors/Access_error
+=== RUN   TestParseHeader_Errors/Symbols_error
+=== RUN   TestParseHeader_Errors/Locks_error
+=== RUN   TestParseHeader_Errors/Comment_error
+--- PASS: TestParseHeader_Errors (0.00s)
+    --- PASS: TestParseHeader_Errors/Bad_head (0.00s)
+    --- PASS: TestParseHeader_Errors/Unknown_token (0.00s)
+    --- PASS: TestParseHeader_Errors/Access_error (0.00s)
+    --- PASS: TestParseHeader_Errors/Symbols_error (0.00s)
+    --- PASS: TestParseHeader_Errors/Locks_error (0.00s)
+    --- PASS: TestParseHeader_Errors/Comment_error (0.00s)
+=== RUN   TestParseFile_Errors
+=== RUN   TestParseFile_Errors/Header_error
+=== RUN   TestParseFile_Errors/Revision_headers_error
+=== RUN   TestParseFile_Errors/Description_error
+=== RUN   TestParseFile_Errors/Revision_content_error
+--- PASS: TestParseFile_Errors (0.00s)
+    --- PASS: TestParseFile_Errors/Header_error (0.00s)
+    --- PASS: TestParseFile_Errors/Revision_headers_error (0.00s)
+    --- PASS: TestParseFile_Errors/Description_error (0.00s)
+    --- PASS: TestParseFile_Errors/Revision_content_error (0.00s)
+=== RUN   TestParseHeaderLocks_Errors
+=== RUN   TestParseHeaderLocks_Errors/Missing_locks_keyword
+=== RUN   TestParseHeaderLocks_Errors/Error_in_lock_line
+=== RUN   TestParseHeaderLocks_Errors/Unknown_token_inside_locks
+--- PASS: TestParseHeaderLocks_Errors (0.00s)
+    --- PASS: TestParseHeaderLocks_Errors/Missing_locks_keyword (0.00s)
+    --- PASS: TestParseHeaderLocks_Errors/Error_in_lock_line (0.00s)
+    --- PASS: TestParseHeaderLocks_Errors/Unknown_token_inside_locks (0.00s)
+=== RUN   TestSymbolOrderPreservation
+    parser_symbols_test.go:55: ParseFile failed: parsing 32:0: revision empty
+--- FAIL: TestSymbolOrderPreservation (0.00s)
+=== RUN   TestParseFile
+=== RUN   TestParseFile/Test_parse_of_testinput.go,v
+=== RUN   TestParseFile/Test_parse_of_testinput1.go,v_-_add_a_new_line_for_the_missing_one
+=== RUN   TestParseFile/Parse_file_with_access_and_symbols
+--- PASS: TestParseFile (0.00s)
+    --- PASS: TestParseFile/Test_parse_of_testinput.go,v (0.00s)
+    --- PASS: TestParseFile/Test_parse_of_testinput1.go,v_-_add_a_new_line_for_the_missing_one (0.00s)
+    --- PASS: TestParseFile/Parse_file_with_access_and_symbols (0.00s)
+=== RUN   TestParseHeaderHead
+=== RUN   TestParseHeaderHead/Test_header_of_testinput.go,v
+--- PASS: TestParseHeaderHead (0.00s)
+    --- PASS: TestParseHeaderHead/Test_header_of_testinput.go,v (0.00s)
+=== RUN   TestParseHeader
+=== RUN   TestParseHeader/Test_header_of_testinput.go,v
+--- PASS: TestParseHeader (0.00s)
+    --- PASS: TestParseHeader/Test_header_of_testinput.go,v (0.00s)
+=== RUN   TestScanNewLine
+=== RUN   TestScanNewLine/Scans_a_unix_new_Line
+=== RUN   TestScanNewLine/Scans_a_windows_new_Line
+=== RUN   TestScanNewLine/Fails_to_scan_nothing
+=== RUN   TestScanNewLine/Fails_to_scan_non_new_Line_data
+--- PASS: TestScanNewLine (0.00s)
+    --- PASS: TestScanNewLine/Scans_a_unix_new_Line (0.00s)
+    --- PASS: TestScanNewLine/Scans_a_windows_new_Line (0.00s)
+    --- PASS: TestScanNewLine/Fails_to_scan_nothing (0.00s)
+    --- PASS: TestScanNewLine/Fails_to_scan_non_new_Line_data (0.00s)
+=== RUN   TestScanStrings
+=== RUN   TestScanStrings/Scans_a_word_before_a_space
+--- PASS: TestScanStrings (0.00s)
+    --- PASS: TestScanStrings/Scans_a_word_before_a_space (0.00s)
+=== RUN   TestScanUntilNewLine
+=== RUN   TestScanUntilNewLine/Scans_a_word_before_a_space
+=== RUN   TestScanUntilNewLine/No_new_Line_no_result
+--- PASS: TestScanUntilNewLine (0.00s)
+    --- PASS: TestScanUntilNewLine/Scans_a_word_before_a_space (0.00s)
+    --- PASS: TestScanUntilNewLine/No_new_Line_no_result (0.00s)
+=== RUN   TestScanUntilStrings
+=== RUN   TestScanUntilStrings/Scans_until_a_word
+--- PASS: TestScanUntilStrings (0.00s)
+    --- PASS: TestScanUntilStrings/Scans_until_a_word (0.00s)
+=== RUN   TestScanWhiteSpace
+=== RUN   TestScanWhiteSpace/Scans_until_a_word
+=== RUN   TestScanWhiteSpace/Minimum_fails_it
+--- PASS: TestScanWhiteSpace (0.00s)
+    --- PASS: TestScanWhiteSpace/Scans_until_a_word (0.00s)
+    --- PASS: TestScanWhiteSpace/Minimum_fails_it (0.00s)
+=== RUN   TestIsNotFound
+=== RUN   TestIsNotFound/random_error_isn't
+=== RUN   TestIsNotFound/ScanNotFound_error_is
+=== RUN   TestIsNotFound/Nested_ScanNotFound_error_is
+=== RUN   TestIsNotFound/ScanUntilNotFound_error_is
+=== RUN   TestIsNotFound/Nested_ScanUntilNotFound_error_is
+--- PASS: TestIsNotFound (0.00s)
+    --- PASS: TestIsNotFound/random_error_isn't (0.00s)
+    --- PASS: TestIsNotFound/ScanNotFound_error_is (0.00s)
+    --- PASS: TestIsNotFound/Nested_ScanNotFound_error_is (0.00s)
+    --- PASS: TestIsNotFound/ScanUntilNotFound_error_is (0.00s)
+    --- PASS: TestIsNotFound/Nested_ScanUntilNotFound_error_is (0.00s)
+=== RUN   TestParseAtQuotedString
+=== RUN   TestParseAtQuotedString/Base_@_String
+=== RUN   TestParseAtQuotedString/Double_@@_For_literal
+=== RUN   TestParseAtQuotedString/New_lines_are_fine
+--- PASS: TestParseAtQuotedString (0.00s)
+    --- PASS: TestParseAtQuotedString/Base_@_String (0.00s)
+    --- PASS: TestParseAtQuotedString/Double_@@_For_literal (0.00s)
+    --- PASS: TestParseAtQuotedString/New_lines_are_fine (0.00s)
+=== RUN   TestParseDescription
+=== RUN   TestParseDescription/Simple_description
+--- PASS: TestParseDescription (0.00s)
+    --- PASS: TestParseDescription/Simple_description (0.00s)
+=== RUN   TestParseHeaderComment
+=== RUN   TestParseHeaderComment/Simple_comment_line_need_prop_name
+=== RUN   TestParseHeaderComment/Simple_comment_line_already_have_prop_line
+=== RUN   TestParseHeaderComment/Simple_comment_line_need_prop_name#01
+=== RUN   TestParseHeaderComment/Simple_comment_line_already_have_prop_line#01
+--- PASS: TestParseHeaderComment (0.00s)
+    --- PASS: TestParseHeaderComment/Simple_comment_line_need_prop_name (0.00s)
+    --- PASS: TestParseHeaderComment/Simple_comment_line_already_have_prop_line (0.00s)
+    --- PASS: TestParseHeaderComment/Simple_comment_line_need_prop_name#01 (0.00s)
+    --- PASS: TestParseHeaderComment/Simple_comment_line_already_have_prop_line#01 (0.00s)
+=== RUN   TestParseHeaderLocks
+=== RUN   TestParseHeaderLocks/Single_lock
+--- PASS: TestParseHeaderLocks (0.00s)
+    --- PASS: TestParseHeaderLocks/Single_lock (0.00s)
+=== RUN   TestParseLockLine
+=== RUN   TestParseLockLine/Just_a_lock
+--- PASS: TestParseLockLine (0.00s)
+    --- PASS: TestParseLockLine/Just_a_lock (0.00s)
+=== RUN   TestParseMultiLineText
+=== RUN   TestParseMultiLineText/Desc_again_-_doesn't_have_prop
+=== RUN   TestParseMultiLineText/Desc_again_-_has_prop
+--- PASS: TestParseMultiLineText (0.00s)
+    --- PASS: TestParseMultiLineText/Desc_again_-_doesn't_have_prop (0.00s)
+    --- PASS: TestParseMultiLineText/Desc_again_-_has_prop (0.00s)
+=== RUN   TestParseProperty
+=== RUN   TestParseProperty/A_property_without_a_line_we_know/have_the_prop_already
+=== RUN   TestParseProperty/A_property_with_a_line_we_know/have_the_prop_already
+=== RUN   TestParseProperty/A_property_without_a_line_we_know/have_the_prop_already_but_we_want_a_line
+--- PASS: TestParseProperty (0.00s)
+    --- PASS: TestParseProperty/A_property_without_a_line_we_know/have_the_prop_already (0.00s)
+    --- PASS: TestParseProperty/A_property_with_a_line_we_know/have_the_prop_already (0.00s)
+    --- PASS: TestParseProperty/A_property_without_a_line_we_know/have_the_prop_already_but_we_want_a_line (0.00s)
+=== RUN   TestParseRevisionContent
+=== RUN   TestParseRevisionContent/1.1_first_and_last_parse
+=== RUN   TestParseRevisionContent/1.2_first_but_not_last_parse
+--- PASS: TestParseRevisionContent (0.00s)
+    --- PASS: TestParseRevisionContent/1.1_first_and_last_parse (0.00s)
+    --- PASS: TestParseRevisionContent/1.2_first_but_not_last_parse (0.00s)
+=== RUN   TestParseRevisionContents
+=== RUN   TestParseRevisionContents/1.2_first_but_not_last_parse
+--- PASS: TestParseRevisionContents (0.00s)
+    --- PASS: TestParseRevisionContents/1.2_first_but_not_last_parse (0.00s)
+=== RUN   TestParseRevisionHeader
+=== RUN   TestParseRevisionHeader/Revision_string_6
+--- PASS: TestParseRevisionHeader (0.00s)
+    --- PASS: TestParseRevisionHeader/Revision_string_6 (0.00s)
+=== RUN   TestParseRevisionHeaderBranches
+=== RUN   TestParseRevisionHeaderBranches/Basic_branches_parse
+=== RUN   TestParseRevisionHeaderBranches/Basic_branches_parse_-_known
+=== RUN   TestParseRevisionHeaderBranches/Branches_with_numbers
+--- PASS: TestParseRevisionHeaderBranches (0.00s)
+    --- PASS: TestParseRevisionHeaderBranches/Basic_branches_parse (0.00s)
+    --- PASS: TestParseRevisionHeaderBranches/Basic_branches_parse_-_known (0.00s)
+    --- PASS: TestParseRevisionHeaderBranches/Branches_with_numbers (0.00s)
+=== RUN   TestParseRevisionHeaderDateLine
+=== RUN   TestParseRevisionHeaderDateLine/Date_Line
+=== RUN   TestParseRevisionHeaderDateLine/Date_Line_with_a_head
+--- PASS: TestParseRevisionHeaderDateLine (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine/Date_Line (0.00s)
+    --- PASS: TestParseRevisionHeaderDateLine/Date_Line_with_a_head (0.00s)
+=== RUN   TestParseRevisionHeaderNext
+=== RUN   TestParseRevisionHeaderNext/Get_Next_with_a_head
+--- PASS: TestParseRevisionHeaderNext (0.00s)
+    --- PASS: TestParseRevisionHeaderNext/Get_Next_with_a_head (0.00s)
+=== RUN   TestParseRevisionHeaders
+=== RUN   TestParseRevisionHeaders/General_parse
+--- PASS: TestParseRevisionHeaders (0.00s)
+    --- PASS: TestParseRevisionHeaders/General_parse (0.00s)
+=== RUN   TestParseTerminatorFieldLine
+=== RUN   TestParseTerminatorFieldLine/Happy_path_-_unix
+--- PASS: TestParseTerminatorFieldLine (0.00s)
+    --- PASS: TestParseTerminatorFieldLine/Happy_path_-_unix (0.00s)
+=== RUN   TestScanFieldTerminator
+=== RUN   TestScanFieldTerminator/Happy_path
+--- PASS: TestScanFieldTerminator (0.00s)
+    --- PASS: TestScanFieldTerminator/Happy_path (0.00s)
+=== RUN   TestScanRunesUntil
+=== RUN   TestScanRunesUntil/Happy_path
+--- PASS: TestScanRunesUntil (0.00s)
+    --- PASS: TestScanRunesUntil/Happy_path (0.00s)
+=== RUN   TestScanUntilFieldTerminator
+=== RUN   TestScanUntilFieldTerminator/Happy_path
+--- PASS: TestScanUntilFieldTerminator (0.00s)
+    --- PASS: TestScanUntilFieldTerminator/Happy_path (0.00s)
+=== RUN   TestRevisionHeadStringBranches
+--- PASS: TestRevisionHeadStringBranches (0.00s)
+=== RUN   TestScanLockIdOrStrings
+=== RUN   TestScanLockIdOrStrings/Match_keyword
+=== RUN   TestScanLockIdOrStrings/Match_lock_ID
+=== RUN   TestScanLockIdOrStrings/Match_nothing
+=== RUN   TestScanLockIdOrStrings/Empty_input
+--- PASS: TestScanLockIdOrStrings (0.00s)
+    --- PASS: TestScanLockIdOrStrings/Match_keyword (0.00s)
+    --- PASS: TestScanLockIdOrStrings/Match_lock_ID (0.00s)
+    --- PASS: TestScanLockIdOrStrings/Match_nothing (0.00s)
+    --- PASS: TestScanLockIdOrStrings/Empty_input (0.00s)
+=== RUN   TestParseLockBody
+=== RUN   TestParseLockBody/Simple_lock_body
+=== RUN   TestParseLockBody/Strict_lock_body_-_strict_is_ignored_here_now
+=== RUN   TestParseLockBody/Empty_revision
+--- PASS: TestParseLockBody (0.00s)
+    --- PASS: TestParseLockBody/Simple_lock_body (0.00s)
+    --- PASS: TestParseLockBody/Strict_lock_body_-_strict_is_ignored_here_now (0.00s)
+    --- PASS: TestParseLockBody/Empty_revision (0.00s)
+=== RUN   TestParseTxtarFiles
+=== RUN   TestParseTxtarFiles/commitid.txtar
+=== RUN   TestParseTxtarFiles/inline_locks.txtar
+=== RUN   TestParseTxtarFiles/string_strict_no_locks.txtar
+=== RUN   TestParseTxtarFiles/user_provided.txtar
+=== RUN   TestParseTxtarFiles/user_provided_strict_newline.txtar
+=== RUN   TestParseTxtarFiles/workflow_1.1_locked.txtar
+=== RUN   TestParseTxtarFiles/workflow_1.1_strict.txtar
+=== RUN   TestParseTxtarFiles/workflow_1.2_not_strict.txtar
+=== RUN   TestParseTxtarFiles/workflow_1.2_strict.txtar
+--- PASS: TestParseTxtarFiles (0.00s)
+    --- PASS: TestParseTxtarFiles/commitid.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/inline_locks.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/string_strict_no_locks.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/user_provided.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/user_provided_strict_newline.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/workflow_1.1_locked.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/workflow_1.1_strict.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/workflow_1.2_not_strict.txtar (0.00s)
+    --- PASS: TestParseTxtarFiles/workflow_1.2_strict.txtar (0.00s)
+=== RUN   TestParseLocalFiles
+--- PASS: TestParseLocalFiles (0.00s)
+=== RUN   TestScanner_LastScan
+--- PASS: TestScanner_LastScan (0.00s)
+=== RUN   TestMaxBuffer_ScannerOpt
+--- PASS: TestMaxBuffer_ScannerOpt (0.00s)
+=== RUN   Test_scanFound
+=== RUN   Test_scanFound/Advance_characters_no_new_Line
+=== RUN   Test_scanFound/New_Line_at_end_zeros_advance_and_increments_new_line
+=== RUN   Test_scanFound/Trailing_content_after_new_line_increments_advance_correctly
+=== RUN   Test_scanFound/Multiple_new_lines_don't_break_anything
+--- PASS: Test_scanFound (0.00s)
+    --- PASS: Test_scanFound/Advance_characters_no_new_Line (0.00s)
+    --- PASS: Test_scanFound/New_Line_at_end_zeros_advance_and_increments_new_line (0.00s)
+    --- PASS: Test_scanFound/Trailing_content_after_new_line_increments_advance_correctly (0.00s)
+    --- PASS: Test_scanFound/Multiple_new_lines_don't_break_anything (0.00s)
+=== RUN   TestPos_String
+=== RUN   TestPos_String/test
+--- PASS: TestPos_String (0.00s)
+    --- PASS: TestPos_String/test (0.00s)
+=== RUN   TestNewScanner
+=== RUN   TestNewScanner/Set_the_pos_correctly
+--- PASS: TestNewScanner (0.00s)
+    --- PASS: TestNewScanner/Set_the_pos_correctly (0.00s)
+=== RUN   TestStringTxtarFiles
+=== RUN   TestStringTxtarFiles/commitid.txtar
+=== RUN   TestStringTxtarFiles/inline_locks.txtar
+=== RUN   TestStringTxtarFiles/string_strict_no_locks.txtar
+=== RUN   TestStringTxtarFiles/user_provided.txtar
+=== RUN   TestStringTxtarFiles/user_provided_strict_newline.txtar
+=== RUN   TestStringTxtarFiles/workflow_1.1_locked.txtar
+=== RUN   TestStringTxtarFiles/workflow_1.1_strict.txtar
+=== RUN   TestStringTxtarFiles/workflow_1.2_not_strict.txtar
+=== RUN   TestStringTxtarFiles/workflow_1.2_strict.txtar
+--- PASS: TestStringTxtarFiles (0.00s)
+    --- PASS: TestStringTxtarFiles/commitid.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/inline_locks.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/string_strict_no_locks.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/user_provided.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/user_provided_strict_newline.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/workflow_1.1_locked.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/workflow_1.1_strict.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/workflow_1.2_not_strict.txtar (0.00s)
+    --- PASS: TestStringTxtarFiles/workflow_1.2_strict.txtar (0.00s)
+=== RUN   TestScanTokenNum
+=== RUN   TestScanTokenNum/Simple_number
+=== RUN   TestScanTokenNum/Decimal
+=== RUN   TestScanTokenNum/Multiple_dots
+=== RUN   TestScanTokenNum/Ends_with_dot
+=== RUN   TestScanTokenNum/Starts_with_dot
+=== RUN   TestScanTokenNum/Only_dots
+=== RUN   TestScanTokenNum/Stops_at_letter
+=== RUN   TestScanTokenNum/Stops_at_space
+=== RUN   TestScanTokenNum/Stops_at_special
+=== RUN   TestScanTokenNum/Empty
+=== RUN   TestScanTokenNum/Non-digit
+--- PASS: TestScanTokenNum (0.00s)
+    --- PASS: TestScanTokenNum/Simple_number (0.00s)
+    --- PASS: TestScanTokenNum/Decimal (0.00s)
+    --- PASS: TestScanTokenNum/Multiple_dots (0.00s)
+    --- PASS: TestScanTokenNum/Ends_with_dot (0.00s)
+    --- PASS: TestScanTokenNum/Starts_with_dot (0.00s)
+    --- PASS: TestScanTokenNum/Only_dots (0.00s)
+    --- PASS: TestScanTokenNum/Stops_at_letter (0.00s)
+    --- PASS: TestScanTokenNum/Stops_at_space (0.00s)
+    --- PASS: TestScanTokenNum/Stops_at_special (0.00s)
+    --- PASS: TestScanTokenNum/Empty (0.00s)
+    --- PASS: TestScanTokenNum/Non-digit (0.00s)
+=== RUN   TestScanTokenId
+=== RUN   TestScanTokenId/Simple_ID
+=== RUN   TestScanTokenId/With_digits
+=== RUN   TestScanTokenId/With_dot
+=== RUN   TestScanTokenId/With_dash
+=== RUN   TestScanTokenId/With_underscore
+=== RUN   TestScanTokenId/Stops_at_space
+=== RUN   TestScanTokenId/Stops_at_colon
+=== RUN   TestScanTokenId/Stops_at_comma
+=== RUN   TestScanTokenId/Stops_at_@
+=== RUN   TestScanTokenId/Empty
+=== RUN   TestScanTokenId/Invalid_char_start
+--- PASS: TestScanTokenId (0.00s)
+    --- PASS: TestScanTokenId/Simple_ID (0.00s)
+    --- PASS: TestScanTokenId/With_digits (0.00s)
+    --- PASS: TestScanTokenId/With_dot (0.00s)
+    --- PASS: TestScanTokenId/With_dash (0.00s)
+    --- PASS: TestScanTokenId/With_underscore (0.00s)
+    --- PASS: TestScanTokenId/Stops_at_space (0.00s)
+    --- PASS: TestScanTokenId/Stops_at_colon (0.00s)
+    --- PASS: TestScanTokenId/Stops_at_comma (0.00s)
+    --- PASS: TestScanTokenId/Stops_at_@ (0.00s)
+    --- PASS: TestScanTokenId/Empty (0.00s)
+    --- PASS: TestScanTokenId/Invalid_char_start (0.00s)
+=== RUN   TestScanTokenSym
+=== RUN   TestScanTokenSym/Simple_Sym
+=== RUN   TestScanTokenSym/With_digits
+=== RUN   TestScanTokenSym/With_dash
+=== RUN   TestScanTokenSym/Stops_at_dot
+=== RUN   TestScanTokenSym/Stops_at_space
+=== RUN   TestScanTokenSym/Stops_at_colon
+=== RUN   TestScanTokenSym/Empty
+=== RUN   TestScanTokenSym/Invalid_char_start
+--- PASS: TestScanTokenSym (0.00s)
+    --- PASS: TestScanTokenSym/Simple_Sym (0.00s)
+    --- PASS: TestScanTokenSym/With_digits (0.00s)
+    --- PASS: TestScanTokenSym/With_dash (0.00s)
+    --- PASS: TestScanTokenSym/Stops_at_dot (0.00s)
+    --- PASS: TestScanTokenSym/Stops_at_space (0.00s)
+    --- PASS: TestScanTokenSym/Stops_at_colon (0.00s)
+    --- PASS: TestScanTokenSym/Empty (0.00s)
+    --- PASS: TestScanTokenSym/Invalid_char_start (0.00s)
+=== RUN   TestScanTokenString
+=== RUN   TestScanTokenString/Simple_string
+=== RUN   TestScanTokenString/Doubled_@
+=== RUN   TestScanTokenString/Empty_content
+=== RUN   TestScanTokenString/Multiline
+=== RUN   TestScanTokenString/Missing_end_quote
+=== RUN   TestScanTokenString/Missing_start_quote
+--- PASS: TestScanTokenString (0.00s)
+    --- PASS: TestScanTokenString/Simple_string (0.00s)
+    --- PASS: TestScanTokenString/Doubled_@ (0.00s)
+    --- PASS: TestScanTokenString/Empty_content (0.00s)
+    --- PASS: TestScanTokenString/Multiline (0.00s)
+    --- PASS: TestScanTokenString/Missing_end_quote (0.00s)
+    --- PASS: TestScanTokenString/Missing_start_quote (0.00s)
+=== RUN   TestScanTokenIntString
+=== RUN   TestScanTokenIntString/Simple_intstring
+=== RUN   TestScanTokenIntString/Stops_at_first_@
+=== RUN   TestScanTokenIntString/Empty_content
+=== RUN   TestScanTokenIntString/Missing_end_quote
+--- PASS: TestScanTokenIntString (0.00s)
+    --- PASS: TestScanTokenIntString/Simple_intstring (0.00s)
+    --- PASS: TestScanTokenIntString/Stops_at_first_@ (0.00s)
+    --- PASS: TestScanTokenIntString/Empty_content (0.00s)
+    --- PASS: TestScanTokenIntString/Missing_end_quote (0.00s)
+FAIL
+FAIL	github.com/arran4/golang-rcs	0.132s
+FAIL
