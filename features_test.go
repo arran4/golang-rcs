@@ -64,7 +64,7 @@ text
 	if !strings.Contains(sRep, "strict;") {
 		t.Errorf("String() missing strict: %s", sRep)
 	}
-	if !strings.Contains(sRep, "expand\tkv;") {
+	if !strings.Contains(sRep, "expand\t@kv@;") {
 		t.Errorf("String() missing expand: %s", sRep)
 	}
 }

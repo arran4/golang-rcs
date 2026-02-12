@@ -18,7 +18,9 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { _ = os.Remove(f.Name()) }()
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
 	if _, err := f.Write(truncatedDateTestFile); err != nil {
 		t.Fatal(err)
 	}
