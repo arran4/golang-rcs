@@ -1,4 +1,4 @@
--- input.rcs --
+-- input,v --
 head    1.1;
 access;
 symbols;
