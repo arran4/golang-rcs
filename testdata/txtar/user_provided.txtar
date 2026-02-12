@@ -57,13 +57,12 @@ asdf
   "Description": "asdkjfa\nsadfsaa\nmessage!\n",
   "Comment": "# ",
   "Access": true,
-  "Symbols": true,
+  "Symbols": [],
   "AccessUsers": [
     "user1",
     "user2",
     "user3"
   ],
-  "SymbolMap": null,
   "Locks": [
     {
       "User": "arran",

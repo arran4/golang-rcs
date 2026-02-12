@@ -41,7 +41,7 @@ func TestParseAccessSymbols(t *testing.T) {
 		t.Errorf("AccessUsers: %s", diff)
 	}
 	expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
-	if diff := cmp.Diff(expectedMap, f.SymbolMap); diff != "" {
+	if diff := cmp.Diff(expectedMap, f.SymbolMap()); diff != "" {
 		t.Errorf("SymbolMap: %s", diff)
 	}
 	if diff := cmp.Diff(f.Description, "Sample\n"); diff != "" {
@@ -158,36 +158,6 @@ func TestParseFile(t *testing.T) {
 					t.Errorf("ParseFile() error = %v, want to contain %v", err, s)
 				}
 			}
-		}
-	}
-
-	checkTestInput := func(t *testing.T, got *File) {
-		if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
-			t.Errorf("Description: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-			t.Errorf("Locks: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
-			t.Errorf("RevisionHeads: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
-			t.Errorf("RevisionContents: %s", diff)
-		}
-	}
-
-	checkAccessSymbols := func(t *testing.T, got *File) {
-		if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
-			t.Errorf("Description: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-			t.Errorf("Locks: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionHeads), 1); diff != "" {
-			t.Errorf("RevisionHeads: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionContents), 1); diff != "" {
-			t.Errorf("RevisionContents: %s", diff)
 		}
 	}
 
@@ -359,7 +329,7 @@ func TestParseHeader(t *testing.T) {
 				Head:    "1.6",
 				Comment: "# ",
 				Access:  true,
-				Symbols: true,
+				Symbols: []*Symbol{},
 				Locks: []*Lock{
 					{
 						User:     "arran",

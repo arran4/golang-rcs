@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -21,6 +20,11 @@ type Lock struct {
 
 func (l *Lock) String() string {
 	return fmt.Sprintf("%s:%s;", l.User, l.Revision)
+}
+
+type Symbol struct {
+	Name     string
+	Revision string
 }
 
 type RevisionHead struct {
@@ -101,9 +105,8 @@ type File struct {
 	Description             string
 	Comment                 string
 	Access                  bool
-	Symbols                 bool
+	Symbols                 []*Symbol
 	AccessUsers             []string
-	SymbolMap               map[string]string
 	Locks                   []*Lock
 	Strict                  bool
 	StrictOnOwnLine         bool `json:",omitempty"`
@@ -112,6 +115,35 @@ type File struct {
 	Expand                  string
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
+}
+
+func NewFile() *File {
+	return &File{
+		Symbols: make([]*Symbol, 0),
+		Locks:   make([]*Lock, 0),
+	}
+}
+
+func (f *File) SymbolMap() map[string]string {
+	if f.Symbols == nil {
+		return nil
+	}
+	m := make(map[string]string)
+	for _, s := range f.Symbols {
+		m[s.Name] = s.Revision
+	}
+	return m
+}
+
+func (f *File) LocksMap() map[string]string {
+	if f.Locks == nil {
+		return nil
+	}
+	m := make(map[string]string)
+	for _, l := range f.Locks {
+		m[l.User] = l.Revision
+	}
+	return m
 }
 
 func (f *File) String() string {
@@ -129,35 +161,28 @@ func (f *File) String() string {
 			sb.WriteString("access;\n")
 		}
 	}
-	if f.Symbols {
-		if len(f.SymbolMap) > 0 {
-			sb.WriteString("symbols")
-			keys := make([]string, 0, len(f.SymbolMap))
-			for k := range f.SymbolMap {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				sb.WriteString("\n\t")
-				sb.WriteString(fmt.Sprintf("%s:%s", k, f.SymbolMap[k]))
-			}
-			sb.WriteString(";\n")
-		} else {
-			sb.WriteString("symbols;\n")
+	if f.Symbols != nil {
+		sb.WriteString("symbols")
+		for _, sym := range f.Symbols {
+			sb.WriteString("\n\t")
+			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
 		}
+		sb.WriteString(";\n")
 	}
-	sb.WriteString("locks")
-	if len(f.Locks) == 0 {
+
+	if f.Locks != nil {
+		sb.WriteString("locks")
+		for _, lock := range f.Locks {
+			sb.WriteString("\n\t")
+			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
+		}
 		sb.WriteString(";")
+		if f.Strict && !f.StrictOnOwnLine {
+			sb.WriteString(" strict;")
+		}
+		sb.WriteString("\n")
 	}
-	for _, lock := range f.Locks {
-		sb.WriteString("\n\t")
-		sb.WriteString(lock.String())
-	}
-	if f.Strict && !f.StrictOnOwnLine {
-		sb.WriteString(" strict;")
-	}
-	sb.WriteString("\n")
+
 	if f.Strict && f.StrictOnOwnLine {
 		sb.WriteString("strict;\n")
 	}
@@ -319,13 +344,10 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.AccessUsers = users
 			}
 		case "symbols":
-			f.Symbols = true
-			if err := ParseTerminatorFieldLine(s); err != nil {
-				sym, err := ParseHeaderSymbols(s, true)
-				if err != nil {
-					return fmt.Errorf("token %#v: %w", nt, err)
-				}
-				f.SymbolMap = sym
+			if sym, err := ParseHeaderSymbols(s, true); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				f.Symbols = sym
 			}
 		case "locks":
 			var err error
@@ -627,13 +649,13 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	return ids, nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "symbols"); err != nil {
 			return nil, err
 		}
 	}
-	m := map[string]string{}
+	m := make([]*Symbol, 0)
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, err
@@ -655,7 +677,7 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 		if err != nil {
 			return nil, fmt.Errorf("expected num for sym %q: %w", sym, err)
 		}
-		m[sym] = num
+		m = append(m, &Symbol{Name: sym, Revision: num})
 	}
 	return m, nil
 }
@@ -695,7 +717,7 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, string,
 			return nil, false, "", err
 		}
 	}
-	var locks []*Lock
+	locks := make([]*Lock, 0)
 	var strict bool
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {

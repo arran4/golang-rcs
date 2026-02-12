@@ -21,9 +21,8 @@ desc
   "Description": "",
   "Comment": "# Reduced version of an old repo with an empty branch label.",
   "Access": false,
-  "Symbols": false,
+  "Symbols": null,
   "AccessUsers": null,
-  "SymbolMap": null,
   "Locks": [
     {
       "User": "payne",
