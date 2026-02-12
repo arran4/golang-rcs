@@ -76,16 +76,16 @@ func (h *RevisionHead) String() string {
 }
 
 type RevisionContent struct {
-	Revision                          string
-	Log                               string
-	Text                              string
-	DescriptionSeparatorNewLineOffset int `json:",omitempty"`
+	Revision                 string
+	Log                      string
+	Text                     string
+	PrecedingNewLinesOffset  int `json:",omitempty"`
 }
 
 func (c *RevisionContent) String() string {
 	sb := strings.Builder{}
-	if 2+c.DescriptionSeparatorNewLineOffset > 0 {
-		sb.WriteString(strings.Repeat("\n", 2+c.DescriptionSeparatorNewLineOffset))
+	if 2+c.PrecedingNewLinesOffset > 0 {
+		sb.WriteString(strings.Repeat("\n", 2+c.PrecedingNewLinesOffset))
 	}
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
@@ -239,7 +239,6 @@ func ParseDescription(s *Scanner, havePropertyName bool) (string, error) {
 			return "", fmt.Errorf("description tag: %s", err)
 		}
 	}
-	// ScanStrings(s, "\n\n", "\r\n\r\n") check removed to support files with less spacing
 	return d, nil
 }
 
@@ -491,7 +490,7 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 			return nil, err
 		}
 		if rc != nil {
-			rc.DescriptionSeparatorNewLineOffset += initialOffset
+			rc.PrecedingNewLinesOffset += initialOffset
 			rcs = append(rcs, rc)
 		}
 		if !next {
@@ -517,7 +516,7 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		}
 		if rev != "" {
 			rh.Revision = rev
-			rh.DescriptionSeparatorNewLineOffset = precedingNewLines - 2
+			rh.PrecedingNewLinesOffset = precedingNewLines - 2
 			break
 		}
 		precedingNewLines++
