@@ -29,6 +29,12 @@ var (
 	expandIntegrityUnquotedv []byte
 	//go:embed "testdata/access_symbols.go,v"
 	accessSymbolsv []byte
+	//go:embed "testdata/nil_fields.go,v"
+	nilFieldsv []byte
+	//go:embed "testdata/empty_fields.go,v"
+	emptyFieldsv []byte
+	//go:embed "testdata/new_file.go,v"
+	newFilev []byte
 )
 
 func TestParseAccessSymbols(t *testing.T) {
@@ -142,6 +148,7 @@ text
 }
 
 func TestParseFile(t *testing.T) {
+	// Updated for slice refactor
 	noError := func(t *testing.T, err error) {
 		if err != nil {
 			t.Errorf("ParseFile() error = %v, wantErr nil", err)
@@ -297,6 +304,97 @@ func TestParseFile(t *testing.T) {
 				t.Errorf("String(): %s", diff)
 			}
 		})
+	}
+}
+
+func TestNewFile(t *testing.T) {
+	f := NewFile()
+	if f.Symbols == nil {
+		t.Error("NewFile().Symbols should not be nil")
+	}
+	if len(f.Symbols) != 0 {
+		t.Error("NewFile().Symbols should be empty")
+	}
+	if f.Locks == nil {
+		t.Error("NewFile().Locks should not be nil")
+	}
+	if len(f.Locks) != 0 {
+		t.Error("NewFile().Locks should be empty")
+	}
+}
+
+func TestParseFile_NilFields(t *testing.T) {
+	f, err := ParseFile(bytes.NewReader(nilFieldsv))
+	if err != nil {
+		t.Fatalf("ParseFile error: %v", err)
+	}
+	if f.Symbols != nil {
+		t.Error("ParseFile should produce nil Symbols if missing")
+	}
+	if f.Locks != nil {
+		t.Error("ParseFile should produce nil Locks if missing")
+	}
+
+	s := f.String()
+	if strings.Contains(s, "symbols") {
+		t.Error("String() should not output symbols if nil")
+	}
+	if strings.Contains(s, "locks") {
+		t.Error("String() should not output locks if nil")
+	}
+}
+
+func TestParseFile_EmptyFields(t *testing.T) {
+	f, err := ParseFile(bytes.NewReader(emptyFieldsv))
+	if err != nil {
+		t.Fatalf("ParseFile error: %v", err)
+	}
+	if f.Symbols == nil {
+		t.Error("ParseFile should produce non-nil Symbols if 'symbols;' present")
+	}
+	if len(f.Symbols) != 0 {
+		t.Errorf("Symbols should be empty, got %d", len(f.Symbols))
+	}
+	if f.Locks == nil {
+		t.Error("ParseFile should produce non-nil Locks if 'locks;' present")
+	}
+	if len(f.Locks) != 0 {
+		t.Errorf("Locks should be empty, got %d", len(f.Locks))
+	}
+
+	s := f.String()
+	if !strings.Contains(s, "symbols;\n") {
+		t.Error("String() should output 'symbols;' if empty")
+	}
+	if !strings.Contains(s, "locks;") {
+		t.Error("String() should output 'locks;' if empty")
+	}
+}
+
+func TestFile_String_Output(t *testing.T) {
+	f := NewFile()
+	f.Head = "1.1"
+	f.Comment = "c"
+	f.Description = "d"
+	// Symbols and Locks are empty non-nil
+
+	s := f.String()
+	if !strings.Contains(s, "symbols;\n") {
+		t.Error("String() should output 'symbols;' for empty NewFile")
+	}
+	if !strings.Contains(s, "locks;") {
+		t.Error("String() should output 'locks;' for empty NewFile")
+	}
+
+	// Verify against embedded test data (ignoring trailing whitespace differences if needed, or exact match)
+	// We'll normalize both by trimming space to be safe, or just check exact match.
+	// Since we crafted new_file.go,v carefully, let's try exact match (or contains).
+	// new_file.go,v might have a trailing newline.
+	if diff := cmp.Diff(s, string(newFilev)); diff != "" {
+		// Try trimming trailing newline if that's the only difference
+		if diff := cmp.Diff(strings.TrimSpace(s), strings.TrimSpace(string(newFilev))); diff != "" {
+			t.Errorf("String() mismatch with new_file.go,v:\n%s", diff)
+		}
 	}
 }
 
