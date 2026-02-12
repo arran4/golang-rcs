@@ -1412,10 +1412,9 @@ text
 	}
 
 	// Check serialization
-	output := f.String()
 	// We expect the output to also have "99.01.01..." if we support preserving it.
 	// Currently it will likely output "1999.01.01..."
-	if !strings.Contains(output, "date\t99.01.01.00.00.00;") {
-		t.Errorf("Output should contain truncated date '99.01.01.00.00.00;', got:\n%s", output)
+	if got, want := f.RevisionHeads[0].String(), "1.1\ndate\t99.01.01.00.00.00;\tauthor user;\tstate Exp;\nbranches;\nnext\t;\n"; got != want {
+		t.Errorf("Output for revision head should contain truncated date '99.01.01.00.00.00;', got:\n%s\nwant:\n%s", got, want)
 	}
 }
