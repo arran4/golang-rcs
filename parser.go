@@ -347,13 +347,13 @@ func ParseHeader(s *Scanner, f *File) error {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "integrity":
-			if integrity, err := ParseHeaderComment(s, true); err != nil {
+			if integrity, err := ParseStringProperty(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Integrity = integrity
 			}
 		case "comment":
-			if comment, err := ParseHeaderComment(s, true); err != nil {
+			if comment, err := ParseStringProperty(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Comment = comment
@@ -462,7 +462,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				rh.Permissions = p
 			}
 		case "hardlinks":
-			if h, err := ParseHeaderComment(s, true); err != nil {
+			if h, err := ParseStringProperty(s, true); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Hardlinks = h
@@ -577,7 +577,7 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 	return nil
 }
 
-func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
+func ParseStringProperty(s *Scanner, havePropertyName bool) (string, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "comment"); err != nil {
 			return "", err

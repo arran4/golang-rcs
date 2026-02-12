@@ -639,7 +639,7 @@ func TestParseDescription(t *testing.T) {
 	}
 }
 
-func TestParseHeaderComment(t *testing.T) {
+func TestParseStringProperty(t *testing.T) {
 	type args struct {
 		s                *Scanner
 		havePropertyName bool
@@ -689,16 +689,16 @@ func TestParseHeaderComment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderComment(tt.args.s, tt.args.havePropertyName)
+			got, err := ParseStringProperty(tt.args.s, tt.args.havePropertyName)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseHeaderComment() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseStringProperty() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("ParseHeaderComment() got = %v, want %v", got, tt.want)
+				t.Errorf("ParseStringProperty() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
