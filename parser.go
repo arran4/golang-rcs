@@ -70,7 +70,9 @@ func (h *RevisionHead) String() string {
 		sb.WriteString(fmt.Sprintf("permissions\t%s;\n", h.Permissions))
 	}
 	if h.Hardlinks != "" {
-		sb.WriteString(fmt.Sprintf("hardlinks\t%s;\n", AtQuote(h.Hardlinks)))
+		sb.WriteString("hardlinks\t")
+		WriteAtQuote(&sb, h.Hardlinks)
+		sb.WriteString(";\n")
 	}
 	return sb.String()
 }
@@ -87,10 +89,10 @@ func (c *RevisionContent) String() string {
 	sb.WriteString(strings.Repeat("\n", c.RevisionDescriptionNewLineOffset))
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
-	sb.WriteString(AtQuote(c.Log))
+	WriteAtQuote(&sb, c.Log)
 	sb.WriteString("\n")
 	sb.WriteString("text\n")
-	sb.WriteString(AtQuote(c.Text))
+	WriteAtQuote(&sb, c.Text)
 	sb.WriteString("\n")
 	return sb.String()
 }
@@ -162,11 +164,17 @@ func (f *File) String() string {
 		sb.WriteString("strict;\n")
 	}
 	if f.Integrity != "" {
-		sb.WriteString(fmt.Sprintf("integrity\t%s;\n", AtQuote(f.Integrity)))
+		sb.WriteString("integrity\t")
+		WriteAtQuote(&sb, f.Integrity)
+		sb.WriteString(";\n")
 	}
-	sb.WriteString(fmt.Sprintf("comment\t%s;\n", AtQuote(f.Comment)))
+	sb.WriteString("comment\t")
+	WriteAtQuote(&sb, f.Comment)
+	sb.WriteString(";\n")
 	if f.Expand != "" {
-		sb.WriteString(fmt.Sprintf("expand\t%s;\n", AtQuote(f.Expand)))
+		sb.WriteString("expand\t")
+		WriteAtQuote(&sb, f.Expand)
+		sb.WriteString(";\n")
 	}
 	sb.WriteString("\n")
 	sb.WriteString("\n")
@@ -176,7 +184,8 @@ func (f *File) String() string {
 	}
 	sb.WriteString("\n")
 	sb.WriteString("desc\n")
-	sb.WriteString(fmt.Sprintf("%s\n", AtQuote(f.Description)))
+	WriteAtQuote(&sb, f.Description)
+	sb.WriteString("\n")
 
 	for _, content := range f.RevisionContents {
 		sb.WriteString("\n")
@@ -188,6 +197,20 @@ func (f *File) String() string {
 
 func AtQuote(s string) string {
 	return "@" + strings.ReplaceAll(s, "@", "@@") + "@"
+}
+
+func WriteAtQuote(sb *strings.Builder, s string) {
+	sb.WriteString("@")
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == '@' {
+			sb.WriteString(s[start : i+1])
+			sb.WriteString("@")
+			start = i + 1
+		}
+	}
+	sb.WriteString(s[start:])
+	sb.WriteString("@")
 }
 
 func ParseFile(r io.Reader) (*File, error) {
