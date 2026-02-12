@@ -16,13 +16,13 @@ import (
 //		force: -f --force Force overwrite output
 //		overwrite: -w --overwrite Overwrite input file
 //		stdout: -s --stdout Force output to stdout
-//	  expand-years: --expand-years Expand truncated years to 4 digits
+//   keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //		files: ... List of files to process, or - for stdin
-func Format(output string, force, overwrite, stdout, expandYears bool, files ...string) {
-	runFormat(output, force, overwrite, stdout, expandYears, files...)
+func Format(output string, force, overwrite, stdout, keepTruncatedYears bool, files ...string) {
+	runFormat(output, force, overwrite, stdout, keepTruncatedYears, files...)
 }
 
-func runFormat(output string, force, overwrite, stdout, expandYears bool, files ...string) {
+func runFormat(output string, force, overwrite, stdout, keepTruncatedYears bool, files ...string) {
 	if output != "" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
@@ -51,7 +51,7 @@ func runFormat(output string, force, overwrite, stdout, expandYears bool, files 
 
 	for _, fn := range files {
 		r := parseFileOrStdin(fn)
-		if expandYears {
+		if !keepTruncatedYears {
 			r.DateYearPrefixTruncated = false
 			for _, h := range r.RevisionHeads {
 				h.YearTruncated = false
