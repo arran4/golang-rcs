@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"golang.org/x/tools/txtar"
 	"io/fs"
 	"strings"
 	"testing"
@@ -1389,14 +1390,22 @@ func TestParseTxtarFiles(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ReadFile error: %v", err)
 			}
-			parts := parseTxtar(string(content))
+			ar := txtar.Parse(content)
 
-			rcsContent, ok := parts["input.rcs"]
-			if !ok {
+			var rcsContent, expectedJSON string
+			for _, f := range ar.Files {
+				if f.Name == "input.rcs" {
+					rcsContent = string(f.Data)
+				}
+				if f.Name == "expected.json" {
+					expectedJSON = string(f.Data)
+				}
+			}
+
+			if rcsContent == "" {
 				t.Fatalf("input.rcs not found in %s", f.Name())
 			}
-			expectedJSON, ok := parts["expected.json"]
-			if !ok {
+			if expectedJSON == "" {
 				t.Fatalf("expected.json not found in %s", f.Name())
 			}
 
@@ -1426,32 +1435,6 @@ func TestParseTxtarFiles(t *testing.T) {
 			}
 		})
 	}
-}
-
-func parseTxtar(content string) map[string]string {
-	parts := make(map[string]string)
-	lines := strings.Split(content, "\n")
-	var currentFile string
-	var currentContent strings.Builder
-
-	for _, line := range lines {
-		line = strings.TrimRight(line, "\r")
-		if strings.HasPrefix(line, "-- ") && strings.HasSuffix(line, " --") {
-			if currentFile != "" {
-				parts[currentFile] = currentContent.String()
-				currentContent.Reset()
-			}
-			currentFile = strings.TrimSuffix(strings.TrimPrefix(line, "-- "), " --")
-			continue
-		}
-		if currentFile != "" {
-			currentContent.WriteString(line + "\n")
-		}
-	}
-	if currentFile != "" {
-		parts[currentFile] = currentContent.String()
-	}
-	return parts
 }
 
 func TestParseLocalFiles(t *testing.T) {

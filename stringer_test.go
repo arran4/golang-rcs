@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/google/go-cmp/cmp"
+	"golang.org/x/tools/txtar"
 	"io/fs"
 	"strings"
 	"testing"
@@ -24,15 +25,23 @@ func TestStringTxtarFiles(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ReadFile error: %v", err)
 			}
-			parts := parseTxtar(string(content))
+			ar := txtar.Parse(content)
 
-			inputJSON, ok := parts["input.json"]
-			if !ok {
+			var inputJSON, expectedRCS string
+			for _, f := range ar.Files {
+				if f.Name == "input.json" {
+					inputJSON = string(f.Data)
+				}
+				if f.Name == "expected,v" {
+					expectedRCS = string(f.Data)
+				}
+			}
+
+			if inputJSON == "" {
 				// Skip if no input.json
 				return
 			}
-			expectedRCS, ok := parts["expected,v"]
-			if !ok {
+			if expectedRCS == "" {
 				// Skip if no expected,v
 				return
 			}
