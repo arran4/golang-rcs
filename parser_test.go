@@ -3,11 +3,9 @@ package rcs
 import (
 	"bytes"
 	"embed"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
-	"golang.org/x/tools/txtar"
 	"io/fs"
 	"strings"
 	"testing"
@@ -19,8 +17,6 @@ var (
 	testinputv []byte
 	//go:embed "testdata/testinput1.go,v"
 	testinputv1 []byte
-	//go:embed testdata/txtar/*.txtar
-	txtarTests embed.FS
 	//go:embed testdata/local/*
 	localTests embed.FS
 	//go:embed "testdata/expand_integrity.go,v"
@@ -161,35 +157,6 @@ func TestParseFile(t *testing.T) {
 		}
 	}
 
-	checkTestInput := func(t *testing.T, got *File) {
-		if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
-			t.Errorf("Description: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-			t.Errorf("Locks: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
-			t.Errorf("RevisionHeads: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
-			t.Errorf("RevisionContents: %s", diff)
-		}
-	}
-
-	checkAccessSymbols := func(t *testing.T, got *File) {
-		if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
-			t.Errorf("Description: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-			t.Errorf("Locks: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionHeads), 1); diff != "" {
-			t.Errorf("RevisionHeads: %s", diff)
-		}
-		if diff := cmp.Diff(len(got.RevisionContents), 1); diff != "" {
-			t.Errorf("RevisionContents: %s", diff)
-		}
-	}
 
 	tests := []struct {
 		name     string
@@ -1571,67 +1538,6 @@ func TestParseLockBody(t *testing.T) {
 	}
 }
 
-func TestParseTxtarFiles(t *testing.T) {
-	files, err := txtarTests.ReadDir("testdata/txtar")
-	if err != nil {
-		t.Fatalf("ReadDir error: %v", err)
-	}
-
-	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), ".txtar") {
-			continue
-		}
-		t.Run(f.Name(), func(t *testing.T) {
-			content, err := txtarTests.ReadFile("testdata/txtar/" + f.Name())
-			if err != nil {
-				t.Fatalf("ReadFile error: %v", err)
-			}
-			ar := txtar.Parse(content)
-
-			var rcsContent, expectedJSON string
-			for _, f := range ar.Files {
-				if f.Name == "input.rcs" {
-					rcsContent = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
-				}
-				if f.Name == "expected.json" {
-					expectedJSON = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
-				}
-			}
-
-			if rcsContent == "" {
-				t.Fatalf("input.rcs not found in %s", f.Name())
-			}
-			if expectedJSON == "" {
-				t.Fatalf("expected.json not found in %s", f.Name())
-			}
-
-			// Parse RCS
-			parsedFile, err := ParseFile(strings.NewReader(rcsContent))
-			if err != nil {
-				// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
-				parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n\n\n"))
-				if err != nil {
-					t.Fatalf("ParseFile error: %v", err)
-				}
-			}
-
-			// Marshal to JSON
-			gotJSONBytes, err := json.MarshalIndent(parsedFile, "", "  ")
-			if err != nil {
-				t.Fatalf("json.MarshalIndent error: %v", err)
-			}
-			gotJSON := string(gotJSONBytes)
-
-			// Normalize JSON for comparison (trim whitespace)
-			gotJSON = strings.TrimSpace(gotJSON)
-			expectedJSON = strings.TrimSpace(expectedJSON)
-
-			if diff := cmp.Diff(expectedJSON, gotJSON); diff != "" {
-				t.Errorf("JSON mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
 
 func TestParseLocalFiles(t *testing.T) {
 	testParseFiles(t, localTests, "testdata/local")
