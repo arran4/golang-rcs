@@ -179,7 +179,7 @@ func TestParseFile(t *testing.T) {
 			wantErr: true,
 			wantErrString: []string{
 				"parsing",
-				"looking for",
+				"scanning until",
 			},
 		},
 		{
@@ -189,7 +189,7 @@ func TestParseFile(t *testing.T) {
 			wantErr: true,
 			wantErrString: []string{
 				"parsing",
-				"finding revision header field",
+				"description tag",
 			},
 		},
 		{
