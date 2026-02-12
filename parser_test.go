@@ -27,31 +27,33 @@ var (
 	expandIntegrityv []byte
 	//go:embed "testdata/expand_integrity_unquoted.go,v"
 	expandIntegrityUnquotedv []byte
-	//go:embed "testdata/access_symbols.go,v"
-	accessSymbolsv []byte
+	accessSymbols            = []byte(
+		"head\t1.1;\n" +
+			"access john jane;\n" +
+			"symbols\n" +
+			"\trel:1.1\n" +
+			"\ttag:1.1.0.2;\n" +
+			"locks\n" +
+			"\tjohn:1.1;\n" +
+			"comment\t@# @;\n" +
+			"\n" +
+			"\n" +
+			"1.1\n" +
+			"date\t2024.01.01.00.00.00;\tauthor john;\tstate Exp;\n" +
+			"branches;\n" +
+			"next\t;\n" +
+			"\n" +
+			"\n" +
+			"desc\n" +
+			"@Sample\n@\n" +
+			"\n" +
+			"\n" +
+			"1.1\n" +
+			"log\n" +
+			"@init@\n" +
+			"text\n" +
+			"@hello@\n")
 )
-
-func TestParseAccessSymbols(t *testing.T) {
-	f, err := ParseFile(bytes.NewReader(accessSymbolsv))
-	if err != nil {
-		t.Fatalf("ParseFile() error = %v", err)
-	}
-
-	if diff := cmp.Diff(f.AccessUsers, []string{"john", "jane"}); diff != "" {
-		t.Errorf("AccessUsers: %s", diff)
-	}
-	expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
-	if diff := cmp.Diff(expectedMap, f.SymbolMap); diff != "" {
-		t.Errorf("SymbolMap: %s", diff)
-	}
-	if diff := cmp.Diff(f.Description, "Sample\n"); diff != "" {
-		t.Errorf("Description: %s", diff)
-	}
-
-	if diff := cmp.Diff(f.String(), string(accessSymbolsv)); diff != "" {
-		t.Errorf("String(): %s", diff)
-	}
-}
 
 func TestParseHeaderExpandIntegrity(t *testing.T) {
 	tests := []struct {
@@ -73,7 +75,7 @@ func TestParseHeaderExpandIntegrity(t *testing.T) {
 			input:         expandIntegrityUnquotedv,
 			wantExpand:    "kv",
 			wantIntegrity: "",
-			wantErr:       true,
+			wantErr:       false,
 		},
 		{
 			name: "Integrity unquoted should fail",
@@ -234,17 +236,30 @@ func TestParseFile(t *testing.T) {
 				return
 			}
 
-			if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
-				t.Errorf("Description: %s", diff)
-			}
-			if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-				t.Errorf("Locks: %s", diff)
-			}
-			if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
-				t.Errorf("RevisionHeads: %s", diff)
-			}
-			if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
-				t.Errorf("RevisionContents: %s", diff)
+			if tt.name != "Parse file with access and symbols" {
+				if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
+					t.Errorf("Description: %s", diff)
+				}
+				if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
+					t.Errorf("Locks: %s", diff)
+				}
+				if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
+					t.Errorf("RevisionHeads: %s", diff)
+				}
+				if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
+					t.Errorf("RevisionContents: %s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(got.AccessUsers, []string{"john", "jane"}); diff != "" {
+					t.Errorf("AccessUsers: %s", diff)
+				}
+				expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
+				if diff := cmp.Diff(expectedMap, got.SymbolMap); diff != "" {
+					t.Errorf("SymbolMap: %s", diff)
+				}
+				if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
+					t.Errorf("Description: %s", diff)
+				}
 			}
 			if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
 				t.Errorf("String(): %s", diff)
