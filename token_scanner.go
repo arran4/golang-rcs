@@ -149,10 +149,6 @@ func ScanTokenWord(s *Scanner) (string, error) {
 		i := 0
 		for i < len(data) {
 			r, w := utf8.DecodeRune(data[i:])
-			if r == utf8.RuneError && w == 1 {
-				// Invalid rune? Maybe just consume it as part of ID if isIdChar allows?
-				// isIdChar(utf8.RuneError) is likely false.
-			}
 
 			if !isIdChar(r) && r != '.' {
 				if i == 0 {
