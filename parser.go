@@ -314,6 +314,10 @@ func ParseHeader(s *Scanner, f *File) error {
 				// symbols keyword present but no symbols list
 				f.Symbols = []Symbol{}
 			}
+			if f.Symbols == nil {
+				// Ensure it's not nil if the keyword was present
+				f.Symbols = []Symbol{}
+			}
 		case "locks":
 			var err error
 			var locks []*Lock
