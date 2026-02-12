@@ -18,8 +18,8 @@ import (
 //			stdout: -s --stdout Force output to stdout
 //	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
-func Format(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
-	runFormat(stdin, stdout, output, force, overwrite, stdoutFlag, keepTruncatedYears, files...)
+func Format(output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
+	runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, keepTruncatedYears, files...)
 }
 
 func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
@@ -43,8 +43,8 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		for _, fn := range files {
 			r := parseFileOrStdin(stdin, fn)
 			content := r.String()
-			fmt.Fprintf(stdout, "-- %s --\n", fn)
-			fmt.Fprint(stdout, content)
+			_, _ = fmt.Fprintf(stdout, "-- %s --\n", fn)
+			_, _ = fmt.Fprint(stdout, content)
 		}
 		return
 	}
@@ -70,7 +70,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			writeOutput(output, []byte(content), force)
 		} else {
 			// Stdout
-			fmt.Fprint(stdout, content)
+			_, _ = fmt.Fprint(stdout, content)
 		}
 	}
 }
