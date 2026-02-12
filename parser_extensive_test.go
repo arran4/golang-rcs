@@ -177,7 +177,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Unknown field",
 			input:   "1.1\nunknown",
-			wantErr: "finding revision header field",
+			wantErr: "",
 		},
 		{
 			name:    "Bad branches",
@@ -202,8 +202,14 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 			}
 			s := NewScanner(strings.NewReader(tt.input))
 			_, _, _, err := ParseRevisionHeader(s)
-			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
-				t.Errorf("ParseRevisionHeader() error = %v, wantErr containing %q", err, tt.wantErr)
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Errorf("ParseRevisionHeader() error = %v, want nil", err)
+				}
+			} else {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+					t.Errorf("ParseRevisionHeader() error = %v, wantErr containing %q", err, tt.wantErr)
+				}
 			}
 		})
 	}
@@ -301,7 +307,7 @@ func TestParseFile_Errors(t *testing.T) {
 		{
 			name:    "Revision headers error",
 			input:   "head 1.1;\n\n\n1.1\nbad",
-			wantErr: "finding revision header field",
+			wantErr: "looking for \"desc",
 		},
 		{
 			name:    "Description error",

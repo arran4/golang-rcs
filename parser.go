@@ -359,7 +359,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenStringOrId, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
@@ -419,6 +419,13 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 	}
 	for {
 		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+			if IsNotFound(err) {
+				var snf ScanNotFound
+				if errors.As(err, &snf) && snf.Found == "" {
+					return rh, false, false, nil
+				}
+				return rh, true, false, nil
+			}
 			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
 		}
 		nt := s.Text()
@@ -654,10 +661,14 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 }
 
 func ParseAtQuotedString(s *Scanner) (string, error) {
-	sb := &strings.Builder{}
 	if err := ScanStrings(s, "@"); err != nil {
 		return "", fmt.Errorf("open quote: %v", err)
 	}
+	return ParseAtQuotedStringBody(s)
+}
+
+func ParseAtQuotedStringBody(s *Scanner) (string, error) {
+	sb := &strings.Builder{}
 	for {
 		if err := ScanUntilStrings(s, "@"); err != nil {
 			return "", err

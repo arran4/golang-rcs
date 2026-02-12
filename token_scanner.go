@@ -91,6 +91,13 @@ func ScanTokenString(s *Scanner) (string, error) {
 	return ParseAtQuotedString(s)
 }
 
+func ScanTokenStringOrId(s *Scanner) (string, error) {
+	if err := ScanStrings(s, "@"); err == nil {
+		return ParseAtQuotedStringBody(s)
+	}
+	return ScanTokenId(s)
+}
+
 func ScanTokenIntString(s *Scanner) (string, error) {
 	// intstring ::= "@" {intchar}* {thirdp}* "@"
 	if err := ScanStrings(s, "@"); err != nil {
