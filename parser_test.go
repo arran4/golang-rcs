@@ -161,6 +161,36 @@ func TestParseFile(t *testing.T) {
 		}
 	}
 
+	checkTestInput := func(t *testing.T, got *File) {
+		if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
+			t.Errorf("Description: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
+			t.Errorf("Locks: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
+			t.Errorf("RevisionHeads: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
+			t.Errorf("RevisionContents: %s", diff)
+		}
+	}
+
+	checkAccessSymbols := func(t *testing.T, got *File) {
+		if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
+			t.Errorf("Description: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
+			t.Errorf("Locks: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionHeads), 1); diff != "" {
+			t.Errorf("RevisionHeads: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionContents), 1); diff != "" {
+			t.Errorf("RevisionContents: %s", diff)
+		}
+	}
+
 	tests := []struct {
 		name     string
 		r        string

@@ -91,9 +91,12 @@ func ScanTokenString(s *Scanner) (string, error) {
 	return ParseAtQuotedString(s)
 }
 
-func ScanTokenStringOrId(s *Scanner) (string, error) {
+func ScanTokenWord(s *Scanner) (string, error) {
 	if err := ScanStrings(s, "@"); err == nil {
 		return ParseAtQuotedStringBody(s)
+	}
+	if err := ScanStrings(s, ":"); err == nil {
+		return ":", nil
 	}
 	return ScanTokenId(s)
 }

@@ -176,6 +176,16 @@ func TestScanTokenWord(t *testing.T) {
 		{"Stops at space", "foo ", "foo", false},
 		{"Stops at semicolon", "foo;", "foo", false},
 		{"Empty", ";", "", true},
+		{"String", "@foo@", "foo", false},
+		{"Id", "foo;", "foo", false},
+		{"Id with digits", "foo123;", "foo123", false},
+		{"Id with dot", "foo.bar;", "foo.bar", false},
+		{"Empty string", "@@", "", false},
+		{"Missing start quote ID", "foo@", "foo", false},
+		{"Missing end quote String", "@foo", "", true},
+		{"Expand Unquoted", "kv;", "kv", false},
+		{"Colon", ":", ":", false},
+		{"Colon with suffix", ":;", ":", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
