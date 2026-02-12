@@ -43,7 +43,7 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 	}
 }
 
-func TestFormat_Txtar_KeepTruncatedYears(t *testing.T) {
+func TestFormat_MultipleFiles_KeepTruncatedYears(t *testing.T) {
 	// Create temp files
 	tmpDir := t.TempDir()
 	file1 := filepath.Join(tmpDir, "file1.rcs")
@@ -63,18 +63,18 @@ func TestFormat_Txtar_KeepTruncatedYears(t *testing.T) {
 
 	output := buf.String()
 
-	// Check Txtar headers
-	if !strings.Contains(output, "-- "+file1+" --") {
-		t.Errorf("Expected Txtar header for file1")
+	// Check Txtar headers SHOULD NOT exist
+	if strings.Contains(output, "-- "+file1+" --") {
+		t.Errorf("Did not expect Txtar header for file1")
 	}
-	if !strings.Contains(output, "-- "+file2+" --") {
-		t.Errorf("Expected Txtar header for file2")
+	if strings.Contains(output, "-- "+file2+" --") {
+		t.Errorf("Did not expect Txtar header for file2")
 	}
 
 	// Check expansion (should happen for both files)
 	// We count occurrences or just check presence.
 	if !strings.Contains(output, "date\t1999.01.01.00.00.00;") {
-		t.Errorf("Expected expanded year in Txtar output, got:\n%s", output)
+		t.Errorf("Expected expanded year in output, got:\n%s", output)
 	}
 
 	// Run Format with keepTruncatedYears=true (should keep)
@@ -83,6 +83,6 @@ func TestFormat_Txtar_KeepTruncatedYears(t *testing.T) {
 	output = buf.String()
 
 	if !strings.Contains(output, "date\t99.01.01.00.00.00;") {
-		t.Errorf("Expected kept year in Txtar output, got:\n%s", output)
+		t.Errorf("Expected kept year in output, got:\n%s", output)
 	}
 }

@@ -36,9 +36,6 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		log.Panicf("Cannot specify both output and stdout")
 	}
 
-	targetStdout := stdoutFlag || (!overwrite && output == "")
-	useTxtar := targetStdout && len(files) > 1
-
 	for _, fn := range files {
 		r := parseFileOrStdin(stdin, fn)
 		if !keepTruncatedYears {
@@ -49,11 +46,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		}
 		content := r.String()
 
-		if useTxtar {
-			// Txtar format
-			_, _ = fmt.Fprintf(stdout, "-- %s --\n", fn)
-			_, _ = fmt.Fprint(stdout, content)
-		} else if overwrite {
+		if overwrite {
 			if fn == "-" {
 				log.Panicf("Cannot overwrite stdin")
 			}
