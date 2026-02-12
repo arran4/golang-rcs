@@ -83,7 +83,9 @@ func parseFileOrStdin(fn string) *rcs.File {
 	}
 	r, err := rcs.ParseFile(f)
 	if file != nil {
-		file.Close()
+		if err := file.Close(); err != nil {
+			log.Panicf("Error closing file %s: %s", fn, err)
+		}
 	}
 	if err != nil {
 		log.Panicf("Error parsing %s: %s", fn, err)
