@@ -1035,7 +1035,7 @@ func (se ScanUntilNotFound) Error() string {
 			found = string(runes[:20]) + "..."
 		}
 	}
-	return fmt.Sprintf("scanning until %q at %s but found %q", se.Until, se.Pos.String(), found)
+	return fmt.Sprintf("scanning for %q at %s but found %q", se.Until, se.Pos.String(), found)
 }
 
 func IsNotFound(err error) bool {
