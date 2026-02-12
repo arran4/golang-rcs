@@ -63,8 +63,7 @@ asdf
     "user2",
     "user3"
   ],
-  "SymbolMap": null,
-  "SymbolList": null,
+  "Symbols": [],
   "Locks": [
     {
       "User": "arran",

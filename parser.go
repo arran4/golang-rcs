@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -82,10 +81,8 @@ type File struct {
 	Description      string
 	Comment          string
 	Access           bool
-	Symbols          bool
+	Symbols          []Symbol
 	AccessUsers      []string
-	SymbolMap        map[string]string
-	SymbolList       []Symbol
 	Locks            []*Lock
 	Strict           bool
 	StrictOnOwnLine  bool `json:",omitempty"`
@@ -93,6 +90,28 @@ type File struct {
 	Expand           string
 	RevisionHeads    []*RevisionHead
 	RevisionContents []*RevisionContent
+}
+
+func (f *File) SymbolMap() map[string]string {
+	if f.Symbols == nil {
+		return nil
+	}
+	m := make(map[string]string)
+	for _, s := range f.Symbols {
+		m[s.Name] = s.Revision
+	}
+	return m
+}
+
+func (f *File) LocksMap() map[string]string {
+	if f.Locks == nil {
+		return nil
+	}
+	m := make(map[string]string)
+	for _, l := range f.Locks {
+		m[l.User] = l.Revision
+	}
+	return m
 }
 
 func (f *File) String() string {
@@ -110,29 +129,13 @@ func (f *File) String() string {
 			sb.WriteString("access;\n")
 		}
 	}
-	if f.Symbols {
-		if len(f.SymbolList) > 0 {
-			sb.WriteString("symbols")
-			for _, s := range f.SymbolList {
-				sb.WriteString("\n\t")
-				sb.WriteString(fmt.Sprintf("%s:%s", s.Name, s.Revision))
-			}
-			sb.WriteString(";\n")
-		} else if len(f.SymbolMap) > 0 {
-			sb.WriteString("symbols")
-			keys := make([]string, 0, len(f.SymbolMap))
-			for k := range f.SymbolMap {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				sb.WriteString("\n\t")
-				sb.WriteString(fmt.Sprintf("%s:%s", k, f.SymbolMap[k]))
-			}
-			sb.WriteString(";\n")
-		} else {
-			sb.WriteString("symbols;\n")
+	if f.Symbols != nil {
+		sb.WriteString("symbols")
+		for _, s := range f.Symbols {
+			sb.WriteString("\n\t")
+			sb.WriteString(fmt.Sprintf("%s:%s", s.Name, s.Revision))
 		}
+		sb.WriteString(";\n")
 	}
 	sb.WriteString("locks")
 	if len(f.Locks) == 0 {
@@ -301,17 +304,15 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.AccessUsers = users
 			}
 		case "symbols":
-			f.Symbols = true
 			if err := ParseTerminatorFieldLine(s); err != nil {
 				sym, err := ParseHeaderSymbols(s, true)
 				if err != nil {
 					return fmt.Errorf("token %#v: %w", nt, err)
 				}
-				f.SymbolList = sym
-				f.SymbolMap = make(map[string]string)
-				for _, s := range sym {
-					f.SymbolMap[s.Name] = s.Revision
-				}
+				f.Symbols = sym
+			} else {
+				// symbols keyword present but no symbols list
+				f.Symbols = []Symbol{}
 			}
 		case "locks":
 			var err error

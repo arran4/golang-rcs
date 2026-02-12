@@ -95,7 +95,7 @@ func TestParseFile(t *testing.T) {
 					t.Errorf("AccessUsers: %s", diff)
 				}
 				expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
-				if diff := cmp.Diff(expectedMap, got.SymbolMap); diff != "" {
+				if diff := cmp.Diff(expectedMap, got.SymbolMap()); diff != "" {
 					t.Errorf("SymbolMap: %s", diff)
 				}
 				if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
@@ -161,7 +161,7 @@ func TestParseHeader(t *testing.T) {
 				Head:    "1.6",
 				Comment: "# ",
 				Access:  true,
-				Symbols: true,
+				Symbols: []Symbol{},
 				Locks: []*Lock{
 					{
 						User:     "arran",

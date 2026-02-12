@@ -23,8 +23,7 @@ desc
   "Access": false,
   "Symbols": false,
   "AccessUsers": null,
-  "SymbolMap": null,
-  "SymbolList": null,
+  "Symbols": [],
   "Locks": [
     {
       "User": "payne",
