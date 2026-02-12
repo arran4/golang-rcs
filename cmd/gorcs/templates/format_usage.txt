@@ -9,6 +9,7 @@ Flags:
     -f, --force           Force overwrite output file if it exists
     -w, --overwrite       Overwrite input file
     -s, --stdout          Force output to stdout
+    --ignore-truncation   Ignore year truncation (force 4-digit year)
 
 Positional Arguments:
     files      List of files to process or - for stdin
