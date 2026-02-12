@@ -191,22 +191,21 @@ func TestParseFile(t *testing.T) {
 		}
 	}
 
-	_ = checkTestInput
-	_ = checkAccessSymbols
-
 	tests := []struct {
-		name     string
-		r        string
-		b        []byte
-		checkErr func(*testing.T, error)
-		wantDesc string
+		name      string
+		r         string
+		b         []byte
+		checkErr  func(*testing.T, error)
+		checkFile func(*testing.T, *File)
+		wantDesc  string
 	}{
 		{
-			name:     "Test parse of testinput.go,v",
-			r:        string(testinputv),
-			b:        testinputv,
-			checkErr: noError,
-			wantDesc: "This is a test file.\n",
+			name:      "Test parse of testinput.go,v",
+			r:         string(testinputv),
+			b:         testinputv,
+			checkErr:  noError,
+			checkFile: checkTestInput,
+			wantDesc:  "This is a test file.\n",
 		},
 		{
 			name:     "Test parse of testinput1.go,v - add a new line for the missing one",
@@ -216,11 +215,12 @@ func TestParseFile(t *testing.T) {
 			wantDesc: "This is a test file.\n",
 		},
 		{
-			name:     "Parse file with access and symbols",
-			r:        string(accessSymbolsv),
-			b:        accessSymbolsv,
-			checkErr: noError,
-			wantDesc: "Sample\n",
+			name:      "Parse file with access and symbols",
+			r:         string(accessSymbolsv),
+			b:         accessSymbolsv,
+			checkErr:  noError,
+			checkFile: checkAccessSymbols,
+			wantDesc:  "Sample\n",
 		},
 		{
 			name: "Invalid header - missing head",
@@ -281,15 +281,11 @@ func TestParseFile(t *testing.T) {
 				}
 			}
 
-			switch tt.name {
-			case "Parse file with access and symbols":
-				// Specific checks for this file are done in TestParseAccessSymbols
-				// But here we can skip the hardcoded checks or verify based on expected content
-				// access_symbols.go,v has 0 locks, 1 revision head?
-				// I'll skip the hardcoded checks below for this case.
-			case "Invalid revision content (relaxed)":
+			if tt.checkFile != nil {
+				tt.checkFile(t, got)
+			} else if tt.name == "Invalid revision content (relaxed)" {
 				// Skip checks
-			default:
+			} else {
 				if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
 					t.Errorf("Locks: %s", diff)
 				}
@@ -1002,7 +998,7 @@ func TestParseRevisionContent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRC, gotMore, err := ParseRevisionContent(tt.args.s, 0)
+			gotRC, gotMore, err := ParseRevisionContent(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContent() error = %v, wantErr %v", err, tt.wantErr)
 				return

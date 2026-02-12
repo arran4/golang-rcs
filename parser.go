@@ -482,13 +482,14 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
-	initialOffset := 0
+	var initialOffset int
 	for {
-		rc, next, err := ParseRevisionContent(s, initialOffset)
+		rc, next, err := ParseRevisionContent(s)
 		if err != nil {
 			return nil, err
 		}
 		if rc != nil {
+			rc.RevisionDescriptionNewLineOffset += initialOffset
 			rcs = append(rcs, rc)
 		}
 		if !next {
@@ -498,9 +499,9 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	}
 }
 
-func ParseRevisionContent(s *Scanner, initialOffset int) (*RevisionContent, bool, error) {
+func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 	rh := &RevisionContent{}
-	precedingNewLines := initialOffset
+	precedingNewLines := 0
 	for {
 		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 			if IsEOFError(err) {
