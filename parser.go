@@ -282,7 +282,7 @@ func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, 
 }
 
 func ParseHeader(s *Scanner, f *File) error {
-	if head, err := ParseHeaderHead(s, false); err != nil {
+	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine(true)); err != nil {
 		return err
 	} else {
 		f.Head = head
@@ -304,7 +304,7 @@ func ParseHeader(s *Scanner, f *File) error {
 		case " ", "\t", "\n", "\r\n":
 			continue
 		case "branch":
-			if branch, err := ParseProperty(s, true, "branch", true); err != nil {
+			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Branch = branch
@@ -359,17 +359,9 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseProperty(s, true, "expand", true); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				// ParseProperty reads raw text. If it is @quoted@, we might need to handle it.
-				// For now, assuming identifiers like @kv@ are returned as is.
-				// The test expects "kv" if input is "@kv@".
-				// If ParseProperty returns "@kv@", I need to strip it.
-				// But ParseProperty calls ScanUntilFieldTerminator, which reads everything including @.
-				if strings.HasPrefix(expand, "@") && strings.HasSuffix(expand, "@") {
-					expand = expand[1 : len(expand)-1]
-				}
 				f.Expand = expand
 			}
 
@@ -440,13 +432,13 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
-			if n, err := ParseRevisionHeaderNext(s, true); err != nil {
+			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.NextRevision = n
 			}
 		case "commitid":
-			if c, err := ParseProperty(s, true, "commitid", true); err != nil {
+			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.CommitID = c
@@ -756,7 +748,11 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 }
 
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
-	if dateStr, err := ParseProperty(s, haveHead, "date", false); err != nil {
+	opts := []interface{}{WithPropertyName("date")}
+	if haveHead {
+		opts = append(opts, WithConsumed(true))
+	}
+	if dateStr, err := ParseOptionalToken(s, ScanTokenNum, opts...); err != nil {
 		return err
 	} else {
 		dateStr = strings.TrimSpace(dateStr)
@@ -781,13 +777,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		case " ", "\t":
 			continue
 		case "author":
-			if s, err := ParseProperty(s, true, "author", false); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Author = s
 			}
 		case "state":
-			if s, err := ParseProperty(s, true, "state", false); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.State = s
@@ -802,12 +798,59 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 	return nil
 }
 
-func ParseRevisionHeaderNext(s *Scanner, haveHead bool) (string, error) {
-	return ParsePropertyNum(s, haveHead, "next", true)
-}
+type WithPropertyName string
+type WithConsumed bool
+type WithLine bool
 
-func ParseHeaderHead(s *Scanner, haveHead bool) (string, error) {
-	return ParsePropertyNum(s, haveHead, "head", true)
+func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), options ...interface{}) (string, error) {
+	var propertyName string
+	var havePropertyName bool
+	var line bool
+
+	for _, opt := range options {
+		switch v := opt.(type) {
+		case WithPropertyName:
+			propertyName = string(v)
+		case WithConsumed:
+			havePropertyName = bool(v)
+		case WithLine:
+			line = bool(v)
+		}
+	}
+
+	if !havePropertyName {
+		if err := ScanStrings(s, propertyName); err != nil {
+			return "", err
+		}
+	}
+	if err := ScanWhiteSpace(s, 1); err != nil {
+		return "", err
+	}
+	// Important: Check for terminator *before* value scan.
+	// If ";" is found, it means the value is empty/missing, which is valid for optional tokens.
+	if err := ScanStrings(s, ";"); err == nil {
+		if line {
+			if err := ScanNewLine(s, false); err != nil {
+				return "", err
+			}
+		}
+		return "", nil
+	}
+	// If we didn't find ";", we expect a value.
+	val, err := scannerFunc(s)
+	if err != nil {
+		return "", ErrParseProperty{Property: propertyName, Err: err}
+	}
+	if line {
+		if err := ParseTerminatorFieldLine(s); err != nil {
+			return "", err
+		}
+	} else {
+		if err := ScanFieldTerminator(s); err != nil {
+			return "", err
+		}
+	}
+	return val, nil
 }
 
 func ParsePropertyNum(s *Scanner, havePropertyName bool, propertyName string, line bool) (string, error) {

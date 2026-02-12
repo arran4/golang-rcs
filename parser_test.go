@@ -283,7 +283,7 @@ func TestParseHeaderHead(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderHead(tt.args.s, false)
+			got, err := ParseOptionalToken(tt.args.s, ScanTokenNum, WithPropertyName("head"), WithLine(true))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1190,7 +1190,12 @@ func TestParseRevisionHeaderNext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseRevisionHeaderNext(tt.args.s, tt.args.haveHead)
+			opts := []interface{}{WithPropertyName("next")}
+			if tt.args.haveHead {
+				opts = append(opts, WithConsumed(true))
+			}
+			opts = append(opts, WithLine(true))
+			got, err := ParseOptionalToken(tt.args.s, ScanTokenNum, opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaderNext() error = %v, wantErr %v", err, tt.wantErr)
 				return

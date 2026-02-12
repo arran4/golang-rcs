@@ -2,6 +2,7 @@ package rcs
 
 import (
 	"bytes"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -117,14 +118,24 @@ func TestParseLockLine_Errors(t *testing.T) {
 
 func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   string
-		wantErr string
+		name           string
+		input          string
+		wantErr        string
+		wantErrorCheck func(t *testing.T, err error)
 	}{
 		{
 			name:    "Invalid date format",
 			input:   "date\tbad-date;",
-			wantErr: "unable to parse date",
+			wantErr: "expected value for date",
+			wantErrorCheck: func(t *testing.T, err error) {
+				var e ErrParseProperty
+				if !errors.As(err, &e) {
+					t.Errorf("error is not ErrParseProperty: %T", err)
+				}
+				if e.Property != "date" {
+					t.Errorf("property = %q, want %q", e.Property, "date")
+				}
+			},
 		},
 		{
 			name:    "Missing author",
@@ -150,6 +161,9 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
 				t.Errorf("ParseRevisionHeaderDateLine() error = %v, wantErr containing %q", err, tt.wantErr)
 			}
+			if tt.wantErrorCheck != nil {
+				tt.wantErrorCheck(t, err)
+			}
 		})
 	}
 }
@@ -173,7 +187,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad date",
 			input:   "1.1\ndate bad;",
-			wantErr: "token \"date\": unable to parse date",
+			wantErr: "expected value for date",
 		},
 		{
 			name:    "Bad next",
