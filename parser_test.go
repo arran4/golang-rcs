@@ -281,16 +281,15 @@ func TestParseFile(t *testing.T) {
 				}
 			}
 
-			// Skipping Locks/RevisionHeads/RevisionContents checks for access_symbols because they differ
-			// The original test blindly asserted length 1, 6, 6 which was tailored for testinput.go,v
-			if tt.name == "Parse file with access and symbols" {
+			switch tt.name {
+			case "Parse file with access and symbols":
 				// Specific checks for this file are done in TestParseAccessSymbols
 				// But here we can skip the hardcoded checks or verify based on expected content
 				// access_symbols.go,v has 0 locks, 1 revision head?
 				// I'll skip the hardcoded checks below for this case.
-			} else if tt.name == "Invalid revision content (relaxed)" {
+			case "Invalid revision content (relaxed)":
 				// Skip checks
-			} else {
+			default:
 				if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
 					t.Errorf("Locks: %s", diff)
 				}
