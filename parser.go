@@ -34,8 +34,6 @@ type RevisionHead struct {
 	CommitID      string
 }
 
-const DateFormatTruncated = "06.01.02.15.04.05"
-
 func (h *RevisionHead) String() string {
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("%s\n", h.Revision))

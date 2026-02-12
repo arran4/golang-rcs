@@ -12,7 +12,7 @@ import (
 //go:embed testdata/truncated_date.go,v
 var truncatedDateTestFile []byte
 
-func TestFormat_IgnoreTruncation(t *testing.T) {
+func TestFormat_ExpandYears(t *testing.T) {
 	tmpDir := t.TempDir()
 	f, err := os.CreateTemp(tmpDir, "test*.v")
 	if err != nil {
@@ -29,8 +29,8 @@ func TestFormat_IgnoreTruncation(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	// Run Format with ignoreTruncation=true, stdout=true
-	// Signature: func Format(output string, force, overwrite, stdout, ignoreTruncation bool, files ...string)
+	// Run Format with expandYears=true, stdout=true
+	// Signature: func Format(output string, force, overwrite, stdout, expandYears bool, files ...string)
 	Format("", false, false, true, true, f.Name())
 
 	w.Close()
@@ -44,10 +44,10 @@ func TestFormat_IgnoreTruncation(t *testing.T) {
 
 	// Check output for 4-digit year (1999)
 	if !strings.Contains(output, "date\t1999.01.01.00.00.00;") {
-		t.Errorf("Expected 4-digit year in output when ignoreTruncation=true, got:\n%s", output)
+		t.Errorf("Expected 4-digit year in output when expandYears=true, got:\n%s", output)
 	}
 
-	// Run Format with ignoreTruncation=false (default), stdout=true
+	// Run Format with expandYears=false (default), stdout=true
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 	Format("", false, false, true, false, f.Name())
@@ -62,6 +62,6 @@ func TestFormat_IgnoreTruncation(t *testing.T) {
 
 	// Check output for 2-digit year (99)
 	if !strings.Contains(output, "date\t99.01.01.00.00.00;") {
-		t.Errorf("Expected 2-digit year in output when ignoreTruncation=false, got:\n%s", output)
+		t.Errorf("Expected 2-digit year in output when expandYears=false, got:\n%s", output)
 	}
 }
