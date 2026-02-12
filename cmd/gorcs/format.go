@@ -14,14 +14,14 @@ var _ Cmd = (*Format)(nil)
 
 type Format struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	output      string
-	force       bool
-	overwrite   bool
+	Flags              *flag.FlagSet
+	output             string
+	force              bool
+	overwrite          bool
 	stdout             bool
 	keepTruncatedYears bool
 	files              []string
-	SubCommands map[string]Cmd
+	SubCommands        map[string]Cmd
 }
 
 type UsageDataFormat struct {
