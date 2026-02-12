@@ -18,39 +18,39 @@ import (
 //			stdout: -s --stdout Force output to stdout
 //	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
-func Format(output string, force, overwrite, stdout, keepTruncatedYears bool, files ...string) {
-	runFormat(output, force, overwrite, stdout, keepTruncatedYears, files...)
+func Format(output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
+	runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, keepTruncatedYears, files...)
 }
 
-func runFormat(output string, force, overwrite, stdout, keepTruncatedYears bool, files ...string) {
+func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
 	if output != "" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
 	if overwrite && output != "" {
 		log.Panicf("Cannot specify both overwrite and output file")
 	}
-	if overwrite && stdout {
+	if overwrite && stdoutFlag {
 		log.Panicf("Cannot specify both overwrite and stdout")
 	}
-	if output != "" && stdout {
+	if output != "" && stdoutFlag {
 		log.Panicf("Cannot specify both output and stdout")
 	}
 
-	targetStdout := stdout || (!overwrite && output == "")
+	targetStdout := stdoutFlag || (!overwrite && output == "")
 
 	if targetStdout && len(files) > 1 {
 		// Txtar format
 		for _, fn := range files {
-			r := parseFileOrStdin(fn)
+			r := parseFileOrStdin(stdin, fn)
 			content := r.String()
-			fmt.Printf("-- %s --\n", fn)
-			fmt.Print(content)
+			_, _ = fmt.Fprintf(stdout, "-- %s --\n", fn)
+			_, _ = fmt.Fprint(stdout, content)
 		}
 		return
 	}
 
 	for _, fn := range files {
-		r := parseFileOrStdin(fn)
+		r := parseFileOrStdin(stdin, fn)
 		if !keepTruncatedYears {
 			r.DateYearPrefixTruncated = false
 			for _, h := range r.RevisionHeads {
@@ -70,17 +70,17 @@ func runFormat(output string, force, overwrite, stdout, keepTruncatedYears bool,
 			writeOutput(output, []byte(content), force)
 		} else {
 			// Stdout
-			fmt.Print(content)
+			_, _ = fmt.Fprint(stdout, content)
 		}
 	}
 }
 
-func parseFileOrStdin(fn string) *rcs.File {
+func parseFileOrStdin(stdin io.Reader, fn string) *rcs.File {
 	var f io.Reader
 	var file *os.File
 	var err error
 	if fn == "-" {
-		f = os.Stdin
+		f = stdin
 	} else {
 		file, err = os.Open(fn)
 		if err != nil {
