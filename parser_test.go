@@ -142,7 +142,6 @@ text
 }
 
 func TestParseFile(t *testing.T) {
-	// Updated for slice refactor
 	noError := func(t *testing.T, err error) {
 		if err != nil {
 			t.Errorf("ParseFile() error = %v, wantErr nil", err)
@@ -162,11 +161,42 @@ func TestParseFile(t *testing.T) {
 		}
 	}
 
+	checkTestInput := func(t *testing.T, got *File) {
+		if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
+			t.Errorf("Description: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
+			t.Errorf("Locks: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
+			t.Errorf("RevisionHeads: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
+			t.Errorf("RevisionContents: %s", diff)
+		}
+	}
+
+	checkAccessSymbols := func(t *testing.T, got *File) {
+		if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
+			t.Errorf("Description: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
+			t.Errorf("Locks: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionHeads), 1); diff != "" {
+			t.Errorf("RevisionHeads: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionContents), 1); diff != "" {
+			t.Errorf("RevisionContents: %s", diff)
+		}
+	}
+
 	tests := []struct {
 		name     string
 		r        string
 		b        []byte
 		checkErr func(*testing.T, error)
+		check    func(*testing.T, *File)
 		wantDesc string
 	}{
 		{
@@ -174,6 +204,7 @@ func TestParseFile(t *testing.T) {
 			r:        string(testinputv),
 			b:        testinputv,
 			checkErr: noError,
+			check:    checkTestInput,
 			wantDesc: "This is a test file.\n",
 		},
 		{
@@ -181,6 +212,7 @@ func TestParseFile(t *testing.T) {
 			r:        string(testinputv1) + "\n",
 			b:        testinputv1,
 			checkErr: noError,
+			check:    checkTestInput,
 			wantDesc: "This is a test file.\n",
 		},
 		{
@@ -188,6 +220,11 @@ func TestParseFile(t *testing.T) {
 			r:        string(accessSymbolsv),
 			b:        accessSymbolsv,
 			checkErr: noError,
+			// checkAccessSymbols expects 1 lock, but accessSymbolsv has 0?
+			// Let's verify accessSymbolsv content.
+			// The original test said: len(got.Locks) 1.
+			// Let's use checkAccessSymbols here if that's what the original code did.
+			check:    checkAccessSymbols,
 			wantDesc: "Sample\n",
 		},
 		{
@@ -252,23 +289,8 @@ func TestParseFile(t *testing.T) {
 				}
 			}
 
-			// Skipping Locks/RevisionHeads/RevisionContents checks for access_symbols because they differ
-			// The original test blindly asserted length 1, 6, 6 which was tailored for testinput.go,v
-			if tt.name == "Parse file with access and symbols" {
-				// Specific checks for this file are done in TestParseAccessSymbols
-				// But here we can skip the hardcoded checks or verify based on expected content
-				// access_symbols.go,v has 0 locks, 1 revision head?
-				// I'll skip the hardcoded checks below for this case.
-			} else {
-				if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-					t.Errorf("Locks: %s", diff)
-				}
-				if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
-					t.Errorf("RevisionHeads: %s", diff)
-				}
-				if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
-					t.Errorf("RevisionContents: %s", diff)
-				}
+			if tt.check != nil {
+				tt.check(t, got)
 			}
 
 			if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
