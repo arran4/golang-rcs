@@ -35,8 +35,9 @@ type RevisionHead struct {
 
 func (h *RevisionHead) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("%s\n", h.Revision))
-	sb.WriteString(fmt.Sprintf("date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State))
+	sb.WriteString(h.Revision)
+	sb.WriteByte('\n')
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		sb.WriteString("\n\t")
@@ -46,9 +47,9 @@ func (h *RevisionHead) String() string {
 		sb.WriteString(";")
 	}
 	sb.WriteString("\n")
-	sb.WriteString(fmt.Sprintf("next\t%s;\n", h.NextRevision))
+	fmt.Fprintf(&sb, "next\t%s;\n", h.NextRevision)
 	if h.CommitID != "" {
-		sb.WriteString(fmt.Sprintf("commitid\t%s;\n", h.CommitID))
+		fmt.Fprintf(&sb, "commitid\t%s;\n", h.CommitID)
 	}
 	return sb.String()
 }
