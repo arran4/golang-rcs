@@ -333,10 +333,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "integrity":
-			// TODO: Integrity parsing might need AtQuote string parsing similar to comment/desc?
-			// RCS usually has simple strings? integrity @...@;
-			// Let's assume quoted string for integrity.
-			if integrity, err := ParseHeaderComment(s, true); err != nil { // Reusing ParseHeaderComment logic (quote + terminator)
+			if integrity, err := ParseHeaderComment(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Integrity = integrity
