@@ -32,10 +32,10 @@ type RevisionHead struct {
 	Branches      []string
 	NextRevision  string
 	CommitID      string
-	Owner        string `json:",omitempty"`
-	Group        string `json:",omitempty"`
-	Permissions  string `json:",omitempty"`
-	Hardlinks    string `json:",omitempty"`
+	Owner         string `json:",omitempty"`
+	Group         string `json:",omitempty"`
+	Permissions   string `json:",omitempty"`
+	Hardlinks     string `json:",omitempty"`
 }
 
 func (h *RevisionHead) String() string {
@@ -46,7 +46,7 @@ func (h *RevisionHead) String() string {
 	if h.YearTruncated {
 		dateFormat = DateFormatTruncated
 	}
-	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State)
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(dateFormat), h.Author, h.State)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		sb.WriteString("\n\t")
