@@ -27,7 +27,9 @@ var (
 	expandIntegrityv []byte
 	//go:embed "testdata/expand_integrity_unquoted.go,v"
 	expandIntegrityUnquotedv []byte
-	accessSymbols            = []byte(
+	//go:embed "testdata/integrity_unquoted.go,v"
+	integrityUnquotedv []byte
+	accessSymbols      = []byte(
 		"head\t1.1;\n" +
 			"access john jane;\n" +
 			"symbols\n" +
@@ -78,28 +80,8 @@ func TestParseHeaderExpandIntegrity(t *testing.T) {
 			wantErr:       false,
 		},
 		{
-			name: "Integrity unquoted should fail",
-			input: []byte(`head	1.1;
-integrity	unquoted;
-comment	@# @;
-
-
-1.1
-date	2022.01.01.00.00.00;	author arran;	state Exp;
-branches;
-next	;
-
-
-desc
-@@
-
-
-1.1
-log
-@@
-text
-@@
-`),
+			name:    "Integrity unquoted should fail",
+			input:   integrityUnquotedv,
 			wantErr: true,
 		},
 	}
