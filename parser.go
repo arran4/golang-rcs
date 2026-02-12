@@ -359,7 +359,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenStringOrId, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
@@ -419,6 +419,9 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 	}
 	for {
 		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+			if IsNotFound(err) {
+				return rh, true, false, nil
+			}
 			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
 		}
 		nt := s.Text()
