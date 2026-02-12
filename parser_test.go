@@ -73,7 +73,7 @@ func TestParseHeaderExpandIntegrity(t *testing.T) {
 			input:         expandIntegrityUnquotedv,
 			wantExpand:    "kv",
 			wantIntegrity: "",
-			wantErr:       true,
+			wantErr:       false,
 		},
 		{
 			name: "Integrity unquoted should fail",
@@ -154,29 +154,63 @@ func TestParseFile(t *testing.T) {
 		}
 	}
 
+	checkTestInput := func(t *testing.T, got *File) {
+		if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
+			t.Errorf("Description: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
+			t.Errorf("Locks: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
+			t.Errorf("RevisionHeads: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
+			t.Errorf("RevisionContents: %s", diff)
+		}
+	}
+
+	checkAccessSymbols := func(t *testing.T, got *File) {
+		if diff := cmp.Diff(got.Description, "Sample\n"); diff != "" {
+			t.Errorf("Description: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
+			t.Errorf("Locks: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionHeads), 1); diff != "" {
+			t.Errorf("RevisionHeads: %s", diff)
+		}
+		if diff := cmp.Diff(len(got.RevisionContents), 1); diff != "" {
+			t.Errorf("RevisionContents: %s", diff)
+		}
+	}
+
 	tests := []struct {
-		name     string
-		r        string
-		b        []byte
-		checkErr func(*testing.T, error)
+		name      string
+		r         string
+		b         []byte
+		checkErr  func(*testing.T, error)
+		checkFile func(*testing.T, *File)
 	}{
 		{
-			name:     "Test parse of testinput.go,v",
-			r:        string(testinputv),
-			b:        testinputv,
-			checkErr: noError,
+			name:      "Test parse of testinput.go,v",
+			r:         string(testinputv),
+			b:         testinputv,
+			checkErr:  noError,
+			checkFile: checkTestInput,
 		},
 		{
-			name:     "Test parse of testinput1.go,v - add a new line for the missing one",
-			r:        string(testinputv1) + "\n",
-			b:        testinputv1,
-			checkErr: noError,
+			name:      "Test parse of testinput1.go,v - add a new line for the missing one",
+			r:         string(testinputv1) + "\n",
+			b:         testinputv1,
+			checkErr:  noError,
+			checkFile: checkTestInput,
 		},
 		{
-			name:     "Parse file with access and symbols",
-			r:        string(accessSymbols),
-			b:        accessSymbols,
-			checkErr: noError,
+			name:      "Parse file with access and symbols",
+			r:         string(accessSymbolsv),
+			b:         accessSymbolsv,
+			checkErr:  noError,
+			checkFile: checkAccessSymbols,
 		},
 		{
 			name: "Invalid header - missing head",
@@ -234,20 +268,14 @@ func TestParseFile(t *testing.T) {
 				return
 			}
 
-			if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
-				t.Errorf("Description: %s", diff)
+			if tt.checkFile != nil {
+				tt.checkFile(t, got)
 			}
-			if diff := cmp.Diff(len(got.Locks), 1); diff != "" {
-				t.Errorf("Locks: %s", diff)
-			}
-			if diff := cmp.Diff(len(got.RevisionHeads), 6); diff != "" {
-				t.Errorf("RevisionHeads: %s", diff)
-			}
-			if diff := cmp.Diff(len(got.RevisionContents), 6); diff != "" {
-				t.Errorf("RevisionContents: %s", diff)
-			}
-			if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
-				t.Errorf("String(): %s", diff)
+
+			if tt.r != "" {
+				if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
+					t.Errorf("String(): %s", diff)
+				}
 			}
 		})
 	}
