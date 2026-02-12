@@ -14,6 +14,11 @@ import (
 
 const DateFormat = "2006.01.02.15.04.05"
 
+type Symbol struct {
+	Name     string
+	Revision string
+}
+
 type Lock struct {
 	User     string
 	Revision string
@@ -80,6 +85,7 @@ type File struct {
 	Symbols          bool
 	AccessUsers      []string
 	SymbolMap        map[string]string
+	SymbolList       []Symbol
 	Locks            []*Lock
 	Strict           bool
 	StrictOnOwnLine  bool `json:",omitempty"`
@@ -105,7 +111,14 @@ func (f *File) String() string {
 		}
 	}
 	if f.Symbols {
-		if len(f.SymbolMap) > 0 {
+		if len(f.SymbolList) > 0 {
+			sb.WriteString("symbols")
+			for _, s := range f.SymbolList {
+				sb.WriteString("\n\t")
+				sb.WriteString(fmt.Sprintf("%s:%s", s.Name, s.Revision))
+			}
+			sb.WriteString(";\n")
+		} else if len(f.SymbolMap) > 0 {
 			sb.WriteString("symbols")
 			keys := make([]string, 0, len(f.SymbolMap))
 			for k := range f.SymbolMap {
@@ -294,7 +307,11 @@ func ParseHeader(s *Scanner, f *File) error {
 				if err != nil {
 					return fmt.Errorf("token %#v: %w", nt, err)
 				}
-				f.SymbolMap = sym
+				f.SymbolList = sym
+				f.SymbolMap = make(map[string]string)
+				for _, s := range sym {
+					f.SymbolMap[s.Name] = s.Revision
+				}
 			}
 		case "locks":
 			var err error
@@ -567,13 +584,13 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	return ids, nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]Symbol, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "symbols"); err != nil {
 			return nil, err
 		}
 	}
-	m := map[string]string{}
+	var m []Symbol
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, err
@@ -595,7 +612,7 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 		if err != nil {
 			return nil, fmt.Errorf("expected num for sym %q: %w", sym, err)
 		}
-		m[sym] = num
+		m = append(m, Symbol{Name: sym, Revision: num})
 	}
 	return m, nil
 }

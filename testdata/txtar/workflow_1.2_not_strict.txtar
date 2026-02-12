@@ -56,6 +56,7 @@ asdf
   "Symbols": true,
   "AccessUsers": null,
   "SymbolMap": null,
+  "SymbolList": null,
   "Locks": null,
   "Strict": false,
   "Integrity": "",

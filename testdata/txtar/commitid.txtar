@@ -51,6 +51,7 @@ The quick brown fox jumped over the lazy dog.
   "Symbols": true,
   "AccessUsers": null,
   "SymbolMap": null,
+  "SymbolList": null,
   "Locks": null,
   "Strict": true,
   "Integrity": "",

@@ -24,6 +24,7 @@ desc
   "Symbols": false,
   "AccessUsers": null,
   "SymbolMap": null,
+  "SymbolList": null,
   "Locks": [
     {
       "User": "payne",
