@@ -54,13 +54,15 @@ func (h *RevisionHead) String() string {
 }
 
 type RevisionContent struct {
-	Revision string
-	Log      string
-	Text     string
+	Revision          string
+	Log               string
+	Text              string
+	PrecedingNewLines int `json:",omitempty"`
 }
 
 func (c *RevisionContent) String() string {
 	sb := strings.Builder{}
+	sb.WriteString(strings.Repeat("\n", c.PrecedingNewLines))
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
 	sb.WriteString(AtQuote(c.Log))
@@ -465,6 +467,10 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		if rev != "" {
 			rh.Revision = rev
 			break
+		}
+		rh.PrecedingNewLines++
+		if rh.PrecedingNewLines > 4 {
+			return nil, false, fmt.Errorf("too many empty lines before revision: %d", rh.PrecedingNewLines)
 		}
 	}
 	for {

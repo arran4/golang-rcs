@@ -42,6 +42,8 @@ text
 @
 
 
+
+
 1.1.1.1
 log
 @03a6ecc1dbc74cfaacfeb8b1f09b8998
@@ -98,10 +100,42 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 			if rc.Text != expectedText {
 				t.Errorf("Revision 1.1 text = %q, want %q", rc.Text, expectedText)
 			}
+			// From desc @@ to 1.1 there are 3 empty lines.
+			// @@\n (1)
+			// \n (2)
+			// \n (3)
+			// \n (4)
+			// 1.1
+			// ParseDescription consumes \n\n (1 and 2).
+			// Left 3 and 4. So 2.
+			// Wait, in the string literal above:
+			// desc
+			// @@
+			//
+			//
+			//
+			// 1.1
+			// It looks like 3 empty lines.
+			// Let's verify what happens.
+			if rc.PrecedingNewLines != 1 {
+				t.Errorf("Revision 1.1 PrecedingNewLines = %d, want 1", rc.PrecedingNewLines)
+			}
 		} else if rc.Revision == "1.1.1.1" {
 			expectedText := "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n"
 			if rc.Text != expectedText {
 				t.Errorf("Revision 1.1.1.1 text = %q, want %q", rc.Text, expectedText)
+			}
+			// Added extra newlines above 1.1.1.1.
+			// Text block ends with @\n.
+			// Then \n
+			// Then \n
+			// Then \n
+			// Then \n
+			// 1.1.1.1
+			// ParseRevisionContent(1.1) consumes \n\n (1 and 2).
+			// Left 3 and 4. So 2.
+			if rc.PrecedingNewLines != 2 {
+				t.Errorf("Revision 1.1.1.1 PrecedingNewLines = %d, want 2", rc.PrecedingNewLines)
 			}
 		} else {
 			t.Errorf("Unexpected revision %s", rc.Revision)
@@ -120,5 +154,47 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 
 	if diff := cmp.Diff(got, got2); diff != "" {
 		t.Errorf("Round trip diff: %s", diff)
+	}
+}
+
+func TestParseFile_TooManyNewLines(t *testing.T) {
+	rcsContent := `head     1.1;
+branch   ;
+access   ;
+symbols  ;
+locks    ; strict;
+comment  @# @;
+
+
+1.1
+date     2004.09.07.08.24.09;  author cisers;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+
+
+
+
+
+1.1
+log
+@log@
+text
+@text@
+`
+    // Added one more newline to trigger > 4.
+
+	_, err := ParseFile(strings.NewReader(rcsContent))
+	if err == nil {
+		t.Fatal("ParseFile() expected error for too many newlines, got nil")
+	}
+	expectedErr := "too many empty lines before revision: 5"
+	if !strings.Contains(err.Error(), expectedErr) {
+		t.Errorf("ParseFile() error = %v, want error containing %q", err, expectedErr)
 	}
 }
