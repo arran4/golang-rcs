@@ -169,6 +169,13 @@ func TestScanTokenWord(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
+		{"Quoted string", "@foo@", "foo", false},
+		{"Unquoted ID", "foo;", "foo", false},
+		{"Number with dot", "1.2.3;", "1.2.3", false},
+		{"Colon", ":", ":", false},
+		{"Stops at space", "foo ", "foo", false},
+		{"Stops at semicolon", "foo;", "foo", false},
+		{"Empty", ";", "", true},
 		{"String", "@foo@", "foo", false},
 		{"Id", "foo;", "foo", false},
 		{"Id with digits", "foo123;", "foo123", false},
