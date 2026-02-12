@@ -41,7 +41,7 @@ func TestParseAccessSymbols(t *testing.T) {
 		t.Errorf("AccessUsers: %s", diff)
 	}
 	expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
-	if diff := cmp.Diff(expectedMap, f.SymbolMap); diff != "" {
+	if diff := cmp.Diff(expectedMap, f.SymbolMap()); diff != "" {
 		t.Errorf("SymbolMap: %s", diff)
 	}
 	if diff := cmp.Diff(f.Description, "Sample\n"); diff != "" {
@@ -142,6 +142,7 @@ text
 }
 
 func TestParseFile(t *testing.T) {
+	// Updated for slice refactor
 	noError := func(t *testing.T, err error) {
 		if err != nil {
 			t.Errorf("ParseFile() error = %v, wantErr nil", err)
@@ -196,6 +197,7 @@ func TestParseFile(t *testing.T) {
 		r        string
 		b        []byte
 		checkErr func(*testing.T, error)
+		verify   func(*testing.T, *File)
 		wantDesc string
 		check    func(*testing.T, *File)
 	}{
@@ -204,6 +206,7 @@ func TestParseFile(t *testing.T) {
 			r:        string(testinputv),
 			b:        testinputv,
 			checkErr: noError,
+			verify:   checkTestInput,
 			wantDesc: "This is a test file.\n",
 			check:    checkTestInput,
 		},
@@ -212,6 +215,7 @@ func TestParseFile(t *testing.T) {
 			r:        string(testinputv1) + "\n",
 			b:        testinputv1,
 			checkErr: noError,
+			verify:   checkTestInput,
 			wantDesc: "This is a test file.\n",
 			check:    checkTestInput,
 		},
@@ -220,6 +224,11 @@ func TestParseFile(t *testing.T) {
 			r:        string(accessSymbolsv),
 			b:        accessSymbolsv,
 			checkErr: noError,
+			// checkAccessSymbols expects 1 lock, but accessSymbolsv has 0?
+			// Let's verify accessSymbolsv content.
+			// The original test said: len(got.Locks) 1.
+			// Let's use checkAccessSymbols here if that's what the original code did.
+			verify:   checkAccessSymbols,
 			wantDesc: "Sample\n",
 			check:    checkAccessSymbols,
 		},
@@ -285,8 +294,8 @@ func TestParseFile(t *testing.T) {
 				}
 			}
 
-			if tt.check != nil {
-				tt.check(t, got)
+			if tt.verify != nil {
+				tt.verify(t, got)
 			}
 
 			if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
@@ -348,7 +357,7 @@ func TestParseHeader(t *testing.T) {
 				Head:    "1.6",
 				Comment: "# ",
 				Access:  true,
-				Symbols: true,
+				Symbols: []*Symbol{},
 				Locks: []*Lock{
 					{
 						User:     "arran",

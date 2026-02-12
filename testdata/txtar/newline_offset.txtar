@@ -51,13 +51,18 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
   "Description": "",
   "Comment": "# Master with an expand field that's data, not a token.",
   "Access": true,
-  "Symbols": true,
+  "Symbols": [
+    {
+      "Name": "rc1",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "ic",
+      "Revision": "1.1.1"
+    }
+  ],
   "AccessUsers": null,
-  "SymbolMap": {
-    "ic": "1.1.1",
-    "rc1": "1.1.1.1"
-  },
-  "Locks": null,
+  "Locks": [],
   "Strict": true,
   "Integrity": "",
   "Expand": "b",
