@@ -46,10 +46,11 @@ var (
 
 func TestParseFile(t *testing.T) {
 	tests := []struct {
-		name    string
-		r       string
-		b       []byte
-		wantErr bool
+		name          string
+		r             string
+		b             []byte
+		wantErr       bool
+		wantErrString []string
 	}{
 		{
 			name:    "Test parse of testinput.go,v",
@@ -69,6 +70,56 @@ func TestParseFile(t *testing.T) {
 			b:       accessSymbols,
 			wantErr: false,
 		},
+		{
+			name:    "Invalid header - missing head",
+			r:       "invalid",
+			b:       []byte("invalid"),
+			wantErr: true,
+			wantErrString: []string{
+				"parsing",
+				"looking for \"head\"",
+			},
+		},
+		{
+			name:    "Invalid property in header",
+			r:       "head invalid",
+			b:       []byte("head invalid"),
+			wantErr: true,
+			wantErrString: []string{
+				"parsing",
+				"looking for",
+			},
+		},
+		{
+			name:    "Invalid revision header",
+			r:       "head 1.1;\n\ninvalid\n",
+			b:       []byte("head 1.1;\n\ninvalid\n"),
+			wantErr: true,
+			wantErrString: []string{
+				"parsing",
+				"finding revision header field",
+			},
+		},
+		{
+			name:    "Invalid description",
+			r:       "head 1.1;\n\ndesc\ninvalid",
+			b:       []byte("head 1.1;\n\ndesc\ninvalid"),
+			wantErr: true,
+			wantErrString: []string{
+				"parsing",
+				"quote string",
+			},
+		},
+		{
+			name:    "Invalid revision content",
+			r:       "head 1.1;\n\ndesc\n@@\n\ninvalid\ninvalid",
+			b:       []byte("head 1.1;\n\ndesc\n@@\n\ninvalid\ninvalid"),
+			wantErr: true,
+			wantErrString: []string{
+				"parsing",
+				"looking for",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -77,6 +128,16 @@ func TestParseFile(t *testing.T) {
 				t.Errorf("ParseFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if err != nil && tt.wantErrString != nil {
+				for _, s := range tt.wantErrString {
+					if !strings.Contains(err.Error(), s) {
+						t.Errorf("ParseFile() error = %v, want to contain %v", err, s)
+					}
+				}
+				// If we expect an error, we don't need to check the rest
+				return
+			}
+
 			if tt.name != "Parse file with access and symbols" {
 				if diff := cmp.Diff(got.Description, "This is a test file.\n"); diff != "" {
 					t.Errorf("Description: %s", diff)
@@ -1363,70 +1424,6 @@ func TestParseLockBody(t *testing.T) {
 			}
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("ParseLockBody() %s", diff)
-			}
-		})
-	}
-}
-
-func TestParseFile_ErrorPropagation(t *testing.T) {
-	tests := []struct {
-		name          string
-		input         string
-		wantErrString []string
-	}{
-		{
-			name:  "Invalid header - missing head",
-			input: "invalid",
-			wantErrString: []string{
-				"parsing",
-				"looking for \"head\"",
-			},
-		},
-		{
-			name:  "Invalid property in header",
-			input: "head invalid",
-			wantErrString: []string{
-				"parsing",
-				"looking for",
-			},
-		},
-		{
-			name:  "Invalid revision header",
-			input: "head 1.1;\n\ninvalid\n",
-			wantErrString: []string{
-				"parsing",
-				"finding revision header field",
-			},
-		},
-		{
-			name:  "Invalid description",
-			input: "head 1.1;\n\ndesc\ninvalid",
-			wantErrString: []string{
-				"parsing",
-				"quote string",
-			},
-		},
-		{
-			name:  "Invalid revision content",
-			input: "head 1.1;\n\ndesc\n@@\n\ninvalid\ninvalid",
-			wantErrString: []string{
-				"parsing",
-				"looking for",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := strings.NewReader(tt.input)
-			_, err := ParseFile(r)
-			if err == nil {
-				t.Error("ParseFile() error = nil, wantErr true")
-				return
-			}
-			for _, s := range tt.wantErrString {
-				if !strings.Contains(err.Error(), s) {
-					t.Errorf("ParseFile() error = %v, want to contain %v", err, s)
-				}
 			}
 		})
 	}
