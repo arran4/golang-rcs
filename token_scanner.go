@@ -2,7 +2,10 @@ package rcs
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 // Grammar Rules:
@@ -89,6 +92,79 @@ func ScanTokenSym(s *Scanner) (string, error) {
 func ScanTokenString(s *Scanner) (string, error) {
 	// string ::= "@" { any character, with @ doubled }* "@"
 	return ParseAtQuotedString(s)
+}
+
+func ScanTokenStringOrId(s *Scanner) (string, error) {
+	s.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+		if len(data) == 0 {
+			return 0, nil, nil
+		}
+
+		if data[0] == '@' {
+			// String mode
+			i := 1
+			for i < len(data) {
+				if data[i] == '@' {
+					if i+1 < len(data) {
+						if data[i+1] == '@' {
+							i += 2
+							continue
+						}
+					} else if !atEOF {
+						// Need more data to check for doubled @
+						return 0, nil, nil
+					}
+					// Found closing @
+					return i + 1, data[:i+1], nil
+				}
+				i++
+			}
+			if atEOF {
+				return 0, nil, fmt.Errorf("unexpected EOF in string")
+			}
+			return 0, nil, nil
+		} else {
+			// ID mode
+			i := 0
+			for i < len(data) {
+				r, size := utf8.DecodeRune(data[i:])
+				if r == utf8.RuneError && size == 1 {
+					if !atEOF && i+size > len(data) {
+						return 0, nil, nil
+					}
+				}
+				if !isIdChar(r) && r != '.' {
+					if i == 0 {
+						// Should not happen if called correctly (after whitespace)
+						return 0, nil, fmt.Errorf("invalid char %q at start of token", r)
+					}
+					return i, data[:i], nil
+				}
+				i += size
+			}
+			if atEOF {
+				return i, data[:i], nil
+			}
+			return 0, nil, nil
+		}
+	})
+
+	if !s.Scan() {
+		return "", s.Err()
+	}
+	text := s.Text()
+	if len(text) > 0 && text[0] == '@' {
+		// Unquote
+		if len(text) < 2 {
+			return "", fmt.Errorf("invalid string token")
+		}
+		content := text[1 : len(text)-1]
+		return strings.ReplaceAll(content, "@@", "@"), nil
+	}
+	return text, nil
 }
 
 func ScanTokenIntString(s *Scanner) (string, error) {

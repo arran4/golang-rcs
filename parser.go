@@ -166,7 +166,7 @@ func (f *File) String() string {
 	}
 	sb.WriteString(fmt.Sprintf("comment\t%s;\n", AtQuote(f.Comment)))
 	if f.Expand != "" {
-		sb.WriteString(fmt.Sprintf("expand\t%s;\n", f.Expand)) // Assuming expand value doesn't need @ quoting in output if parsed raw
+		sb.WriteString(fmt.Sprintf("expand\t%s;\n", AtQuote(f.Expand)))
 	}
 	sb.WriteString("\n")
 	sb.WriteString("\n")
@@ -359,7 +359,7 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenString, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenStringOrId, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
@@ -829,11 +829,6 @@ func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), 
 	// Important: Check for terminator *before* value scan.
 	// If ";" is found, it means the value is empty/missing, which is valid for optional tokens.
 	if err := ScanStrings(s, ";"); err == nil {
-		if line {
-			if err := ScanNewLine(s, false); err != nil {
-				return "", err
-			}
-		}
 		return "", nil
 	}
 	// If we didn't find ";", we expect a value.
