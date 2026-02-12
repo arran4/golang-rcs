@@ -24,13 +24,14 @@ func (l *Lock) String() string {
 }
 
 type RevisionHead struct {
-	Revision     string
-	Date         time.Time
-	Author       string
-	State        string
-	Branches     []string
-	NextRevision string
-	CommitID     string
+	Revision      string
+	Date          time.Time
+	YearTruncated bool `json:",omitempty"`
+	Author        string
+	State         string
+	Branches      []string
+	NextRevision  string
+	CommitID      string
 	Owner        string `json:",omitempty"`
 	Group        string `json:",omitempty"`
 	Permissions  string `json:",omitempty"`
@@ -41,6 +42,10 @@ func (h *RevisionHead) String() string {
 	sb := strings.Builder{}
 	sb.WriteString(h.Revision)
 	sb.WriteByte('\n')
+	dateFormat := DateFormat
+	if h.YearTruncated {
+		dateFormat = DateFormatTruncated
+	}
 	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(DateFormat), h.Author, h.State)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
@@ -89,21 +94,22 @@ func (c *RevisionContent) String() string {
 }
 
 type File struct {
-	Head             string
-	Branch           string
-	Description      string
-	Comment          string
-	Access           bool
-	Symbols          bool
-	AccessUsers      []string
-	SymbolMap        map[string]string
-	Locks            []*Lock
-	Strict           bool
-	StrictOnOwnLine  bool `json:",omitempty"`
-	Integrity        string
-	Expand           string
-	RevisionHeads    []*RevisionHead
-	RevisionContents []*RevisionContent
+	Head                    string
+	Branch                  string
+	Description             string
+	Comment                 string
+	Access                  bool
+	Symbols                 bool
+	AccessUsers             []string
+	SymbolMap               map[string]string
+	Locks                   []*Lock
+	Strict                  bool
+	StrictOnOwnLine         bool `json:",omitempty"`
+	DateYearPrefixTruncated bool `json:",omitempty"`
+	Integrity               string
+	Expand                  string
+	RevisionHeads           []*RevisionHead
+	RevisionContents        []*RevisionContent
 }
 
 func (f *File) String() string {
@@ -194,6 +200,12 @@ func ParseFile(r io.Reader) (*File, error) {
 	} else {
 		descConsumed = dc
 		f.RevisionHeads = rhs
+		for _, h := range rhs {
+			if h.YearTruncated {
+				f.DateYearPrefixTruncated = true
+				break
+			}
+		}
 	}
 	if desc, err := ParseDescription(s, descConsumed); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
@@ -735,10 +747,16 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
 	if dateStr, err := ParseProperty(s, haveHead, "date", false); err != nil {
 		return err
-	} else if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
-		return err
 	} else {
-		rh.Date = date
+		dateStr = strings.TrimSpace(dateStr)
+		if i := strings.Index(dateStr, "."); i == 2 {
+			rh.YearTruncated = true
+		}
+		if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
+			return err
+		} else {
+			rh.Date = date
+		}
 	}
 	for {
 		if err := ScanStrings(s, " ", "\t", "author", "state"); err != nil {

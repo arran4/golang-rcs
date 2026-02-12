@@ -12,5 +12,5 @@ package cli
 func Validate(output string, force, overwrite, stdout bool, files ...string) {
 	// Validate is currently functionally identical to Format (parse and re-serialize).
 	// If validation rules diverge in future, logic can be separated here.
-	runFormat(output, force, overwrite, stdout, files...)
+	runFormat(output, force, overwrite, stdout, false, files...)
 }
