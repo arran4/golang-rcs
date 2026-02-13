@@ -91,7 +91,7 @@ func TestJsonCommandsStdIO(t *testing.T) {
 		}
 	}()
 
-	ToJson("", false, "-")
+	ToJson("", false, false, "-")
 
 	if err := w.Close(); err != nil {
 		t.Fatalf("close pipe: %v", err)
@@ -155,7 +155,7 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 	}
 
 	// 1. ToJson default output
-	ToJson("", false, inputFile)
+	ToJson("", false, false, inputFile)
 	expectedJsonFile := inputFile + ".json"
 	if _, err := os.Stat(expectedJsonFile); os.IsNotExist(err) {
 		t.Fatalf("Expected output file %s does not exist", expectedJsonFile)
@@ -196,8 +196,45 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 
 	// 4. Custom output
 	customOut := filepath.Join(dir, "custom.json")
-	ToJson(customOut, false, inputFile)
+	ToJson(customOut, false, false, inputFile)
 	if _, err := os.Stat(customOut); os.IsNotExist(err) {
 		t.Fatalf("Expected custom output file %s", customOut)
+	}
+}
+
+func TestToJsonIndent(t *testing.T) {
+	dir := t.TempDir()
+	input := loadTestInput(t)
+	inputFile := filepath.Join(dir, "input.v")
+	if err := os.WriteFile(inputFile, input, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Test Indent=true
+	indentOut := filepath.Join(dir, "indent.json")
+	ToJson(indentOut, false, true, inputFile)
+	content, err := os.ReadFile(indentOut)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Check for indentation (newlines)
+	if !bytes.Contains(content, []byte("\n")) {
+		t.Error("Expected newlines in indented JSON output")
+	}
+	// Check for indentation (2 spaces)
+	if !bytes.Contains(content, []byte("  ")) {
+		t.Error("Expected 2 spaces indentation in indented JSON output")
+	}
+
+	// Test Indent=false
+	compactOut := filepath.Join(dir, "compact.json")
+	ToJson(compactOut, false, false, inputFile)
+	content, err = os.ReadFile(compactOut)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Check for compact output (no unnecessary newlines)
+	if bytes.Contains(content, []byte("\n  \"")) {
+		t.Error("Did not expect indented keys in compact JSON output")
 	}
 }
