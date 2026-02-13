@@ -188,6 +188,54 @@ func (f *File) LocksMap() map[string]string {
 	return m
 }
 
+func (f *File) SwitchLineEnding(nl string) {
+	if f.NewLine == nl {
+		return
+	}
+	if f.NewLine == "" {
+		f.NewLine = "\n"
+	}
+	oldNL := f.NewLine
+	f.NewLine = nl
+
+	replace := func(s string) string {
+		return strings.ReplaceAll(s, oldNL, nl)
+	}
+	replaceSlice := func(strs []string) []string {
+		out := make([]string, len(strs))
+		for i, s := range strs {
+			out[i] = replace(s)
+		}
+		return out
+	}
+
+	f.Description = replace(f.Description)
+	f.Comment = replace(f.Comment)
+	f.Integrity = replace(f.Integrity)
+	f.Expand = replace(f.Expand)
+
+	for _, rh := range f.RevisionHeads {
+		rh.Owner = replaceSlice(rh.Owner)
+		rh.Group = replaceSlice(rh.Group)
+		rh.Permissions = replaceSlice(rh.Permissions)
+		rh.Hardlinks = replaceSlice(rh.Hardlinks)
+		rh.Deltatype = replaceSlice(rh.Deltatype)
+		rh.Kopt = replaceSlice(rh.Kopt)
+		rh.Mergepoint = replaceSlice(rh.Mergepoint)
+		rh.Filename = replaceSlice(rh.Filename)
+		rh.Username = replaceSlice(rh.Username)
+
+		for _, np := range rh.NewPhrases {
+			np.Value = replaceSlice(np.Value)
+		}
+	}
+
+	for _, rc := range f.RevisionContents {
+		rc.Log = replace(rc.Log)
+		rc.Text = replace(rc.Text)
+	}
+}
+
 func (f *File) String() string {
 	nl := f.NewLine
 	if nl == "" {
