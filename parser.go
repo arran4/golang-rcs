@@ -154,6 +154,7 @@ type File struct {
 	Integrity               string
 	Expand                  string
 	NewLine                 string
+	EndOfFileNewLineOffset  int `json:",omitempty"`
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
 }
@@ -314,6 +315,11 @@ func (f *File) String() string {
 	for _, content := range f.RevisionContents {
 		sb.WriteString(content.StringWithNewLine(nl))
 	}
+	if f.EndOfFileNewLineOffset > 0 {
+		sb.WriteString(strings.Repeat(nl, f.EndOfFileNewLineOffset))
+	} else if f.EndOfFileNewLineOffset < 0 {
+		return strings.TrimSuffix(sb.String(), nl)
+	}
 	return sb.String()
 }
 
@@ -396,10 +402,11 @@ func ParseFile(r io.Reader) (*File, error) {
 	} else {
 		f.Description = desc
 	}
-	if rcs, err := ParseRevisionContents(s); err != nil {
+	if rcs, offset, err := ParseRevisionContents(s); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		f.RevisionContents = rcs
+		f.EndOfFileNewLineOffset = offset
 	}
 	return f, nil
 }
@@ -740,38 +747,40 @@ func ParseNewPhraseValue(s *Scanner) ([]string, error) {
 	return words, nil
 }
 
-func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
+func ParseRevisionContents(s *Scanner) ([]*RevisionContent, int, error) {
 	var rcs []*RevisionContent
 	var initialOffset int
 	for {
-		rc, next, err := ParseRevisionContent(s)
+		rc, newLines, err := ParseRevisionContent(s)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		if rc != nil {
 			rc.PrecedingNewLinesOffset += initialOffset
 			rcs = append(rcs, rc)
+		} else {
+			return rcs, initialOffset + newLines, nil
 		}
-		if !next {
-			return rcs, nil
+		if newLines < 2 {
+			return rcs, newLines, nil
 		}
-		initialOffset = 2
+		initialOffset = newLines
 	}
 }
 
-func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
+func ParseRevisionContent(s *Scanner) (*RevisionContent, int, error) {
 	rh := &RevisionContent{}
 	precedingNewLines := 0
 	for {
 		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
 			if IsEOFError(err) {
-				return nil, false, nil
+				return nil, precedingNewLines, nil
 			}
-			return nil, false, err
+			return nil, precedingNewLines, err
 		}
 		rev := s.Text()
 		if err := ScanNewLine(s, false); err != nil {
-			return nil, false, err
+			return nil, precedingNewLines, err
 		}
 		if rev != "" {
 			rh.Revision = rev
@@ -780,36 +789,36 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		}
 		precedingNewLines++
 		if precedingNewLines > 4 {
-			return nil, false, fmt.Errorf("%w: %d", ErrTooManyNewLines, precedingNewLines)
+			return nil, precedingNewLines, fmt.Errorf("%w: %d", ErrTooManyNewLines, precedingNewLines)
 		}
 	}
 	for {
 		if err := ScanStrings(s, "log", "text", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
 			if s.Bytes() != nil && len(s.Bytes()) == 0 {
-				return rh, false, nil
+				return rh, 0, nil
 			}
-			return nil, false, err
+			return nil, 0, err
 		}
 		nt := s.Text()
 		switch nt {
 		case "log":
 			if s, err := ParseRevisionContentLog(s); err != nil {
-				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, 0, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Log = s
 			}
 		case "text":
 			if s, err := ParseRevisionContentText(s); err != nil {
-				return nil, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, 0, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Text = s
 			}
 		case "\n\n", "\r\n\r\n":
-			return rh, true, nil
+			return rh, 2, nil
 		case "\n", "\r\n":
-			return rh, false, nil
+			return rh, 1, nil
 		default:
-			return nil, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
+			return nil, 0, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
 }

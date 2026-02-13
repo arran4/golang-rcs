@@ -975,11 +975,11 @@ func TestParseRevisionContent(t *testing.T) {
 		s *Scanner
 	}
 	tests := []struct {
-		name     string
-		args     args
-		wantRC   *RevisionContent
-		wantMore bool
-		wantErr  bool
+		name         string
+		args         args
+		wantRC       *RevisionContent
+		wantNewLines int
+		wantErr      bool
 	}{
 		{
 			name: "1.1 first and last parse",
@@ -992,8 +992,8 @@ func TestParseRevisionContent(t *testing.T) {
 				Text:                    "a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n",
 				PrecedingNewLinesOffset: -2,
 			},
-			wantMore: true,
-			wantErr:  false,
+			wantNewLines: 2,
+			wantErr:      false,
 		},
 		{
 			name: "1.2 first but not last parse",
@@ -1006,13 +1006,13 @@ func TestParseRevisionContent(t *testing.T) {
 				Text:                    "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
 				PrecedingNewLinesOffset: -2,
 			},
-			wantMore: false,
-			wantErr:  false,
+			wantNewLines: 1,
+			wantErr:      false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRC, gotMore, err := ParseRevisionContent(tt.args.s)
+			gotRC, gotNewLines, err := ParseRevisionContent(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1020,8 +1020,8 @@ func TestParseRevisionContent(t *testing.T) {
 			if diff := cmp.Diff(gotRC, tt.wantRC); diff != "" {
 				t.Errorf("ParseRevisionContent() %s", diff)
 			}
-			if gotMore != tt.wantMore {
-				t.Errorf("ParseRevisionContent() gotMore = %v, want %v", gotMore, tt.wantMore)
+			if gotNewLines != tt.wantNewLines {
+				t.Errorf("ParseRevisionContent() gotNewLines = %v, want %v", gotNewLines, tt.wantNewLines)
 			}
 		})
 	}
@@ -1032,10 +1032,11 @@ func TestParseRevisionContents(t *testing.T) {
 		s *Scanner
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantRcs []*RevisionContent
-		wantErr bool
+		name       string
+		args       args
+		wantRcs    []*RevisionContent
+		wantOffset int
+		wantErr    bool
 	}{
 		{
 			name: "1.2 first but not last parse",
@@ -1056,18 +1057,22 @@ func TestParseRevisionContents(t *testing.T) {
 					PrecedingNewLinesOffset: 0,
 				},
 			},
-			wantErr: false,
+			wantOffset: 0,
+			wantErr:    false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRcs, err := ParseRevisionContents(tt.args.s)
+			gotRcs, gotOffset, err := ParseRevisionContents(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionContents() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(gotRcs, tt.wantRcs); diff != "" {
 				t.Errorf("ParseRevisionContents() %s", diff)
+			}
+			if gotOffset != tt.wantOffset {
+				t.Errorf("ParseRevisionContents() gotOffset = %v, want %v", gotOffset, tt.wantOffset)
 			}
 		})
 	}

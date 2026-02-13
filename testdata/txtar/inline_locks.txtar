@@ -33,6 +33,7 @@ desc
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "EndOfFileNewLineOffset": 2,
   "RevisionHeads": [
     {
       "Revision": "1.1",
