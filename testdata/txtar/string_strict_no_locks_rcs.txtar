@@ -23,6 +23,7 @@ desc
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "EndOfFileNewLineOffset": 1,
   "RevisionHeads": null,
   "RevisionContents": null
 }
