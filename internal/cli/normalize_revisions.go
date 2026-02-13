@@ -133,10 +133,10 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 }
 
 func WriteFile(fn string, file *rcs.File) {
-	fmt.Println("Saving: ", fn)
 	if err := os.WriteFile(fn, []byte(file.String()), 0644); err != nil {
 		log.Panicf("Error saving file: %s: %s", fn, err)
 	}
+	fmt.Printf("Wrote: %s\n", fn)
 }
 
 func ReadParse(fn string) *rcs.File {
