@@ -138,7 +138,9 @@ func (c *Format) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.Format(c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.files...)
+	if err := cli.Format(c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.files...); err != nil {
+		return err
+	}
 
 	return nil
 }

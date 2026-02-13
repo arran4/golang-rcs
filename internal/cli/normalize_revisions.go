@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
-	"log"
 	"os"
 	"sort"
 	"time"
@@ -31,7 +30,7 @@ func (d DateSorter) Swap(i, j int) {
 //
 //	padCommits: -p --pad-commits pad commits with empty commits
 //	files: ... List of files to process
-func NormalizeRevisions(padCommits bool, files ...string) {
+func NormalizeRevisions(padCommits bool, files ...string) error {
 	type Pair struct {
 		Rcs *rcs.File
 		FN  string
@@ -39,7 +38,10 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 	var rs []Pair
 	datesSet := map[time.Time]struct{}{}
 	for _, f := range files {
-		r := ReadParse(f)
+		r, err := ReadParse(f)
+		if err != nil {
+			return err
+		}
 		rs = append(rs, Pair{
 			Rcs: r,
 			FN:  f,
@@ -84,7 +86,7 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 		byDate := map[time.Time]hc{}
 		for i, h := range r.Rcs.RevisionHeads {
 			if i >= len(r.Rcs.RevisionContents) {
-				log.Panicf("File %s has mismatching heads (%d) and contents (%d)", r.FN, len(r.Rcs.RevisionHeads), len(r.Rcs.RevisionContents))
+				return fmt.Errorf("file %s has mismatching heads (%d) and contents (%d)", r.FN, len(r.Rcs.RevisionHeads), len(r.Rcs.RevisionContents))
 			}
 			dt, _ := h.Date.DateTime()
 			byDate[dt] = hc{h: h, c: r.Rcs.RevisionContents[i]}
@@ -128,31 +130,33 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 		r.Rcs.RevisionContents = newContents
 	}
 	for _, r := range rs {
-		WriteFile(r.FN, r.Rcs)
+		if err := WriteFile(r.FN, r.Rcs); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func WriteFile(fn string, file *rcs.File) {
+func WriteFile(fn string, file *rcs.File) error {
 	fmt.Println("Saving: ", fn)
 	if err := os.WriteFile(fn, []byte(file.String()), 0644); err != nil {
-		log.Panicf("Error saving file: %s: %s", fn, err)
+		return fmt.Errorf("error saving file: %s: %w", fn, err)
 	}
+	return nil
 }
 
-func ReadParse(fn string) *rcs.File {
+func ReadParse(fn string) (*rcs.File, error) {
 	f, err := os.Open(fn)
 	if err != nil {
-		log.Panicf("Error with file %s: %s", fn, err)
+		return nil, fmt.Errorf("error with file %s: %w", fn, err)
 	}
 	defer func() {
-		if err = f.Close(); err != nil {
-			log.Panicf("Error closing file; %s: %s", fn, err)
-		}
+		_ = f.Close()
 	}()
 	fmt.Println("Parsing: ", fn)
 	r, err := rcs.ParseFile(f)
 	if err != nil {
-		log.Panicf("Error parsing: %s", err)
+		return nil, fmt.Errorf("error parsing: %w", err)
 	}
-	return r
+	return r, nil
 }

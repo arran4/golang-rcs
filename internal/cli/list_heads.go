@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
-	"log"
 	"os"
 	"time"
 )
@@ -13,29 +12,31 @@ import (
 // Flags:
 //
 //	files: ... List of files to process
-func ListHeads(files ...string) {
+func ListHeads(files ...string) error {
 	for _, f := range files {
-		listHeadsFile(f)
+		if err := listHeadsFile(f); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func listHeadsFile(fn string) {
+func listHeadsFile(fn string) error {
 	f, err := os.Open(fn)
 	if err != nil {
-		log.Panicf("Error with file: %s", err)
+		return fmt.Errorf("error with file: %w", err)
 	}
 	defer func() {
-		if err = f.Close(); err != nil {
-			log.Panicf("Error closing file; %s: %s", fn, err)
-		}
+		_ = f.Close()
 	}()
 	fmt.Println("Parsing: ", fn)
 	r, err := rcs.ParseFile(f)
 	if err != nil {
-		log.Panicf("Error parsing %s: %s", fn, err)
+		return fmt.Errorf("error parsing %s: %w", fn, err)
 	}
 	for _, rh := range r.RevisionHeads {
 		dt, _ := rh.Date.DateTime()
 		fmt.Printf("%s on %s by %s\n", rh.Revision, dt.In(time.Local), rh.Author)
 	}
+	return nil
 }

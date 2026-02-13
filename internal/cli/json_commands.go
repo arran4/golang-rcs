@@ -5,7 +5,6 @@ import (
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
 	"io"
-	"log"
 	"os"
 	"strings"
 )
@@ -17,9 +16,9 @@ import (
 //	output: -o --output Output file path
 //	force: -f --force Force overwrite output
 //	files: ... List of files to process, or - for stdin
-func ToJson(output string, force bool, files ...string) {
+func ToJson(output string, force bool, files ...string) error {
 	if output != "" && len(files) > 1 {
-		log.Panicf("Cannot specify output file with multiple input files")
+		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
 		var f io.Reader
@@ -28,34 +27,37 @@ func ToJson(output string, force bool, files ...string) {
 		} else {
 			file, err := os.Open(fn)
 			if err != nil {
-				log.Panicf("Error with file %s: %s", fn, err)
+				return fmt.Errorf("error with file %s: %w", fn, err)
 			}
 			defer func() {
-				if err = file.Close(); err != nil {
-					log.Panicf("Error closing file; %s: %s", fn, err)
-				}
+				_ = file.Close()
 			}()
 			f = file
 		}
 		r, err := rcs.ParseFile(f)
 		if err != nil {
-			log.Panicf("Error parsing %s: %s", fn, err)
+			return fmt.Errorf("error parsing %s: %w", fn, err)
 		}
 		b, err := json.Marshal(r)
 		if err != nil {
-			log.Panicf("Error serializing %s: %s", fn, err)
+			return fmt.Errorf("error serializing %s: %w", fn, err)
 		}
 
 		if output != "" {
-			writeOutput(output, b, force)
+			if err := writeOutput(output, b, force); err != nil {
+				return err
+			}
 		} else if fn == "-" {
 			fmt.Printf("%s", b)
 		} else {
 			// Default output: filename + .json
 			outPath := fn + ".json"
-			writeOutput(outPath, b, force)
+			if err := writeOutput(outPath, b, force); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // FromJson is a subcommand `gorcs from-json`
@@ -65,9 +67,9 @@ func ToJson(output string, force bool, files ...string) {
 //	output: -o --output Output file path
 //	force: -f --force Force overwrite output
 //	files: ... List of files to process, or - for stdin
-func FromJson(output string, force bool, files ...string) {
+func FromJson(output string, force bool, files ...string) error {
 	if output != "" && len(files) > 1 {
-		log.Panicf("Cannot specify output file with multiple input files")
+		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
 		var f io.Reader
@@ -76,44 +78,48 @@ func FromJson(output string, force bool, files ...string) {
 		} else {
 			file, err := os.Open(fn)
 			if err != nil {
-				log.Panicf("Error with file %s: %s", fn, err)
+				return fmt.Errorf("error with file %s: %w", fn, err)
 			}
 			defer func() {
-				if err = file.Close(); err != nil {
-					log.Panicf("Error closing file; %s: %s", fn, err)
-				}
+				_ = file.Close()
 			}()
 			f = file
 		}
 		var r rcs.File
 		if err := json.NewDecoder(f).Decode(&r); err != nil {
-			log.Panicf("Error parsing %s: %s", fn, err)
+			return fmt.Errorf("error parsing %s: %w", fn, err)
 		}
 
 		outBytes := []byte(r.String())
 
 		if output != "" {
-			writeOutput(output, outBytes, force)
+			if err := writeOutput(output, outBytes, force); err != nil {
+				return err
+			}
 		} else if fn == "-" {
 			fmt.Print(string(outBytes))
 		} else {
 			// Default output: remove .json suffix
 			if !strings.HasSuffix(fn, ".json") {
-				log.Panicf("Input file %s does not have .json extension, use -o to specify output", fn)
+				return fmt.Errorf("input file %s does not have .json extension, use -o to specify output", fn)
 			}
 			outPath := strings.TrimSuffix(fn, ".json")
-			writeOutput(outPath, outBytes, force)
+			if err := writeOutput(outPath, outBytes, force); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
-func writeOutput(path string, data []byte, force bool) {
+func writeOutput(path string, data []byte, force bool) error {
 	if !force {
 		if _, err := os.Stat(path); err == nil {
-			log.Panicf("Output file %s already exists, use -f to force overwrite", path)
+			return fmt.Errorf("output file %s already exists, use -f to force overwrite", path)
 		}
 	}
 	if err := os.WriteFile(path, data, 0644); err != nil {
-		log.Panicf("Error writing output to %s: %s", path, err)
+		return fmt.Errorf("error writing output to %s: %w", path, err)
 	}
+	return nil
 }

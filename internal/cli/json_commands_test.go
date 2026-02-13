@@ -91,7 +91,9 @@ func TestJsonCommandsStdIO(t *testing.T) {
 		}
 	}()
 
-	ToJson("", false, "-")
+	if err := ToJson("", false, "-"); err != nil {
+		t.Errorf("ToJson failed: %v", err)
+	}
 
 	if err := w.Close(); err != nil {
 		t.Fatalf("close pipe: %v", err)
@@ -124,7 +126,9 @@ func TestJsonCommandsStdIO(t *testing.T) {
 		}
 	}()
 
-	FromJson("", false, "-")
+	if err := FromJson("", false, "-"); err != nil {
+		t.Errorf("FromJson failed: %v", err)
+	}
 
 	if err := w.Close(); err != nil {
 		t.Fatalf("close pipe: %v", err)
@@ -155,7 +159,9 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 	}
 
 	// 1. ToJson default output
-	ToJson("", false, inputFile)
+	if err := ToJson("", false, inputFile); err != nil {
+		t.Errorf("ToJson failed: %v", err)
+	}
 	expectedJsonFile := inputFile + ".json"
 	if _, err := os.Stat(expectedJsonFile); os.IsNotExist(err) {
 		t.Fatalf("Expected output file %s does not exist", expectedJsonFile)
@@ -166,21 +172,14 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 	// FromJson writes to trimmed suffix. input.v.json -> input.v
 	// input.v already exists. Should fail without force.
 
-	// Capture log panic? Testing log.Panicf is hard without capturing output or recovering.
-	// Let's assume user uses a library that allows error return instead of panic for CLI,
-	// but currently it panics. We can use defer recover.
-
-	func() {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic due to existing output file without force")
-			}
-		}()
-		FromJson("", false, expectedJsonFile)
-	}()
+	if err := FromJson("", false, expectedJsonFile); err == nil {
+		t.Errorf("Expected error due to existing output file without force, got nil")
+	}
 
 	// 3. FromJson with force
-	FromJson("", true, expectedJsonFile)
+	if err := FromJson("", true, expectedJsonFile); err != nil {
+		t.Errorf("FromJson failed: %v", err)
+	}
 	// Verify content matches original
 	content, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -196,7 +195,9 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 
 	// 4. Custom output
 	customOut := filepath.Join(dir, "custom.json")
-	ToJson(customOut, false, inputFile)
+	if err := ToJson(customOut, false, inputFile); err != nil {
+		t.Errorf("ToJson failed: %v", err)
+	}
 	if _, err := os.Stat(customOut); os.IsNotExist(err) {
 		t.Fatalf("Expected custom output file %s", customOut)
 	}

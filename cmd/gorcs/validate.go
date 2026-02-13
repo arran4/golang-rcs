@@ -127,7 +127,9 @@ func (c *Validate) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.Validate(c.output, c.force, c.overwrite, c.stdout, c.files...)
+	if err := cli.Validate(c.output, c.force, c.overwrite, c.stdout, c.files...); err != nil {
+		return err
+	}
 
 	return nil
 }

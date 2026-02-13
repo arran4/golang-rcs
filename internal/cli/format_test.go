@@ -17,7 +17,9 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 
 	// Run Format with keepTruncatedYears=true, stdout=true
 	// Signature: func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdout, keepTruncatedYears bool, files ...string)
-	runFormat(r, &buf, "", false, false, true, true, "-")
+	if err := runFormat(r, &buf, "", false, false, true, true, "-"); err != nil {
+		t.Errorf("runFormat failed: %v", err)
+	}
 
 	output := buf.String()
 
@@ -31,7 +33,9 @@ func TestFormat_KeepTruncatedYears(t *testing.T) {
 	buf.Reset()
 
 	// Run Format with keepTruncatedYears=false (default), stdout=true
-	runFormat(r, &buf, "", false, false, true, false, "-")
+	if err := runFormat(r, &buf, "", false, false, true, false, "-"); err != nil {
+		t.Errorf("runFormat failed: %v", err)
+	}
 
 	output = buf.String()
 
