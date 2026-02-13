@@ -1,4 +1,4 @@
--- input.rcs --
+-- input,v --
 head     1.1;
 locks    payne:4.4.2.1;
 comment  @# Reduced version of an old repo with an empty branch label.@;
@@ -32,6 +32,7 @@ desc
   "Strict": false,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -45,6 +46,7 @@ desc
   ],
   "RevisionContents": null
 }
+
 -- expected,v --
 head	1.1;
 locks
@@ -60,3 +62,15 @@ next	;
 
 desc
 @@
+
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- description.txt --
+Test parsing of inline locks field (single line).
+
+-- options.conf --
+* unix line endings
+* force unix line endings

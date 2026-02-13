@@ -11,9 +11,11 @@
   "Strict": true,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": null,
   "RevisionContents": null
 }
+
 -- expected,v --
 head	1.1;
 symbols;
@@ -26,31 +28,12 @@ desc
 @d@
 
 
--- input.rcs --
-head	1.1;
-symbols;
-locks; strict;
-comment	@c@;
+-- tests.txt --
+json to rcs
 
+-- description.txt --
+Test serialization of a new file with default values (strict mode).
 
-
-desc
-@d@
-
-
--- expected.json --
-{
-  "Head": "1.1",
-  "Branch": "",
-  "Description": "d",
-  "Comment": "c",
-  "Access": false,
-  "Symbols": [],
-  "AccessUsers": null,
-  "Locks": [],
-  "Strict": true,
-  "Integrity": "",
-  "Expand": "",
-  "RevisionHeads": null,
-  "RevisionContents": null
-}
+-- options.conf --
+* unix line endings
+* force unix line endings

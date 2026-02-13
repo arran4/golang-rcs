@@ -65,6 +65,7 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
   "Strict": true,
   "Integrity": "",
   "Expand": "b",
+  "NewLine": "\n",
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -151,3 +152,5 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
+* unix line endings
+* force unix line endings
