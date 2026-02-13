@@ -21,7 +21,7 @@ desc
   "Description": "",
   "Comment": "# Reduced version of an old repo with an empty branch label.",
   "Access": false,
-  "Symbols": null,
+  "Symbols": [],
   "AccessUsers": null,
   "Locks": [
     {
@@ -33,8 +33,7 @@ desc
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
-
-  "SpaceStop": 8,
+  "SpaceStop": 9,
   "EndOfFileNewLineOffset": 1,
   "RevisionHeads": [
     {
@@ -51,15 +50,21 @@ desc
 }
 
 -- expected,v --
-head    1.1;
+head     1.1;
 symbols;
-locks; strict;
-comment @c@;
+locks
+         payne:4.4.2.1;
+comment  @# Reduced version of an old repo with an empty branch label.@;
 
+
+1.1
+date     2021.01.01.00.00.00;       author   payne;   state    Exp;
+branches;
+next     ;
 
 
 desc
-@d@
+@@
 
 
 -- tests.txt --

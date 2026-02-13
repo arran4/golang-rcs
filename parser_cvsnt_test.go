@@ -76,7 +76,7 @@ newfield	value1 @value 2@;
 	// value 2 -> @value 2@
 
 	expectedString := `1.2
-date    99.01.12.14.05.31;  author  lhecking;   state   dead;
+date    99.01.12.14.05.31;      author  lhecking;       state   dead;
 branches;
 next    1.1;
 owner   640;

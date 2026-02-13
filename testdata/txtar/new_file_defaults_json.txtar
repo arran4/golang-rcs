@@ -17,10 +17,10 @@
 }
 
 -- expected,v --
-head	1.1;
+head    1.1;
 symbols;
 locks; strict;
-comment	@c@;
+comment @c@;
 
 
 

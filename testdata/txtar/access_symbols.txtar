@@ -1,6 +1,6 @@
 -- input,v --
 head	1.1;
-access john jane;
+access	john jane;
 symbols
 	rel:1.1
 	tag:1.1.0.2;
@@ -10,7 +10,7 @@ comment	@# @;
 
 
 1.1
-date	2024.01.01.00.00.00;	author john;	state Exp;
+date	2024.01.01.00.00.00;	author	john;	state	Exp;
 branches;
 next	;
 

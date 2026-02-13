@@ -14,8 +14,6 @@
   "Expand": "kv",
   "NewLine": "\n",
   "IndentString": "\t",
-
-  "SpaceStop": 8,
   "RevisionHeads": [
     {
       "Revision": "1.1",

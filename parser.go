@@ -107,7 +107,6 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 
 	indent = calculateIndent(lineLen, spaceStop, indentString)
 	sb.WriteString(indent)
-	lineLen += len(indent)
 
 	sb.WriteString(h.State.String())
 
@@ -502,7 +501,8 @@ func WriteAtQuote(w io.Writer, s string) (int, error) {
 }
 
 func ParseFile(r io.Reader) (*File, error) {
-	f := new(File)
+	f := NewFile()
+	f.Strict = false
 	s := NewScanner(r)
 	if err := ParseHeader(s, f); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)

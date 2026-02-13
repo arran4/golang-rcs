@@ -16,7 +16,7 @@ desc
   "Description": "",
   "Comment": "",
   "Access": false,
-  "Symbols": null,
+  "Symbols": [],
   "AccessUsers": null,
   "Locks": [],
   "Strict": true,
@@ -31,6 +31,7 @@ desc
 
 -- expected,v --
 head	1.7;
+symbols;
 locks; strict;
 comment	@@;
 

@@ -380,6 +380,7 @@ func TestParseHeader(t *testing.T) {
 				Strict:          true,
 				StrictOnOwnLine: false,
 				NewLine:         "\n",
+				IndentString:    "\t",
 			},
 			wantErr: false,
 		},
@@ -1455,9 +1456,9 @@ func TestRevisionHeadStringBranches(t *testing.T) {
 		NextRevision: "",
 	}
 	want := "1.1\n" +
-		"date\t2022.01.01.00.00.00;\tauthor test;\tstate Exp;\n" +
-		"branches\n\t1.1.1.1\n\t1.1.2.1;\n" +
-		"next\t;\n"
+		"date    2022.01.01.00.00.00;    author  test;   state   Exp;\n" +
+		"branches\n        1.1.1.1\n        1.1.2.1;\n" +
+		"next    ;\n"
 	if diff := cmp.Diff(h.String(), want); diff != "" {
 		t.Errorf("RevisionHead.String() diff: %s", diff)
 	}
@@ -1679,7 +1680,7 @@ text
 	// Check serialization
 	// We expect the output to also have "99.01.01..." if we support preserving it.
 	// Currently it will likely output "1999.01.01..."
-	if got, want := f.RevisionHeads[0].String(), "1.1\ndate\t99.01.01.00.00.00;\tauthor user;\tstate Exp;\nbranches;\nnext\t;\n"; got != want {
+	if got, want := f.RevisionHeads[0].String(), "1.1\ndate    99.01.01.00.00.00;      author  user;   state   Exp;\nbranches;\nnext    ;\n"; got != want {
 		t.Errorf("Output for revision head should contain truncated date '99.01.01.00.00.00;', got:\n%s\nwant:\n%s", got, want)
 	}
 }
@@ -1731,7 +1732,7 @@ func TestStringIntegrity(t *testing.T) {
 		Description: "",
 	}
 	s := f.String()
-	expected := "integrity\t@some @@ value@;\n"
+	expected := "integrity       @some @@ value@;\n"
 	if !strings.Contains(s, expected) {
 		t.Errorf("expected output to contain %q, got:\n%s", expected, s)
 	}
@@ -1773,13 +1774,13 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 	// Verify String() output
 	// Note: stringize.m4 is a valid ID, so it will be output unquoted by default now.
 	expectedOutput := "1.2\n" +
-		"date\t99.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
+		"date    99.01.12.14.05.31;      author  lhecking;       state   dead;\n" +
 		"branches;\n" +
-		"next\t1.1;\n" +
-		"owner\t640;\n" +
-		"group\t15;\n" +
-		"permissions\t644;\n" +
-		"hardlinks\t@stringize.m4@;\n"
+		"next    1.1;\n" +
+		"owner   640;\n" +
+		"group   15;\n" +
+		"permissions     644;\n" +
+		"hardlinks       @stringize.m4@;\n"
 
 	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
 		t.Errorf("String() mismatch (-want +got):\n%s", diff)
@@ -1844,7 +1845,7 @@ func TestFile_String(t *testing.T) {
 		},
 		Description: "test desc\n",
 	}
-	expected := "head\t1.1;\ncomment\t@# @;\n\n\n1.1\ndate\t2022.01.01.00.00.00;\tauthor user;\tstate Exp;\nbranches;\nnext\t;\n\n\ndesc\n@test desc\n@\n\n"
+	expected := "head    1.1;\ncomment @# @;\n\n\n1.1\ndate    2022.01.01.00.00.00;    author  user;   state   Exp;\nbranches;\nnext    ;\n\n\ndesc\n@test desc\n@\n\n"
 	if got := f.String(); got != expected {
 		t.Errorf("File.String() = %q, want %q", got, expected)
 	}
@@ -1857,7 +1858,7 @@ func TestFile_String(t *testing.T) {
 
 	// Test RevisionHead with branches
 	f.RevisionHeads[0].Branches = []Num{"1.1.1.1"}
-	if !strings.Contains(f.RevisionHeads[0].String(), "branches\n\t1.1.1.1;") {
+	if !strings.Contains(f.RevisionHeads[0].String(), "branches\n        1.1.1.1;") {
 		t.Errorf("RevisionHead.String() missing branches: %q", f.RevisionHeads[0].String())
 	}
 }
@@ -2184,7 +2185,7 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 }
 
 func TestParseFile_CRLF(t *testing.T) {
-	content := "head\t1.1;\r\naccess;\r\nsymbols;\r\nlocks; strict;\r\ncomment\t@# @;\r\n\r\n\r\n1.1\r\ndate\t2020.01.01.00.00.00;\tauthor user;\tstate Exp;\r\nbranches;\r\nnext\t;\r\n\r\n\r\ndesc\r\n@@\r\n\r\n1.1\r\nlog\r\n@@\r\ntext\r\n@@\r\n"
+	content := "head\t1.1;\r\naccess;\r\nsymbols;\r\nlocks; strict;\r\ncomment\t@# @;\r\n\r\n\r\n1.1\r\ndate\t2020.01.01.00.00.00;\tauthor\tuser;\tstate\tExp;\r\nbranches;\r\nnext\t;\r\n\r\n\r\ndesc\r\n@@\r\n\r\n1.1\r\nlog\r\n@@\r\ntext\r\n@@\r\n"
 	f, err := ParseFile(strings.NewReader(content))
 	if err != nil {
 		t.Fatal(err)
@@ -2203,7 +2204,7 @@ func TestParseFile_CRLF(t *testing.T) {
 }
 
 func TestParseFile_LF(t *testing.T) {
-	content := "head\t1.1;\naccess;\nsymbols;\nlocks; strict;\ncomment\t@# @;\n\n\n1.1\ndate\t2020.01.01.00.00.00;\tauthor user;\tstate Exp;\nbranches;\nnext\t;\n\n\ndesc\n@@\n\n1.1\nlog\n@@\ntext\n@@\n"
+	content := "head\t1.1;\naccess;\nsymbols;\nlocks; strict;\ncomment\t@# @;\n\n\n1.1\ndate\t2020.01.01.00.00.00;\tauthor\tuser;\tstate\tExp;\nbranches;\nnext\t;\n\n\ndesc\n@@\n\n1.1\nlog\n@@\ntext\n@@\n"
 	f, err := ParseFile(strings.NewReader(content))
 	if err != nil {
 		t.Fatal(err)
@@ -2219,4 +2220,5 @@ func TestParseFile_LF(t *testing.T) {
 		t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
 	}
 }
+
 // touch
