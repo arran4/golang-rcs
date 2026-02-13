@@ -15,25 +15,18 @@ import (
 //			output: -o --output Output file path
 //			force: -f --force Force overwrite output
 //			overwrite: -w --overwrite Overwrite input file
-//			stdout: -s --stdout Force output to stdout
 //	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
-func Format(output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
-	runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, keepTruncatedYears, files...)
+func Format(output string, force, overwrite, keepTruncatedYears bool, files ...string) {
+	runFormat(os.Stdin, os.Stdout, output, force, overwrite, keepTruncatedYears, files...)
 }
 
-func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
-	if output != "" && len(files) > 1 {
+func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, keepTruncatedYears bool, files ...string) {
+	if output != "" && output != "-" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
 	if overwrite && output != "" {
 		log.Panicf("Cannot specify both overwrite and output file")
-	}
-	if overwrite && stdoutFlag {
-		log.Panicf("Cannot specify both overwrite and stdout")
-	}
-	if output != "" && stdoutFlag {
-		log.Panicf("Cannot specify both output and stdout")
 	}
 
 	for _, fn := range files {
@@ -72,6 +65,8 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			if err := os.WriteFile(fn, []byte(content), 0644); err != nil {
 				log.Panicf("Error writing file %s: %s", fn, err)
 			}
+		} else if output == "-" {
+			_, _ = fmt.Fprint(stdout, content)
 		} else if output != "" {
 			writeOutput(output, []byte(content), force)
 		} else {
