@@ -46,7 +46,9 @@ func ToJson(output string, force bool, files ...string) {
 			log.Panicf("Error serializing %s: %s", fn, err)
 		}
 
-		if output != "" {
+		if output == "-" {
+			fmt.Printf("%s", b)
+		} else if output != "" {
 			writeOutput(output, b, force)
 		} else if fn == "-" {
 			fmt.Printf("%s", b)
@@ -92,7 +94,9 @@ func FromJson(output string, force bool, files ...string) {
 
 		outBytes := []byte(r.String())
 
-		if output != "" {
+		if output == "-" {
+			fmt.Print(string(outBytes))
+		} else if output != "" {
 			writeOutput(output, outBytes, force)
 		} else if fn == "-" {
 			fmt.Print(string(outBytes))
