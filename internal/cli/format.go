@@ -23,7 +23,7 @@ func Format(output string, force, overwrite, stdoutFlag, keepTruncatedYears bool
 }
 
 func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
-	if output != "" && len(files) > 1 {
+	if output != "" && output != "-" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
 	if overwrite && output != "" {

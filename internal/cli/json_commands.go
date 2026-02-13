@@ -18,7 +18,7 @@ import (
 //	force: -f --force Force overwrite output
 //	files: ... List of files to process, or - for stdin
 func ToJson(output string, force bool, files ...string) {
-	if output != "" && len(files) > 1 {
+	if output != "" && output != "-" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
@@ -68,7 +68,7 @@ func ToJson(output string, force bool, files ...string) {
 //	force: -f --force Force overwrite output
 //	files: ... List of files to process, or - for stdin
 func FromJson(output string, force bool, files ...string) {
-	if output != "" && len(files) > 1 {
+	if output != "" && output != "-" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
