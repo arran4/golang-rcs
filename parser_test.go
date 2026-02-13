@@ -1981,7 +1981,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 	}{
 		{
 			name:    "Unknown field",
-			input:   "1.1\nunknown",
+			input:   "1.1\nunknown;",
 			wantErr: "",
 		},
 		{
@@ -2111,7 +2111,7 @@ func TestParseFile_Errors(t *testing.T) {
 		},
 		{
 			name:    "Revision headers error",
-			input:   "head 1.1;\n\n\n1.1\nbad",
+			input:   "head 1.1;\n\n\n1.1\nbad;",
 			wantErr: "looking for \"desc",
 		},
 		{
@@ -2188,10 +2188,10 @@ func TestParseFile_CRLF(t *testing.T) {
 	if !strings.Contains(out, "\r\n") {
 		t.Errorf("expected output to contain \\r\\n")
 	}
-    // Check if it round-trips exactly
-    if out != content {
-        t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
-    }
+	// Check if it round-trips exactly
+	if out != content {
+		t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
+	}
 }
 
 func TestParseFile_LF(t *testing.T) {
@@ -2207,7 +2207,7 @@ func TestParseFile_LF(t *testing.T) {
 	if strings.Contains(out, "\r\n") {
 		t.Errorf("expected output to not contain \\r\\n")
 	}
-    if out != content {
-        t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
-    }
+	if out != content {
+		t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
+	}
 }
