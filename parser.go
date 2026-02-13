@@ -82,10 +82,10 @@ func (h *RevisionHead) String() string {
 }
 
 type RevisionContent struct {
-	Revision                 string
-	Log                      string
-	Text                     string
-	PrecedingNewLinesOffset  int `json:",omitempty"`
+	Revision                string
+	Log                     string
+	Text                    string
+	PrecedingNewLinesOffset int `json:",omitempty"`
 }
 
 func (c *RevisionContent) String() string {
