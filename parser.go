@@ -110,10 +110,8 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 	lineLen += len(indent)
 
 	sb.WriteString(h.State.String())
-	lineLen += len(h.State.String())
 
 	sb.WriteString(";")
-	// lineLen++
 	sb.WriteString(nl)
 
 	sb.WriteString("branches")
