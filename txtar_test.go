@@ -180,14 +180,13 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatal("Missing expected.json")
 		}
 
-		// Normalize input if requested
-		if options["unix line endings"] {
-			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
-		}
-
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		if options["unix line endings"] || options["force unix line endings"] {
+			forceUnixLineEndings(parsedFile)
 		}
 
 		gotJSONBytes, err := json.MarshalIndent(parsedFile, "", "  ")
@@ -196,9 +195,10 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 		}
 		gotJSON := string(gotJSONBytes)
 
-		if options["unix line endings"] {
+		// Also normalize expected JSON from file because it might have CRLF on Windows
+		if options["unix line endings"] || options["force unix line endings"] {
 			expectedJSON = strings.ReplaceAll(expectedJSON, "\r\n", "\n")
-			gotJSON = strings.ReplaceAll(gotJSON, "\r\n", "\n")
+			// gotJSON already has \n because parsedFile was normalized
 		}
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedJSON), strings.TrimSpace(gotJSON)); diff != "" {
@@ -211,14 +211,13 @@ func testCircular(t *testing.T, parts map[string]string, options map[string]bool
 	t.Run("rcs to rcs", func(t *testing.T) {
 		inputRCS := getInputRCS(t, parts)
 
-		// Normalize input if requested
-		if options["unix line endings"] {
-			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
-		}
-
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		if options["unix line endings"] || options["force unix line endings"] {
+			forceUnixLineEndings(parsedFile)
 		}
 
 		gotRCS := parsedFile.String()
@@ -241,14 +240,13 @@ func testFormatRCS(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatal("Missing expected,v")
 		}
 
-		// Normalize input if requested
-		if options["unix line endings"] {
-			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
-		}
-
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		if options["unix line endings"] || options["force unix line endings"] {
+			forceUnixLineEndings(parsedFile)
 		}
 
 		gotRCS := parsedFile.String()
@@ -259,11 +257,6 @@ func testFormatRCS(t *testing.T, parts map[string]string, options map[string]boo
 func testValidateRCS(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Run("validate rcs", func(t *testing.T) {
 		inputRCS := getInputRCS(t, parts)
-
-		// Normalize input if requested
-		if options["unix line endings"] {
-			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
-		}
 
 		_, err := parseRCS(inputRCS)
 		if err != nil {
@@ -280,6 +273,9 @@ func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool) 
 		}
 
 		f := NewFile()
+		if options["unix line endings"] || options["force unix line endings"] {
+			f.NewLine = "\n"
+		}
 		gotRCS := f.String()
 		checkRCS(t, expectedRCS, gotRCS, options)
 	})
@@ -293,11 +289,6 @@ func testListHeads(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatal("Missing expected.out")
 		}
 
-		// Normalize input if requested
-		if options["unix line endings"] {
-			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
-		}
-
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
@@ -309,7 +300,7 @@ func testListHeads(t *testing.T, parts map[string]string, options map[string]boo
 		}
 		gotOut := sb.String()
 
-		if options["unix line endings"] {
+		if options["unix line endings"] || options["force unix line endings"] {
 			expectedOut = strings.ReplaceAll(expectedOut, "\r\n", "\n")
 			gotOut = strings.ReplaceAll(gotOut, "\r\n", "\n")
 		}
@@ -332,11 +323,6 @@ func testParseError(t *testing.T, testName string, parts map[string]string, opti
 
 	t.Run(testName, func(t *testing.T) {
 		inputRCS := getInputRCS(t, parts)
-
-		// Normalize input if requested
-		if options["unix line endings"] {
-			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
-		}
 
 		provider, ok := ErrorTestProvider[errorName]
 		if !ok {
@@ -408,13 +394,15 @@ func parseRCS(content string) (*File, error) {
 
 func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 	ignoreWhitespace := options["ignore white space"]
-	unixLineEndings := options["unix line endings"]
+	unixLineEndings := options["unix line endings"] || options["force unix line endings"]
 
 	normExpected := strings.TrimSpace(expected)
 	normGot := strings.TrimSpace(got)
 
 	if unixLineEndings {
 		normExpected = strings.ReplaceAll(normExpected, "\r\n", "\n")
+		// got should already be normalized via forceUnixLineEndings -> String(),
+		// but explicit replacement doesn't hurt and handles edge cases
 		normGot = strings.ReplaceAll(normGot, "\r\n", "\n")
 	}
 
@@ -428,5 +416,25 @@ func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 		if !ignoreWhitespace {
 			t.Logf("Got RCS:\n%q", got)
 		}
+	}
+}
+
+func forceUnixLineEndings(f *File) {
+	f.NewLine = "\n"
+	f.Description = strings.ReplaceAll(f.Description, "\r\n", "\n")
+	f.Comment = strings.ReplaceAll(f.Comment, "\r\n", "\n")
+	f.Integrity = strings.ReplaceAll(f.Integrity, "\r\n", "\n")
+	f.Expand = strings.ReplaceAll(f.Expand, "\r\n", "\n")
+
+	for _, rh := range f.RevisionHeads {
+		// RevisionHead fields are mostly single line, but we can check if needed.
+		// Usually no multiline strings in RevisionHead except maybe NewPhrases?
+		// We'll skip for now unless needed.
+		_ = rh
+	}
+
+	for _, rc := range f.RevisionContents {
+		rc.Log = strings.ReplaceAll(rc.Log, "\r\n", "\n")
+		rc.Text = strings.ReplaceAll(rc.Text, "\r\n", "\n")
 	}
 }
