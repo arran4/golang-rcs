@@ -31,6 +31,10 @@ func (d DateSorter) Swap(i, j int) {
 //	padCommits: -p --pad-commits pad commits with empty commits
 //	files: ... List of files to process
 func NormalizeRevisions(padCommits bool, files ...string) error {
+	var err error
+	if files, err = ensureFiles(files); err != nil {
+		return err
+	}
 	type Pair struct {
 		Rcs *rcs.File
 		FN  string

@@ -13,6 +13,10 @@ import (
 //
 //	files: ... List of files to process
 func ListHeads(files ...string) error {
+	var err error
+	if files, err = ensureFiles(files); err != nil {
+		return err
+	}
 	for _, f := range files {
 		if err := listHeadsFile(f); err != nil {
 			return err

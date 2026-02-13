@@ -16,6 +16,10 @@ import (
 //	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
 func Format(output string, force, keepTruncatedYears bool, files ...string) error {
+	var err error
+	if files, err = ensureFiles(files); err != nil {
+		return err
+	}
 	return runFormat(os.Stdin, os.Stdout, output, force, false, false, keepTruncatedYears, files...)
 }
 

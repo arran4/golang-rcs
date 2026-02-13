@@ -1,12 +1,17 @@
 Usage: gorcs to-json [flags...] [files...]
 
+output: -o --output Output file path
+force: -f --force Force overwrite output
+indent: -I --indent Indent JSON output
+
 Subcommands:
     help         Print this help message
     usage        Print this usage message
 
 Flags:
-    -o, --output string   Output file path
-    -f, --force           Force overwrite output
+    --output string
+    --force
+    --indent
 
 Positional Arguments:
     files      List of files to process or - for stdin

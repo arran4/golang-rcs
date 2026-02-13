@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"fmt"
@@ -7,22 +7,20 @@ import (
 
 // ensureFiles checks if file arguments are provided.
 // If not, it checks stdin:
-// - If stdin is a TTY, it calls usage() and returns an error.
+// - If stdin is a TTY, it returns an error.
 // - If stdin is a pipe/file, it returns []string{"-"} to read from stdin.
-func ensureFiles(files []string, usage func()) ([]string, error) {
+func ensureFiles(files []string) ([]string, error) {
 	if len(files) > 0 {
 		return files, nil
 	}
 
 	stat, err := os.Stdin.Stat()
 	if err != nil {
-		usage()
 		return nil, fmt.Errorf("stdin stat error: %w", err)
 	}
 
 	if (stat.Mode() & os.ModeCharDevice) != 0 {
 		// Stdin is a terminal, and no files provided
-		usage()
 		return nil, fmt.Errorf("no input files provided")
 	}
 

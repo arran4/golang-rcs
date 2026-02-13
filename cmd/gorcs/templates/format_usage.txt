@@ -1,15 +1,17 @@
 Usage: gorcs format [flags...] [files...]
 
+output: -o --output Output file path
+force: -f --force Force overwrite output
+keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
+
 Subcommands:
     help         Print this help message
     usage        Print this usage message
 
 Flags:
-    -o, --output string   Output file path (only valid for single input file)
-    -f, --force           Force overwrite output file if it exists
-    -w, --overwrite       Overwrite input file
-    -s, --stdout          Force output to stdout
-    --keep-truncated-years Keep truncated years (do not expand to 4 digits)
+    --output string
+    --force
+    --keep-truncated-years
 
 Positional Arguments:
     files      List of files to process or - for stdin
