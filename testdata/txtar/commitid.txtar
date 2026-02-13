@@ -15,7 +15,7 @@
   "RevisionHeads": [
     {
       "Revision": "1.2",
-      "Date": "2024-07-31T07:11:33Z",
+      "Date": "2024.07.31.07.11.33",
       "Author": "esr",
       "State": "Exp",
       "Branches": [],
@@ -24,7 +24,7 @@
     },
     {
       "Revision": "1.1",
-      "Date": "2024-07-31T07:11:27Z",
+      "Date": "2024.07.31.07.11.27",
       "Author": "esr",
       "State": "Exp",
       "Branches": [],

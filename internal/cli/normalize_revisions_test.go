@@ -44,7 +44,7 @@ func writeSubset(t *testing.T, dir string, indices []int) string {
 	}
 	if len(heads) > 0 {
 		heads[len(heads)-1].NextRevision = ""
-		f.Head = heads[0].Revision
+		f.Head = heads[0].Revision.String()
 	}
 	f.RevisionHeads = heads
 	f.RevisionContents = contents

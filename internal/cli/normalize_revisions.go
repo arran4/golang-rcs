@@ -45,8 +45,9 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 			FN:  f,
 		})
 		for _, rh := range r.RevisionHeads {
-			fmt.Printf("%s on %s by %s\n", rh.Revision, rh.Date.In(time.Local), rh.Author)
-			datesSet[rh.Date] = struct{}{}
+			dt, _ := rh.Date.DateTime()
+			fmt.Printf("%s on %s by %s\n", rh.Revision, dt.In(time.Local), rh.Author)
+			datesSet[dt] = struct{}{}
 		}
 	}
 	var dates []time.Time
@@ -64,10 +65,11 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 		fmt.Println("File", r.FN)
 		revisionToRevision := map[string]string{}
 		for _, rh := range r.Rcs.RevisionHeads {
-			s := dateToRevision[rh.Date]
-			revisionToRevision[rh.Revision] = s
-			fmt.Println("Updating date ", rh.Date.Format(rcs.DateFormat), " to revision: ", s, "from", rh.Revision)
-			rh.Revision = s
+			dt, _ := rh.Date.DateTime()
+			s := dateToRevision[dt]
+			revisionToRevision[rh.Revision.String()] = s
+			fmt.Println("Updating date ", dt.Format(rcs.DateFormat), " to revision: ", s, "from", rh.Revision)
+			rh.Revision = rcs.Num(s)
 		}
 
 		type hc struct {
@@ -76,7 +78,7 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 		}
 
 		for _, rh := range r.Rcs.RevisionHeads {
-			rh.NextRevision = revisionToRevision[rh.NextRevision]
+			rh.NextRevision = rcs.Num(revisionToRevision[rh.NextRevision.String()])
 		}
 
 		byDate := map[time.Time]hc{}
@@ -84,7 +86,8 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 			if i >= len(r.Rcs.RevisionContents) {
 				log.Panicf("File %s has mismatching heads (%d) and contents (%d)", r.FN, len(r.Rcs.RevisionHeads), len(r.Rcs.RevisionContents))
 			}
-			byDate[h.Date] = hc{h: h, c: r.Rcs.RevisionContents[i]}
+			dt, _ := h.Date.DateTime()
+			byDate[dt] = hc{h: h, c: r.Rcs.RevisionContents[i]}
 		}
 		for _, rc := range r.Rcs.RevisionContents {
 			rc.Revision = revisionToRevision[rc.Revision]
@@ -97,12 +100,13 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 			d := dates[i]
 			pair, ok := byDate[d]
 			if ok {
-				pair.h.Revision = dateToRevision[d]
+				pair.h.Revision = rcs.Num(dateToRevision[d])
 				pair.c.Revision = dateToRevision[d]
 				newHeads = append(newHeads, pair.h)
 				newContents = append(newContents, pair.c)
 			} else if padCommits {
-				h := &rcs.RevisionHead{Revision: dateToRevision[d], Date: d}
+				dtStr := d.Format(rcs.DateFormat)
+				h := &rcs.RevisionHead{Revision: rcs.Num(dateToRevision[d]), Date: rcs.DateTime(dtStr)}
 				c := &rcs.RevisionContent{Revision: dateToRevision[d]}
 				newHeads = append(newHeads, h)
 				newContents = append(newContents, c)
@@ -118,7 +122,7 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 		}
 
 		if len(newHeads) > 0 {
-			r.Rcs.Head = newHeads[0].Revision
+			r.Rcs.Head = newHeads[0].Revision.String()
 		}
 		r.Rcs.RevisionHeads = newHeads
 		r.Rcs.RevisionContents = newContents

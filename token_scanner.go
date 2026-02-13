@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -115,6 +116,36 @@ func (p PhraseValues) Format() {
 			}
 		}
 	}
+}
+
+type DateTime string
+
+func (dt DateTime) String() string {
+	return string(dt)
+}
+
+// DateTime returns the date.Time representation of the DateTime string.
+// It tries to parse using DateFormat and DateFormatTruncated.
+func (dt DateTime) DateTime() (time.Time, error) {
+	return ParseDate(string(dt), time.Time{}, nil)
+}
+
+type Num string
+
+func (n Num) String() string {
+	return string(n)
+}
+
+type ID string
+
+func (i ID) String() string {
+	return string(i)
+}
+
+type Sym string
+
+func (s Sym) String() string {
+	return string(s)
 }
 
 func ScanTokenId(s *Scanner) (string, error) {

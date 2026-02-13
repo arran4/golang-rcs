@@ -28,19 +28,19 @@ type Symbol struct {
 }
 
 type NewPhrase struct {
-	Key   string
+	Key   ID
 	Value PhraseValues
 }
 
 type RevisionHead struct {
-	Revision      string
-	Date          time.Time
+	Revision      Num
+	Date          DateTime
 	YearTruncated bool `json:",omitempty"`
-	Author        string
-	State         string
-	Branches      []string
-	NextRevision  string
-	CommitID      string
+	Author        ID
+	State         ID
+	Branches      []Num
+	NextRevision  Num
+	CommitID      Sym
 	Owner         PhraseValues `json:",omitempty"` // CVS-NT
 	Group         PhraseValues `json:",omitempty"` // CVS-NT
 	Permissions   PhraseValues `json:",omitempty"` // CVS-NT
@@ -59,17 +59,18 @@ func (h *RevisionHead) String() string {
 
 func (h *RevisionHead) StringWithNewLine(nl string) string {
 	sb := strings.Builder{}
-	sb.WriteString(h.Revision)
+	sb.WriteString(h.Revision.String())
 	sb.WriteString(nl)
-	dateFormat := DateFormat
-	if h.YearTruncated {
-		dateFormat = DateFormatTruncated
-	}
-	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date.Format(dateFormat), h.Author, h.State, nl)
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date, h.Author, h.State, nl)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		sb.WriteString(nl + "\t")
-		sb.WriteString(strings.Join(h.Branches, nl+"\t"))
+		for i, b := range h.Branches {
+			if i > 0 {
+				sb.WriteString(nl + "\t")
+			}
+			sb.WriteString(b.String())
+		}
 		sb.WriteString(";")
 	} else {
 		sb.WriteString(";")
@@ -107,7 +108,7 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 	writePhrase("username", h.Username)
 
 	for _, phrase := range h.NewPhrases {
-		writePhrase(phrase.Key, phrase.Value)
+		writePhrase(phrase.Key.String(), phrase.Value)
 	}
 
 	return sb.String()
@@ -591,7 +592,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 			return nil, false, false, err
 		}
 		if rev != "" {
-			rh.Revision = rev
+			rh.Revision = Num(rev)
 			break
 		}
 	}
@@ -627,7 +628,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 					if np, err := ParseNewPhraseValue(s); err != nil {
 						return nil, false, false, fmt.Errorf("parsing new phrase %q: %w", id, err)
 					} else {
-						rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: id, Value: np})
+						rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: ID(id), Value: np})
 						continue
 					}
 				}
@@ -652,13 +653,13 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.NextRevision = n
+				rh.NextRevision = Num(n)
 			}
 		case "commitid":
 			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.CommitID = c
+				rh.CommitID = Sym(c)
 			}
 		case "owner":
 			if v, err := ParseNewPhraseValue(s); err != nil {
@@ -828,7 +829,7 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 			return err
 		}
 	}
-	rh.Branches = []string{}
+	rh.Branches = []Num{}
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return err
@@ -840,7 +841,7 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 		if err != nil {
 			return fmt.Errorf("expected num in branches: %w", err)
 		}
-		rh.Branches = append(rh.Branches, num)
+		rh.Branches = append(rh.Branches, Num(num))
 	}
 	return nil
 }
@@ -1031,10 +1032,10 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		if i := strings.Index(dateStr, "."); i == 2 {
 			rh.YearTruncated = true
 		}
-		if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
+		if _, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
 			return err
 		} else {
-			rh.Date = date
+			rh.Date = DateTime(dateStr)
 		}
 	}
 	for {
@@ -1052,13 +1053,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 			if s, err := ParseOptionalToken(s, ScanTokenAuthor, WithPropertyName("author"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.Author = s
+				rh.Author = ID(s)
 			}
 		case "state":
 			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.State = s
+				rh.State = ID(s)
 			}
 		default:
 			return fmt.Errorf("%w: %s", ErrUnknownToken, nt)

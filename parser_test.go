@@ -1091,10 +1091,10 @@ func TestParseRevisionHeader(t *testing.T) {
 			},
 			wantRH: &RevisionHead{
 				Revision:     "1.6",
-				Date:         time.Date(2022, 3, 23, 2, 22, 51, 0, time.UTC),
+				Date:         "2022.03.23.02.22.51",
 				Author:       "arran",
 				State:        "Exp",
-				Branches:     []string{},
+				Branches:     []Num{},
 				NextRevision: "1.5",
 			},
 			wantNext: true,
@@ -1128,7 +1128,7 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 		name    string
 		args    args
 		wantErr bool
-		want    []string
+		want    []Num
 	}{
 		{
 			name: "Basic branches parse",
@@ -1138,7 +1138,7 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 				propertyNameKnown: false,
 			},
 			wantErr: false,
-			want:    []string{},
+			want:    []Num{},
 		},
 		{
 			name: "Basic branches parse - known",
@@ -1148,7 +1148,7 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 				propertyNameKnown: true,
 			},
 			wantErr: false,
-			want:    []string{},
+			want:    []Num{},
 		},
 		{
 			name: "Branches with numbers",
@@ -1158,7 +1158,7 @@ func TestParseRevisionHeaderBranches(t *testing.T) {
 				propertyNameKnown: false,
 			},
 			wantErr: false,
-			want:    []string{"1.1.1.1", "1.1.2.1"},
+			want:    []Num{"1.1.1.1", "1.1.2.1"},
 		},
 	}
 	for _, tt := range tests {
@@ -1195,7 +1195,7 @@ func TestParseRevisionHeaderDateLine(t *testing.T) {
 			},
 			wantErr: false,
 			wantRh: &RevisionHead{
-				Date:   time.Date(2022, 3, 23, 2, 22, 51, 0, time.UTC),
+				Date:   "2022.03.23.02.22.51",
 				Author: "arran",
 				State:  "Exp",
 			},
@@ -1209,7 +1209,7 @@ func TestParseRevisionHeaderDateLine(t *testing.T) {
 			},
 			wantErr: false,
 			wantRh: &RevisionHead{
-				Date:   time.Date(2022, 3, 23, 2, 22, 51, 0, time.UTC),
+				Date:   "2022.03.23.02.22.51",
 				Author: "arran",
 				State:  "Exp",
 			},
@@ -1285,18 +1285,18 @@ func TestParseRevisionHeaders(t *testing.T) {
 			wantHeads: []*RevisionHead{
 				{
 					Revision:     "1.2",
-					Date:         time.Date(2022, 3, 23, 2, 20, 39, 0, time.UTC),
+					Date:         "2022.03.23.02.20.39",
 					Author:       "arran",
 					State:        "Exp",
-					Branches:     []string{},
+					Branches:     []Num{},
 					NextRevision: "1.1",
 				},
 				{
 					Revision:     "1.1",
-					Date:         time.Date(2022, 3, 23, 2, 18, 9, 0, time.UTC),
+					Date:         "2022.03.23.02.18.09",
 					Author:       "arran",
 					State:        "Exp",
-					Branches:     []string{},
+					Branches:     []Num{},
 					NextRevision: "",
 				},
 			},
@@ -1442,10 +1442,10 @@ func TestScanUntilFieldTerminator(t *testing.T) {
 func TestRevisionHeadStringBranches(t *testing.T) {
 	h := &RevisionHead{
 		Revision:     "1.1",
-		Date:         time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
+		Date:         "2022.01.01.00.00.00",
 		Author:       "test",
 		State:        "Exp",
-		Branches:     []string{"1.1.1.1", "1.1.2.1"},
+		Branches:     []Num{"1.1.1.1", "1.1.2.1"},
 		NextRevision: "",
 	}
 	want := "1.1\n" +
@@ -1660,7 +1660,8 @@ text
 
 	// Check if the date was parsed correctly as 1999
 	expectedDate := time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)
-	if !f.RevisionHeads[0].Date.Equal(expectedDate) {
+	dt, _ := f.RevisionHeads[0].Date.DateTime()
+	if !dt.Equal(expectedDate) {
 		t.Errorf("Date parsed incorrectly: got %v, want %v", f.RevisionHeads[0].Date, expectedDate)
 	}
 
@@ -1811,7 +1812,8 @@ func TestParseRevisionHeaderDateLine_Compat(t *testing.T) {
 				t.Errorf("ParseRevisionHeaderDateLine failed: %v", err)
 				return
 			}
-			if !rh.Date.Equal(tt.expectedTime) {
+			dt, _ := rh.Date.DateTime()
+			if !dt.Equal(tt.expectedTime) {
 				t.Errorf("Expected time %v, got %v", tt.expectedTime, rh.Date)
 			}
 		})
@@ -1827,7 +1829,7 @@ func TestFile_String(t *testing.T) {
 		RevisionHeads: []*RevisionHead{
 			{
 				Revision:     "1.1",
-				Date:         time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
+				Date:         "2022.01.01.00.00.00",
 				Author:       "user",
 				State:        "Exp",
 				Branches:     nil,
@@ -1848,7 +1850,7 @@ func TestFile_String(t *testing.T) {
 	}
 
 	// Test RevisionHead with branches
-	f.RevisionHeads[0].Branches = []string{"1.1.1.1"}
+	f.RevisionHeads[0].Branches = []Num{"1.1.1.1"}
 	if !strings.Contains(f.RevisionHeads[0].String(), "branches\n\t1.1.1.1;") {
 		t.Errorf("RevisionHead.String() missing branches: %q", f.RevisionHeads[0].String())
 	}
