@@ -374,7 +374,6 @@ func WriteAtQuote(w io.Writer, s string) (int, error) {
 	return total, err
 }
 
-
 func ParseFile(r io.Reader) (*File, error) {
 	f := new(File)
 	s := NewScanner(r)
