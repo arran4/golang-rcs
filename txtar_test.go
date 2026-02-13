@@ -35,12 +35,16 @@ func TestTxtarFiles(t *testing.T) {
 			if !rcsok {
 				rcsContent, rcsok = parts["input.rcs"]
 			}
+			rcsContent = strings.ReplaceAll(rcsContent, "\r\n", "\n")
+
 			inputJSON, jsonok := parts["input.json"]
+			inputJSON = strings.ReplaceAll(inputJSON, "\r\n", "\n")
 
 			// Parse Test: input,v -> expected.json
 			if rcsok {
 				expectedJSON, hasExpectedJSON := parts["expected.json"]
 				if hasExpectedJSON {
+					expectedJSON = strings.ReplaceAll(expectedJSON, "\r\n", "\n")
 					t.Run("Parse", func(t *testing.T) {
 						// Parse RCS
 						parsedFile, err := ParseFile(strings.NewReader(rcsContent))
@@ -95,6 +99,7 @@ func TestTxtarFiles(t *testing.T) {
 					if exp, ok := parts["expected,v"]; ok {
 						expectedRCS = strings.TrimSpace(exp)
 					}
+					expectedRCS = strings.ReplaceAll(expectedRCS, "\r\n", "\n")
 
 					if diff := cmp.Diff(expectedRCS, gotRCS); diff != "" {
 						t.Errorf("Circular RCS mismatch (-want +got):\n%s", diff)
@@ -107,6 +112,7 @@ func TestTxtarFiles(t *testing.T) {
 			if jsonok {
 				expectedRCS, hasExpectedRCS := parts["expected,v"]
 				if hasExpectedRCS {
+					expectedRCS = strings.ReplaceAll(expectedRCS, "\r\n", "\n")
 					t.Run("String", func(t *testing.T) {
 						// Unmarshal JSON
 						var file File
