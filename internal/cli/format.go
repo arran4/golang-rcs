@@ -4,7 +4,6 @@ import (
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
 	"io"
-	"log"
 	"os"
 )
 
@@ -16,13 +15,22 @@ import (
 //			force: -f --force Force overwrite output
 //	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
-func Format(output string, force, keepTruncatedYears bool, files ...string) {
-	runFormat(os.Stdin, os.Stdout, output, force, keepTruncatedYears, files...)
+func Format(output string, force, keepTruncatedYears bool, files ...string) error {
+	return runFormat(os.Stdin, os.Stdout, output, force, keepTruncatedYears, files...)
 }
 
-func runFormat(stdin io.Reader, stdout io.Writer, output string, force, keepTruncatedYears bool, files ...string) {
+func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) error {
 	if output != "" && output != "-" && len(files) > 1 {
-		log.Panicf("Cannot specify output file with multiple input files")
+		return fmt.Errorf("cannot specify output file with multiple input files")
+	}
+	if overwrite && output != "" {
+		return fmt.Errorf("cannot specify both overwrite and output file")
+	}
+	if overwrite && stdoutFlag {
+		return fmt.Errorf("cannot specify both overwrite and stdout")
+	}
+	if output != "" && stdoutFlag {
+		return fmt.Errorf("cannot specify both output and stdout")
 	}
 
 	for _, fn := range files {
@@ -32,37 +40,38 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, keepTrun
 		if fn == "-" {
 			content, err = processReader(stdin, keepTruncatedYears)
 			if err != nil {
-				log.Panicf("Error parsing stdin: %s", err)
+				return fmt.Errorf("error parsing stdin: %w", err)
 			}
 		} else {
 			// Using closure to ensure Close is called immediately after use
-			func() {
+			err = func() error {
 				f, openErr := os.Open(fn)
 				if openErr != nil {
-					log.Panicf("Error opening file %s: %s", fn, openErr)
+					return fmt.Errorf("error opening file %s: %w", fn, openErr)
 				}
 				defer func() {
-					if closeErr := f.Close(); closeErr != nil {
-						log.Panicf("Error closing file %s: %s", fn, closeErr)
-					}
+					_ = f.Close()
 				}()
 
 				content, err = processReader(f, keepTruncatedYears)
+				return err
 			}()
 			if err != nil {
-				log.Panicf("Error parsing file %s: %s", fn, err)
+				return fmt.Errorf("error parsing file %s: %w", fn, err)
 			}
 		}
 
 		if output == "" && force {
 			if fn == "-" {
-				log.Panicf("Cannot overwrite stdin")
+				return fmt.Errorf("cannot overwrite stdin")
 			}
 			if err := os.WriteFile(fn, []byte(content), 0644); err != nil {
-				log.Panicf("Error writing file %s: %s", fn, err)
+				return fmt.Errorf("error writing file %s: %w", fn, err)
 			}
 		} else if output != "" && output != "-" {
-			writeOutput(output, []byte(content), force)
+			if err := writeOutput(output, []byte(content), force); err != nil {
+				return err
+			}
 			fmt.Printf("Wrote: %s\n", fn)
 		} else if output == "-" || stdoutFlag || fn == "-" {
 			// Stdout
@@ -71,6 +80,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, keepTrun
 			writeOutput(fn, []byte(content), force)
 		}
 	}
+	return nil
 }
 
 func processReader(r io.Reader, keepTruncatedYears bool) (string, error) {

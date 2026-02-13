@@ -97,7 +97,9 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.NormalizeRevisions(c.padCommits, c.files...)
+	if err := cli.NormalizeRevisions(c.padCommits, c.files...); err != nil {
+		return err
+	}
 
 	return nil
 }

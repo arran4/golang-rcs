@@ -76,7 +76,9 @@ func (c *ListHeads) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.ListHeads(c.files...)
+	if err := cli.ListHeads(c.files...); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -109,7 +109,9 @@ func (c *FromJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.FromJson(c.output, c.force, c.files...)
+	if err := cli.FromJson(c.output, c.force, c.files...); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -120,7 +120,10 @@ func (c *ToJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.ToJson(c.output, c.force, c.indent, c.files...)
+	if err := cli.ToJson(c.output, c.force, c.indent, c.files...); err != nil {
+		return err
+	}
+	
 
 	return nil
 }
