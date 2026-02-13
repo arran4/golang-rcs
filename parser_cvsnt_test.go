@@ -33,25 +33,25 @@ newfield	value1 @value 2@;
 	}
 
 	// Verify Hardlinks parsed as multiple values
-	expectedHardlinks := []string{"README", "install.txt", "Installation Notes"}
+	expectedHardlinks := PhraseValues{SimpleString("README"), QuotedString("install.txt"), QuotedString("Installation Notes")}
 	if diff := cmp.Diff(rh.Hardlinks, expectedHardlinks); diff != "" {
 		t.Errorf("Hardlinks mismatch (-got +want):\n%s", diff)
 	}
 
 	// Verify other fields
-	if len(rh.Deltatype) != 1 || rh.Deltatype[0] != "text" {
+	if len(rh.Deltatype) != 1 || rh.Deltatype[0].Raw() != "text" {
 		t.Errorf("Deltatype mismatch: %v", rh.Deltatype)
 	}
-	if len(rh.Kopt) != 1 || rh.Kopt[0] != "kv" {
+	if len(rh.Kopt) != 1 || rh.Kopt[0].Raw() != "kv" {
 		t.Errorf("Kopt mismatch: %v", rh.Kopt)
 	}
-	if len(rh.Mergepoint) != 1 || rh.Mergepoint[0] != "1.1.1.1" {
+	if len(rh.Mergepoint) != 1 || rh.Mergepoint[0].Raw() != "1.1.1.1" {
 		t.Errorf("Mergepoint mismatch: %v", rh.Mergepoint)
 	}
-	if len(rh.Filename) != 1 || rh.Filename[0] != "readme.txt" {
+	if len(rh.Filename) != 1 || rh.Filename[0].Raw() != "readme.txt" {
 		t.Errorf("Filename mismatch: %v", rh.Filename)
 	}
-	if len(rh.Username) != 1 || rh.Username[0] != "user1" {
+	if len(rh.Username) != 1 || rh.Username[0].Raw() != "user1" {
 		t.Errorf("Username mismatch: %v", rh.Username)
 	}
 
@@ -62,7 +62,7 @@ newfield	value1 @value 2@;
 	if rh.NewPhrases[0].Key != "newfield" {
 		t.Errorf("NewPhrase Key mismatch: %s", rh.NewPhrases[0].Key)
 	}
-	expectedNewFieldValues := []string{"value1", "value 2"}
+	expectedNewFieldValues := PhraseValues{SimpleString("value1"), QuotedString("value 2")}
 	if diff := cmp.Diff(rh.NewPhrases[0].Value, expectedNewFieldValues); diff != "" {
 		t.Errorf("NewPhrase Value mismatch (-got +want):\n%s", diff)
 	}
@@ -82,7 +82,7 @@ next	1.1;
 owner	640;
 group	15;
 permissions	644;
-hardlinks	README install.txt @Installation Notes@;
+hardlinks	README @install.txt@ @Installation Notes@;
 deltatype	text;
 kopt	kv;
 mergepoint	1.1.1.1;

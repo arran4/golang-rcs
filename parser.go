@@ -29,7 +29,7 @@ type Symbol struct {
 
 type NewPhrase struct {
 	Key   string
-	Value []string
+	Value PhraseValues
 }
 
 type RevisionHead struct {
@@ -41,15 +41,15 @@ type RevisionHead struct {
 	Branches      []string
 	NextRevision  string
 	CommitID      string
-	Owner         []string     `json:",omitempty"` // CVS-NT
-	Group         []string     `json:",omitempty"` // CVS-NT
-	Permissions   []string     `json:",omitempty"` // CVS-NT
-	Hardlinks     []string     `json:",omitempty"` // CVS-NT
-	Deltatype     []string     `json:",omitempty"` // CVS-NT
-	Kopt          []string     `json:",omitempty"` // CVS-NT
-	Mergepoint    []string     `json:",omitempty"` // CVS-NT
-	Filename      []string     `json:",omitempty"` // CVS-NT
-	Username      []string     `json:",omitempty"` // CVS-NT
+	Owner         PhraseValues `json:",omitempty"` // CVS-NT
+	Group         PhraseValues `json:",omitempty"` // CVS-NT
+	Permissions   PhraseValues `json:",omitempty"` // CVS-NT
+	Hardlinks     PhraseValues `json:",omitempty"` // CVS-NT
+	Deltatype     PhraseValues `json:",omitempty"` // CVS-NT
+	Kopt          PhraseValues `json:",omitempty"` // CVS-NT
+	Mergepoint    PhraseValues `json:",omitempty"` // CVS-NT
+	Filename      PhraseValues `json:",omitempty"` // CVS-NT
+	Username      PhraseValues `json:",omitempty"` // CVS-NT
 	NewPhrases    []*NewPhrase `json:",omitempty"`
 }
 
@@ -80,7 +80,7 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 		fmt.Fprintf(&sb, "commitid\t%s;%s", h.CommitID, nl)
 	}
 
-	writePhrase := func(key string, values []string) {
+	writePhrase := func(key string, values PhraseValues) {
 		if len(values) == 0 {
 			return
 		}
@@ -90,7 +90,7 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 			if i > 0 {
 				sb.WriteString(" ")
 			}
-			_, _ = WritePhraseValue(&sb, v)
+			sb.WriteString(v.String())
 		}
 		sb.WriteString(";")
 		sb.WriteString(nl)
@@ -201,10 +201,30 @@ func (f *File) SwitchLineEnding(nl string) {
 	replace := func(s string) string {
 		return strings.ReplaceAll(s, oldNL, nl)
 	}
-	replaceSlice := func(strs []string) []string {
-		out := make([]string, len(strs))
+	replaceSlice := func(strs PhraseValues) PhraseValues {
+		out := make(PhraseValues, len(strs))
 		for i, s := range strs {
-			out[i] = replace(s)
+			newS := replace(s.Raw())
+			if _, ok := s.(QuotedString); ok {
+				out[i] = QuotedString(newS)
+			} else {
+				valid := true
+				if len(newS) == 0 {
+					valid = false
+				} else {
+					for _, r := range newS {
+						if !isIdChar(r) && r != '.' {
+							valid = false
+							break
+						}
+					}
+				}
+				if valid {
+					out[i] = SimpleString(newS)
+				} else {
+					out[i] = QuotedString(newS)
+				}
+			}
 		}
 		return out
 	}
@@ -354,23 +374,6 @@ func WriteAtQuote(w io.Writer, s string) (int, error) {
 	return total, err
 }
 
-func WritePhraseValue(w io.Writer, s string) (int, error) {
-	validId := true
-	if len(s) == 0 {
-		validId = false
-	} else {
-		for _, r := range s {
-			if !isIdChar(r) && r != '.' {
-				validId = false
-				break
-			}
-		}
-	}
-	if validId {
-		return io.WriteString(w, s)
-	}
-	return WriteAtQuote(w, s)
-}
 
 func ParseFile(r io.Reader) (*File, error) {
 	f := new(File)
@@ -722,8 +725,8 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 	}
 }
 
-func ParseNewPhraseValue(s *Scanner) ([]string, error) {
-	var words []string
+func ParseNewPhraseValue(s *Scanner) (PhraseValues, error) {
+	var words PhraseValues
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, err
@@ -731,7 +734,7 @@ func ParseNewPhraseValue(s *Scanner) ([]string, error) {
 		if err := ScanStrings(s, ";"); err == nil {
 			break
 		}
-		word, err := ScanTokenWord(s)
+		word, err := ScanTokenPhrase(s)
 		if err != nil {
 			return nil, err
 		}

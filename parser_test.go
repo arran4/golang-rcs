@@ -1750,16 +1750,16 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 	if rh.Revision != "1.2" {
 		t.Errorf("Revision = %q, want %q", rh.Revision, "1.2")
 	}
-	if len(rh.Owner) != 1 || rh.Owner[0] != "640" {
+	if len(rh.Owner) != 1 || rh.Owner[0].Raw() != "640" {
 		t.Errorf("Owner = %q, want %q", rh.Owner, "640")
 	}
-	if len(rh.Group) != 1 || rh.Group[0] != "15" {
+	if len(rh.Group) != 1 || rh.Group[0].Raw() != "15" {
 		t.Errorf("Group = %q, want %q", rh.Group, "15")
 	}
-	if len(rh.Permissions) != 1 || rh.Permissions[0] != "644" {
+	if len(rh.Permissions) != 1 || rh.Permissions[0].Raw() != "644" {
 		t.Errorf("Permissions = %q, want %q", rh.Permissions, "644")
 	}
-	if len(rh.Hardlinks) != 1 || rh.Hardlinks[0] != "stringize.m4" {
+	if len(rh.Hardlinks) != 1 || rh.Hardlinks[0].Raw() != "stringize.m4" {
 		t.Errorf("Hardlinks = %q, want %q", rh.Hardlinks, "stringize.m4")
 	}
 
@@ -1772,7 +1772,7 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 		"owner\t640;\n" +
 		"group\t15;\n" +
 		"permissions\t644;\n" +
-		"hardlinks\tstringize.m4;\n"
+		"hardlinks\t@stringize.m4@;\n"
 
 	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
 		t.Errorf("String() mismatch (-want +got):\n%s", diff)
