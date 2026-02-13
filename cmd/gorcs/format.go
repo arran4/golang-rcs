@@ -138,6 +138,12 @@ func (c *Format) Execute(args []string) error {
 		c.files = varArgs
 	}
 
+	if files, err := ensureFiles(c.files, c.Usage); err != nil {
+		return err
+	} else {
+		c.files = files
+	}
+
 	cli.Format(c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.files...)
 
 	return nil

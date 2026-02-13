@@ -109,18 +109,10 @@ func (c *FromJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if len(c.files) == 0 {
-		stat, err := os.Stdin.Stat()
-		if err != nil {
-			c.Usage()
-			return nil
-		}
-		if (stat.Mode() & os.ModeCharDevice) == 0 {
-			c.files = []string{"-"}
-		} else {
-			c.Usage()
-			return nil
-		}
+	if files, err := ensureFiles(c.files, c.Usage); err != nil {
+		return err
+	} else {
+		c.files = files
 	}
 
 	cli.FromJson(c.output, c.force, c.files...)

@@ -127,6 +127,12 @@ func (c *Validate) Execute(args []string) error {
 		c.files = varArgs
 	}
 
+	if files, err := ensureFiles(c.files, c.Usage); err != nil {
+		return err
+	} else {
+		c.files = files
+	}
+
 	cli.Validate(c.output, c.force, c.overwrite, c.stdout, c.files...)
 
 	return nil
