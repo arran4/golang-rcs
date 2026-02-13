@@ -54,6 +54,7 @@ The quick brown fox jumped over the lazy dog.
   "Strict": true,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": [
     {
       "Revision": "1.2",

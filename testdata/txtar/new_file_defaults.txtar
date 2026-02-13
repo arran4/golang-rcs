@@ -11,6 +11,7 @@
   "Strict": true,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": null,
   "RevisionContents": null
 }
@@ -51,6 +52,7 @@ desc
   "Strict": true,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": null,
   "RevisionContents": null
 }

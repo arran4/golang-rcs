@@ -74,6 +74,7 @@ asdf
   "StrictOnOwnLine": true,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": [
     {
       "Revision": "1.2",

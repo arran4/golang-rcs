@@ -41,6 +41,7 @@ text
   "StrictOnOwnLine": true,
   "Integrity": "",
   "Expand": "kv",
+  "NewLine": "\n",
   "RevisionHeads": [
     {
       "Revision": "1.1",

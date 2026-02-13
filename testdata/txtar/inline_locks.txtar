@@ -32,6 +32,7 @@ desc
   "Strict": false,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": [
     {
       "Revision": "1.1",
