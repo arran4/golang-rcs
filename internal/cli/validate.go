@@ -14,5 +14,5 @@ import "os"
 func Validate(output string, force, overwrite, stdoutFlag bool, files ...string) {
 	// Validate is currently functionally identical to Format (parse and re-serialize).
 	// If validation rules diverge in future, logic can be separated here.
-	runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, false, files...)
+	runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, false, 0, "", files...)
 }

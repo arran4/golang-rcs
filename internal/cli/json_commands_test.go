@@ -10,6 +10,7 @@ import (
 
 	rcs "github.com/arran4/golang-rcs"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestCircularJson(t *testing.T) {
@@ -32,7 +33,7 @@ func TestCircularJson(t *testing.T) {
 	}
 
 	// 3. Compare structs
-	if diff := cmp.Diff(parsedOriginal, &parsedNew); diff != "" {
+	if diff := cmp.Diff(parsedOriginal, &parsedNew, cmpopts.IgnoreUnexported(rcs.File{})); diff != "" {
 		t.Errorf("Struct mismatch (-want +got):\n%s", diff)
 	}
 
