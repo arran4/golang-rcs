@@ -759,10 +759,10 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, int, error) {
 			rc.PrecedingNewLinesOffset += initialOffset
 			rcs = append(rcs, rc)
 		} else {
-			return rcs, initialOffset + newLines - 1, nil
+			return rcs, initialOffset + newLines, nil
 		}
 		if newLines < 2 {
-			return rcs, newLines - 1, nil
+			return rcs, newLines, nil
 		}
 		initialOffset = newLines
 	}

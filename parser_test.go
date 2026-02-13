@@ -1006,7 +1006,7 @@ func TestParseRevisionContent(t *testing.T) {
 				Text:                    "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
 				PrecedingNewLinesOffset: -2,
 			},
-			wantNewLines: 1,
+			wantNewLines: 0,
 			wantErr:      false,
 		},
 	}
