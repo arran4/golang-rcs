@@ -22,6 +22,8 @@
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+
+  "SpaceStop": 8,
   "RevisionHeads": [
     {
       "Revision": "1.2",
@@ -57,24 +59,24 @@
 }
 
 -- expected,v --
-head	1.2;
-access user1 user2 user3;
+head    1.2;
+access  user1 user2 user3;
 symbols;
 locks
-	arran:1.2;
+        arran:1.2;
 strict;
-comment	@# @;
+comment @# @;
 
 
 1.2
-date	2026.02.10.10.39.46;	author arran;	state Exp;
+date    2026.02.10.10.39.46;    author  arran;  state   Exp;
 branches;
-next	1.1;
+next    1.1;
 
 1.1
-date	2026.02.10.10.35.45;	author arran;	state Exp;
+date    2026.02.10.10.35.45;    author  arran;  state   Exp;
 branches;
-next	;
+next    ;
 
 
 desc
@@ -106,6 +108,7 @@ asdf
 asdf
 asdf
 @
+
 
 -- input,v --
 head    1.2;

@@ -1,5 +1,5 @@
 head	1.1;
-access john jane;
+access	john jane;
 symbols
 	rel:1.1
 	tag:1.1.0.2;

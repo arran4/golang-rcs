@@ -12,6 +12,8 @@
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+
+  "SpaceStop": 8,
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -33,16 +35,16 @@
 }
 
 -- expected,v --
-head	1.1;
+head 1.1;
 symbols;
 locks;
-comment	@c@;
+comment   @c@;
 
 
 1.1
-date	2022.01.01.00.00.00;	author a;	state s;
+date 2022.01.01.00.00.00;     author    a;   state     s;
 branches;
-next	;
+next ;
 
 
 desc
@@ -54,6 +56,7 @@ log
 @@
 text
 @@
+
 
 -- input,v --
 head 1.1;

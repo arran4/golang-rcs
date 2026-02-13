@@ -13,6 +13,7 @@
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "IndentString": "\t",
   "RevisionHeads": [
     {
       "Revision": "1.1",

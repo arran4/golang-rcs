@@ -1,0 +1,97 @@
+-- tests.txt --
+rcs to rcs
+rcs to json
+-- input,v --
+head     4.14;
+branch   1.1;
+access   payne;
+symbols
+    payne:4.4.2.1;
+locks; strict;
+comment  @# @;
+expand   @o@;
+
+1.1
+date     89.10.17.10.20.31;         author   jpayne;  state    Exp;
+branches;
+next     ;
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+-- expected,v --
+head     4.14;
+branch   1.1;
+access   payne;
+symbols
+         payne:4.4.2.1;
+locks; strict;
+comment  @# @;
+expand   @o@;
+
+
+1.1
+date     89.10.17.10.20.31;         author   jpayne;  state    Exp;
+branches;
+next     ;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+-- expected.json --
+{
+  "Head": "4.14",
+  "Branch": "1.1",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "payne",
+      "Revision": "4.4.2.1"
+    }
+  ],
+  "AccessUsers": [
+    "payne"
+  ],
+  "Locks": [],
+  "Strict": true,
+  "DateYearPrefixTruncated": true,
+  "Integrity": "",
+  "Expand": "o",
+  "NewLine": "\n",
+  "SpaceStop": 9,
+  "EndOfFileNewLineOffset": -1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "89.10.17.10.20.31",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "",
+      "Text": ""
+    }
+  ]
+}

@@ -20,6 +20,8 @@ type Format struct {
 	overwrite          bool
 	stdout             bool
 	keepTruncatedYears bool
+	spaceStop          int
+	indentString       string
 	files              []string
 	SubCommands        map[string]Cmd
 }
@@ -118,6 +120,30 @@ func (c *Format) Execute(args []string) error {
 				} else {
 					c.keepTruncatedYears = true
 				}
+			case "space-stop":
+				if !hasValue {
+					if i+1 < len(args) {
+						value = args[i+1]
+						i++
+					} else {
+						return fmt.Errorf("flag %s requires a value", name)
+					}
+				}
+				i, err := strconv.Atoi(value)
+				if err != nil {
+					return fmt.Errorf("invalid int value for flag %s: %s", name, value)
+				}
+				c.spaceStop = i
+			case "indent-string":
+				if !hasValue {
+					if i+1 < len(args) {
+						value = args[i+1]
+						i++
+					} else {
+						return fmt.Errorf("flag %s requires a value", name)
+					}
+				}
+				c.indentString = value
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -138,7 +164,7 @@ func (c *Format) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.Format(c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.files...)
+	cli.Format(c.output, c.force, c.overwrite, c.stdout, c.keepTruncatedYears, c.spaceStop, c.indentString, c.files...)
 
 	return nil
 }
@@ -164,6 +190,9 @@ func (c *RootCmd) NewFormat() *Format {
 	set.BoolVar(&v.stdout, "stdout", false, "Force output to stdout")
 
 	set.BoolVar(&v.keepTruncatedYears, "keep-truncated-years", false, "Keep truncated years (do not expand to 4 digits)")
+
+	set.IntVar(&v.spaceStop, "space-stop", 0, "Space stop (indentation width)")
+	set.StringVar(&v.indentString, "indent-string", "", "Indent string (e.g. \\t)")
 
 	set.Usage = v.Usage
 

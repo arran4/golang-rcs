@@ -33,7 +33,7 @@ expand	@kv@;
 
 
 1.1
-date	2022.01.01.00.00.00;	author arran;	state Exp;
+date	2022.01.01.00.00.00;	author	arran;	state	Exp;
 branches;
 next	;
 
@@ -47,6 +47,7 @@ log
 @@
 text
 @@
+
 
 -- tests.txt --
 rcs to rcs

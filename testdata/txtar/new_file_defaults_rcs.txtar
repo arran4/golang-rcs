@@ -24,21 +24,23 @@ desc
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "IndentString": "\t",
+
+  "SpaceStop": 8,
   "EndOfFileNewLineOffset": 1,
   "RevisionHeads": null,
   "RevisionContents": null
 }
 
 -- expected,v --
-head	1.1;
-symbols;
+head    1.7;
 locks; strict;
-comment	@c@;
+comment @@;
 
 
 
 desc
-@d@
+@@
 
 
 -- tests.txt --

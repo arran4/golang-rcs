@@ -18,11 +18,11 @@ import (
 //			stdout: -s --stdout Force output to stdout
 //	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
-func Format(output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
-	runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, keepTruncatedYears, files...)
+func Format(output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, spaceStop int, indentString string, files ...string) {
+	runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, keepTruncatedYears, spaceStop, indentString, files...)
 }
 
-func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) {
+func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, spaceStop int, indentString string, files ...string) {
 	if output != "" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
@@ -41,7 +41,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		var err error
 
 		if fn == "-" {
-			content, err = processReader(stdin, keepTruncatedYears)
+			content, err = processReader(stdin, keepTruncatedYears, spaceStop, indentString)
 			if err != nil {
 				log.Panicf("Error parsing stdin: %s", err)
 			}
@@ -58,7 +58,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 					}
 				}()
 
-				content, err = processReader(f, keepTruncatedYears)
+				content, err = processReader(f, keepTruncatedYears, spaceStop, indentString)
 			}()
 			if err != nil {
 				log.Panicf("Error parsing file %s: %s", fn, err)
@@ -81,10 +81,19 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 	}
 }
 
-func processReader(r io.Reader, keepTruncatedYears bool) (string, error) {
+func processReader(r io.Reader, keepTruncatedYears bool, spaceStop int, indentString string) (string, error) {
 	parsedFile, err := rcs.ParseFile(r)
 	if err != nil {
 		return "", err
+	}
+	if spaceStop != 0 {
+		parsedFile.SpaceStop = spaceStop
+		if indentString == "" {
+			parsedFile.IndentString = ""
+		}
+	}
+	if indentString != "" {
+		parsedFile.IndentString = indentString
 	}
 	if !keepTruncatedYears {
 		parsedFile.DateYearPrefixTruncated = false

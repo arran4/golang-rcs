@@ -58,16 +58,72 @@ func (h *RevisionHead) String() string {
 }
 
 func (h *RevisionHead) StringWithNewLine(nl string) string {
+	return h.StringWithConfig(nl, "", 0)
+}
+
+func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceStop int) string {
 	sb := strings.Builder{}
 	sb.WriteString(h.Revision.String())
 	sb.WriteString(nl)
-	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date, h.Author, h.State, nl)
+
+	// date	...;	author ...;	state ...;
+	lineLen := 0
+	sb.WriteString("date")
+	lineLen += 4
+
+	indent := calculateIndent(lineLen, spaceStop, indentString)
+	sb.WriteString(indent)
+	lineLen += len(indent)
+
+	sb.WriteString(h.Date.String())
+	lineLen += len(h.Date.String())
+
+	sb.WriteString(";")
+	lineLen++
+
+	indent = calculateIndent(lineLen, spaceStop, indentString)
+	sb.WriteString(indent)
+	lineLen += len(indent)
+
+	sb.WriteString("author")
+	lineLen += 6
+
+	indent = calculateIndent(lineLen, spaceStop, indentString)
+	sb.WriteString(indent)
+	lineLen += len(indent)
+
+	sb.WriteString(h.Author.String())
+	lineLen += len(h.Author.String())
+
+	sb.WriteString(";")
+	lineLen++
+
+	indent = calculateIndent(lineLen, spaceStop, indentString)
+	sb.WriteString(indent)
+	lineLen += len(indent)
+
+	sb.WriteString("state")
+	lineLen += 5
+
+	indent = calculateIndent(lineLen, spaceStop, indentString)
+	sb.WriteString(indent)
+	lineLen += len(indent)
+
+	sb.WriteString(h.State.String())
+	lineLen += len(h.State.String())
+
+	sb.WriteString(";")
+	// lineLen++
+	sb.WriteString(nl)
+
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
-		sb.WriteString(nl + "\t")
+		sb.WriteString(nl)
+		indent = calculateIndent(0, spaceStop, indentString)
+		sb.WriteString(indent)
 		for i, b := range h.Branches {
 			if i > 0 {
-				sb.WriteString(nl + "\t")
+				sb.WriteString(nl + indent)
 			}
 			sb.WriteString(b.String())
 		}
@@ -76,9 +132,21 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 		sb.WriteString(";")
 	}
 	sb.WriteString(nl)
-	fmt.Fprintf(&sb, "next\t%s;%s", h.NextRevision, nl)
+
+	sb.WriteString("next")
+	indent = calculateIndent(4, spaceStop, indentString)
+	sb.WriteString(indent)
+	sb.WriteString(h.NextRevision.String())
+	sb.WriteString(";")
+	sb.WriteString(nl)
+
 	if h.CommitID != "" {
-		fmt.Fprintf(&sb, "commitid\t%s;%s", h.CommitID, nl)
+		sb.WriteString("commitid")
+		indent = calculateIndent(8, spaceStop, indentString)
+		sb.WriteString(indent)
+		sb.WriteString(h.CommitID.String())
+		sb.WriteString(";")
+		sb.WriteString(nl)
 	}
 
 	writePhrase := func(key string, values PhraseValues) {
@@ -86,7 +154,8 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 			return
 		}
 		sb.WriteString(key)
-		sb.WriteString("\t")
+		indent = calculateIndent(len(key), spaceStop, indentString)
+		sb.WriteString(indent)
 		for i, v := range values {
 			if i > 0 {
 				sb.WriteString(" ")
@@ -155,6 +224,9 @@ type File struct {
 	Integrity               string
 	Expand                  string
 	NewLine                 string
+	SpaceStop               int    `json:",omitempty"`
+	IndentString            string `json:",omitempty"`
+	indentSet               bool
 	EndOfFileNewLineOffset  int `json:",omitempty"`
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
@@ -165,6 +237,20 @@ func NewFile() *File {
 		Symbols: make([]*Symbol, 0),
 		Locks:   make([]*Lock, 0),
 		Strict:  true,
+	}
+}
+
+func (f *File) SetIndent(key, ws string) {
+	if f.indentSet {
+		return
+	}
+	f.indentSet = true
+	if strings.Contains(ws, "\t") {
+		f.IndentString = ws
+		f.SpaceStop = 0
+	} else {
+		f.IndentString = ""
+		f.SpaceStop = len(key) + len(ws)
 	}
 }
 
@@ -264,13 +350,25 @@ func (f *File) String() string {
 		nl = "\n"
 	}
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("head\t%s;%s", f.Head, nl))
+
+	writeField := func(key string, val string) {
+		sb.WriteString(key)
+		indent := calculateIndent(len(key), f.SpaceStop, f.IndentString)
+		sb.WriteString(indent)
+		sb.WriteString(val)
+		sb.WriteString(";")
+		sb.WriteString(nl)
+	}
+
+	writeField("head", f.Head)
 	if f.Branch != "" {
-		sb.WriteString(fmt.Sprintf("branch\t%s;%s", f.Branch, nl))
+		writeField("branch", f.Branch)
 	}
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
-			sb.WriteString("access ")
+			sb.WriteString("access")
+			indent := calculateIndent(len("access"), f.SpaceStop, f.IndentString)
+			sb.WriteString(indent)
 			sb.WriteString(strings.Join(f.AccessUsers, " "))
 			sb.WriteString(";")
 			sb.WriteString(nl)
@@ -281,8 +379,9 @@ func (f *File) String() string {
 	}
 	if f.Symbols != nil {
 		sb.WriteString("symbols")
+		indent := calculateIndent(0, f.SpaceStop, f.IndentString)
 		for _, sym := range f.Symbols {
-			sb.WriteString(nl + "\t")
+			sb.WriteString(nl + indent)
 			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
 		}
 		sb.WriteString(";")
@@ -291,8 +390,9 @@ func (f *File) String() string {
 
 	if f.Locks != nil {
 		sb.WriteString("locks")
+		indent := calculateIndent(0, f.SpaceStop, f.IndentString)
 		for _, lock := range f.Locks {
-			sb.WriteString(nl + "\t")
+			sb.WriteString(nl + indent)
 			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
 		}
 		sb.WriteString(";")
@@ -307,17 +407,23 @@ func (f *File) String() string {
 		sb.WriteString(nl)
 	}
 	if f.Integrity != "" {
-		sb.WriteString("integrity\t")
+		sb.WriteString("integrity")
+		indent := calculateIndent(len("integrity"), f.SpaceStop, f.IndentString)
+		sb.WriteString(indent)
 		_, _ = WriteAtQuote(&sb, f.Integrity)
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
-	sb.WriteString("comment\t")
+	sb.WriteString("comment")
+	indent := calculateIndent(len("comment"), f.SpaceStop, f.IndentString)
+	sb.WriteString(indent)
 	_, _ = WriteAtQuote(&sb, f.Comment)
 	sb.WriteString(";")
 	sb.WriteString(nl)
 	if f.Expand != "" {
-		sb.WriteString("expand\t")
+		sb.WriteString("expand")
+		indent := calculateIndent(len("expand"), f.SpaceStop, f.IndentString)
+		sb.WriteString(indent)
 		_, _ = WriteAtQuote(&sb, f.Expand)
 		sb.WriteString(";")
 		sb.WriteString(nl)
@@ -325,7 +431,7 @@ func (f *File) String() string {
 	sb.WriteString(nl)
 	sb.WriteString(nl)
 	for _, head := range f.RevisionHeads {
-		sb.WriteString(head.StringWithNewLine(nl))
+		sb.WriteString(head.StringWithConfig(nl, f.IndentString, f.SpaceStop))
 		sb.WriteString(nl)
 	}
 	sb.WriteString(nl)
@@ -342,6 +448,22 @@ func (f *File) String() string {
 		return strings.TrimSuffix(sb.String(), nl)
 	}
 	return sb.String()
+}
+
+func calculateIndent(currentCol int, spaceStop int, indentString string) string {
+	if indentString != "" {
+		return indentString
+	}
+	if spaceStop == 0 {
+		spaceStop = 8
+	}
+	target := ((currentCol / spaceStop) + 1) * spaceStop
+	padding := target - currentCol
+	// Minimum of 1 space
+	if padding < 1 {
+		padding = 1
+	}
+	return strings.Repeat(" ", padding)
 }
 
 func AtQuote(s string) string {
@@ -471,7 +593,7 @@ func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, 
 }
 
 func ParseHeader(s *Scanner, f *File) error {
-	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine(true)); err != nil {
+	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine(true), WithIndentDetection(f.SetIndent)); err != nil {
 		return err
 	} else {
 		f.Head = head
@@ -496,7 +618,7 @@ func ParseHeader(s *Scanner, f *File) error {
 			}
 			continue
 		case "branch":
-			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(true), WithLine(true)); err != nil {
+			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(true), WithLine(true), WithIndentDetection(f.SetIndent)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Branch = branch
@@ -504,14 +626,14 @@ func ParseHeader(s *Scanner, f *File) error {
 		case "access":
 			f.Access = true
 			if err := ParseTerminatorFieldLine(s); err != nil {
-				users, err := ParseHeaderAccess(s, true)
+				users, err := ParseHeaderAccess(s, true, f.SetIndent)
 				if err != nil {
 					return fmt.Errorf("token %#v: %w", nt, err)
 				}
 				f.AccessUsers = users
 			}
 		case "symbols":
-			if sym, err := ParseHeaderSymbols(s, true); err != nil {
+			if sym, err := ParseHeaderSymbols(s, true, f.SetIndent); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Symbols = sym
@@ -520,7 +642,7 @@ func ParseHeader(s *Scanner, f *File) error {
 			var err error
 			var locks []*Lock
 			var strict bool
-			if locks, strict, nextToken, err = ParseHeaderLocks(s, true); err != nil {
+			if locks, strict, nextToken, err = ParseHeaderLocks(s, true, f.SetIndent); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Locks = locks
@@ -536,19 +658,19 @@ func ParseHeader(s *Scanner, f *File) error {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "integrity":
-			if integrity, err := ParseHeaderComment(s, true); err != nil {
+			if integrity, err := ParseHeaderComment(s, "integrity", true, f.SetIndent); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Integrity = integrity
 			}
 		case "comment":
-			if comment, err := ParseHeaderComment(s, true); err != nil {
+			if comment, err := ParseHeaderComment(s, "comment", true, f.SetIndent); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Comment = comment
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenWord, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
+			if expand, err := ParseOptionalToken(s, ScanTokenWord, WithPropertyName("expand"), WithConsumed(true), WithLine(true), WithIndentDetection(f.SetIndent)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
@@ -855,14 +977,20 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 	return nil
 }
 
-func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
+func ParseHeaderComment(s *Scanner, propertyName string, havePropertyName bool, setIndent func(string, string)) (string, error) {
+	if propertyName == "" {
+		propertyName = "comment"
+	}
 	if !havePropertyName {
-		if err := ScanStrings(s, "comment"); err != nil {
+		if err := ScanStrings(s, propertyName); err != nil {
 			return "", err
 		}
 	}
 	if err := ScanWhiteSpace(s, 0); err != nil {
 		return "", err
+	}
+	if setIndent != nil {
+		setIndent(propertyName, s.Text())
 	}
 	sr, err := ParseAtQuotedString(s)
 	if err != nil {
@@ -875,9 +1003,10 @@ func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
 
 }
 
-func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
+func ParseHeaderAccess(s *Scanner, havePropertyName bool, setIndent func(string, string)) ([]string, error) {
+	propertyName := "access"
 	if !havePropertyName {
-		if err := ScanStrings(s, "access"); err != nil {
+		if err := ScanStrings(s, propertyName); err != nil {
 			return nil, err
 		}
 	}
@@ -885,6 +1014,9 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, err
+		}
+		if setIndent != nil && len(ids) == 0 {
+			setIndent(propertyName, s.Text())
 		}
 		if err := ScanStrings(s, ";"); err == nil {
 			break
@@ -898,9 +1030,10 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	return ids, nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool, setIndent func(string, string)) ([]*Symbol, error) {
+	propertyName := "symbols"
 	if !havePropertyName {
-		if err := ScanStrings(s, "symbols"); err != nil {
+		if err := ScanStrings(s, propertyName); err != nil {
 			return nil, err
 		}
 	}
@@ -908,6 +1041,9 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, err
+		}
+		if setIndent != nil && len(m) == 0 {
+			setIndent(propertyName, s.Text())
 		}
 		if err := ScanStrings(s, ";"); err == nil {
 			break
@@ -960,9 +1096,10 @@ func ParseAtQuotedStringBody(s *Scanner) (string, error) {
 	}
 }
 
-func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, string, error) {
+func ParseHeaderLocks(s *Scanner, havePropertyName bool, setIndent func(string, string)) ([]*Lock, bool, string, error) {
+	propertyName := "locks"
 	if !havePropertyName {
-		if err := ScanStrings(s, "locks"); err != nil {
+		if err := ScanStrings(s, propertyName); err != nil {
 			return nil, false, "", err
 		}
 	}
@@ -971,6 +1108,9 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, string,
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, false, "", err
+		}
+		if setIndent != nil && len(locks) == 0 {
+			setIndent(propertyName, s.Text())
 		}
 		if err := ScanStrings(s, ";"); err == nil {
 			if scanInlineStrict(s) {
@@ -1080,11 +1220,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 type WithPropertyName string
 type WithConsumed bool
 type WithLine bool
+type WithIndentDetection func(string, string)
 
 func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), options ...interface{}) (string, error) {
 	var propertyName string
 	var havePropertyName bool
 	var line bool
+	var indentDetection WithIndentDetection
 
 	for _, opt := range options {
 		switch v := opt.(type) {
@@ -1094,6 +1236,8 @@ func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), 
 			havePropertyName = bool(v)
 		case WithLine:
 			line = bool(v)
+		case WithIndentDetection:
+			indentDetection = v
 		}
 	}
 
@@ -1104,6 +1248,9 @@ func ParseOptionalToken(s *Scanner, scannerFunc func(*Scanner) (string, error), 
 	}
 	if err := ScanWhiteSpace(s, 1); err != nil {
 		return "", err
+	}
+	if indentDetection != nil {
+		indentDetection(propertyName, s.Text())
 	}
 	// Important: Check for terminator *before* value scan.
 	// If ";" is found, it means the value is empty/missing, which is valid for optional tokens.

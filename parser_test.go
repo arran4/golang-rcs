@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"io/fs"
 	"strings"
 	"testing"
@@ -391,7 +392,7 @@ func TestParseHeader(t *testing.T) {
 				t.Errorf("ParseHeaderHead() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if diff := cmp.Diff(tt.want, f); diff != "" {
+			if diff := cmp.Diff(tt.want, f, cmpopts.IgnoreUnexported(File{})); diff != "" {
 				t.Errorf("ParseHeader() Diff: %s", diff)
 			}
 		})
@@ -763,7 +764,7 @@ func TestParseHeaderComment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHeaderComment(tt.args.s, tt.args.havePropertyName)
+			got, err := ParseHeaderComment(tt.args.s, "", tt.args.havePropertyName, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderComment() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -808,7 +809,7 @@ func TestParseHeaderLocks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, strict, _, err := ParseHeaderLocks(tt.args.s, tt.args.havePropertyName)
+			got, strict, _, err := ParseHeaderLocks(tt.args.s, tt.args.havePropertyName, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseHeaderLocks() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2168,7 +2169,7 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewScanner(strings.NewReader(tt.input))
-			_, _, _, err := ParseHeaderLocks(s, false)
+			_, _, _, err := ParseHeaderLocks(s, false, nil)
 			if tt.wantErr == "" {
 				if err != nil {
 					t.Errorf("ParseHeaderLocks() error = %v, want nil", err)
@@ -2218,3 +2219,4 @@ func TestParseFile_LF(t *testing.T) {
 		t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
 	}
 }
+// touch

@@ -13,6 +13,9 @@
   "Integrity": "",
   "Expand": "kv",
   "NewLine": "\n",
+  "IndentString": "\t",
+
+  "SpaceStop": 8,
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -45,7 +48,7 @@ expand	@kv@;
 
 
 1.1
-date	2022.01.01.00.00.00;	author user;	state Exp;
+date	2022.01.01.00.00.00;	author	user;	state	Exp;
 branches;
 next	;
 
@@ -62,6 +65,7 @@ log
 text
 @content
 @
+
 
 -- input,v --
 head	1.1;
