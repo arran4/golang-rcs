@@ -1,0 +1,59 @@
+-- input,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+expand	@kv@;
+integrity	@int123@;
+comment	@# @;
+
+
+1.1
+date	2022.01.01.00.00.00;	author arran;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+
+-- expected,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+integrity	@int123@;
+comment	@# @;
+expand	@kv@;
+
+
+1.1
+date	2022.01.01.00.00.00;	author arran;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+
+-- tests.txt --
+rcs to rcs
+
+-- description.txt --
+Migrated test from expand_integrity.go,v
+
+-- options.conf --

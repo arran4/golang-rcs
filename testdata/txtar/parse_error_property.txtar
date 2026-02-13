@@ -1,0 +1,15 @@
+-- input,v --
+head bad;
+
+-- tests.txt --
+parse error: ErrParseProperty
+
+-- error.json --
+{
+  "Property": "head"
+}
+
+-- description.txt --
+Test specifically for ErrParseProperty when head is invalid.
+
+-- options.conf --

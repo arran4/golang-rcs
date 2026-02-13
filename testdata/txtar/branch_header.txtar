@@ -1,32 +1,3 @@
--- input.rcs --
-head	1.1;
-branch	1.1.1;
-access;
-symbols;
-locks;
-strict;
-comment	@# @;
-expand	@kv@;
-
-
-1.1
-date	2022.01.01.00.00.00;	author user;	state Exp;
-branches;
-next	;
-
-
-desc
-@test features
-@
-
-
-1.1
-log
-@Initial revision
-@
-text
-@content
-@
 -- expected.json --
 {
   "Head": "1.1",
@@ -60,6 +31,7 @@ text
     }
   ]
 }
+
 -- expected,v --
 head	1.1;
 branch	1.1.1;
@@ -89,3 +61,42 @@ log
 text
 @content
 @
+
+-- input,v --
+head	1.1;
+branch	1.1.1;
+access;
+symbols;
+locks;
+strict;
+comment	@# @;
+expand	@kv@;
+
+
+1.1
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@test features
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@content
+@
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- description.txt --
+Test case converted from branch_header.txtar
+
+-- options.conf --

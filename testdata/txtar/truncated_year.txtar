@@ -1,29 +1,3 @@
--- input.rcs --
-head	1.1;
-access;
-symbols;
-locks; strict;
-comment	@# @;
-
-
-1.1
-date	99.01.01.00.00.00;	author user;	state Exp;
-branches;
-next	;
-
-
-desc
-@Description
-@
-
-
-1.1
-log
-@Initial revision
-@
-text
-@Content
-@
 -- expected.json --
 {
   "Head": "1.1",
@@ -58,3 +32,39 @@ text
     }
   ]
 }
+
+-- input,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	99.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@Description
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@Content
+@
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- description.txt --
+Test case converted from truncated_year.txtar
+
+-- options.conf --

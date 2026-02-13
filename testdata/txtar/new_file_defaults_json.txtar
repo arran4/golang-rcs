@@ -14,6 +14,7 @@
   "RevisionHeads": null,
   "RevisionContents": null
 }
+
 -- expected,v --
 head	1.1;
 symbols;
@@ -26,31 +27,10 @@ desc
 @d@
 
 
--- input.rcs --
-head	1.1;
-symbols;
-locks; strict;
-comment	@c@;
+-- tests.txt --
+json to rcs
 
+-- description.txt --
+Test case split from new_file_defaults.txtar
 
-
-desc
-@d@
-
-
--- expected.json --
-{
-  "Head": "1.1",
-  "Branch": "",
-  "Description": "d",
-  "Comment": "c",
-  "Access": false,
-  "Symbols": [],
-  "AccessUsers": null,
-  "Locks": [],
-  "Strict": true,
-  "Integrity": "",
-  "Expand": "",
-  "RevisionHeads": null,
-  "RevisionContents": null
-}
+-- options.conf --

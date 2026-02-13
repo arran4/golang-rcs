@@ -16,6 +16,7 @@
   "RevisionHeads": [],
   "RevisionContents": []
 }
+
 -- expected,v --
 head	1.7;
 locks; strict;
@@ -27,30 +28,10 @@ desc
 @@
 
 
--- input.rcs --
-head	1.7;
-locks; strict;
-comment	@@;
+-- tests.txt --
+json to rcs
 
+-- description.txt --
+Test case split from string_strict_no_locks.txtar
 
-
-desc
-@@
-
-
--- expected.json --
-{
-  "Head": "1.7",
-  "Branch": "",
-  "Description": "",
-  "Comment": "",
-  "Access": false,
-  "Symbols": null,
-  "AccessUsers": null,
-  "Locks": [],
-  "Strict": true,
-  "Integrity": "",
-  "Expand": "",
-  "RevisionHeads": null,
-  "RevisionContents": null
-}
+-- options.conf --

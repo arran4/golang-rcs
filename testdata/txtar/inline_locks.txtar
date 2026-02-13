@@ -1,19 +1,3 @@
--- input.rcs --
-head     1.1;
-locks    payne:4.4.2.1;
-comment  @# Reduced version of an old repo with an empty branch label.@;
-
-
-1.1
-date    2021.01.01.00.00.00;    author payne;    state Exp;
-branches;
-next    ;
-
-
-desc
-@@
-
-
 -- expected.json --
 {
   "Head": "1.1",
@@ -45,6 +29,7 @@ desc
   ],
   "RevisionContents": null
 }
+
 -- expected,v --
 head	1.1;
 locks
@@ -60,3 +45,28 @@ next	;
 
 desc
 @@
+
+-- input,v --
+head     1.1;
+locks    payne:4.4.2.1;
+comment  @# Reduced version of an old repo with an empty branch label.@;
+
+
+1.1
+date    2021.01.01.00.00.00;    author payne;    state Exp;
+branches;
+next    ;
+
+
+desc
+@@
+
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- description.txt --
+Test case converted from inline_locks.txtar
+
+-- options.conf --

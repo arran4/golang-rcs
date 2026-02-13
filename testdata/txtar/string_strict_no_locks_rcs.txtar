@@ -1,0 +1,47 @@
+-- input,v --
+head	1.7;
+locks; strict;
+comment	@@;
+
+
+
+desc
+@@
+
+
+-- expected.json --
+{
+  "Head": "1.7",
+  "Branch": "",
+  "Description": "",
+  "Comment": "",
+  "Access": false,
+  "Symbols": null,
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": null,
+  "RevisionContents": null
+}
+
+-- expected,v --
+head	1.7;
+locks; strict;
+comment	@@;
+
+
+
+desc
+@@
+
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- description.txt --
+Test case split from string_strict_no_locks.txtar
+
+-- options.conf --

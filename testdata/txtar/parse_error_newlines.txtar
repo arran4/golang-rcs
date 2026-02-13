@@ -1,0 +1,48 @@
+-- input,v --
+head 1.1;
+
+
+1.1
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+1.2
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+
+
+
+
+
+
+
+
+
+
+
+1.2
+log
+@@
+text
+@@
+
+-- tests.txt --
+parse error: ErrTooManyNewLines
+
+-- description.txt --
+Test specifically for ErrTooManyNewLines when there are too many newlines between revisions.
+
+-- options.conf --
