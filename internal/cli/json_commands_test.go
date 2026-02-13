@@ -149,7 +149,7 @@ func TestJsonCommandsStdIO(t *testing.T) {
 func TestJsonCommandsFileToFile(t *testing.T) {
 	dir := t.TempDir()
 	input := loadTestInput(t)
-	inputFile := filepath.Join(dir, "input.v")
+	inputFile := filepath.Join(dir, "input,v")
 	if err := os.WriteFile(inputFile, input, 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -162,9 +162,9 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 	}
 
 	// 2. FromJson default output
-	// Need to handle potential overwrite issue if we write back to input.v?
-	// FromJson writes to trimmed suffix. input.v.json -> input.v
-	// input.v already exists. Should fail without force.
+	// Need to handle potential overwrite issue if we write back to input,v?
+	// FromJson writes to trimmed suffix. input,v.json -> input,v
+	// input,v already exists. Should fail without force.
 
 	// Capture log panic? Testing log.Panicf is hard without capturing output or recovering.
 	// Let's assume user uses a library that allows error return instead of panic for CLI,

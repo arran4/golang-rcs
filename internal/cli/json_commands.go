@@ -19,7 +19,7 @@ import (
 //	indent: -I --indent Indent JSON output
 //	files: ... List of files to process, or - for stdin
 func ToJson(output string, force bool, indent bool, files ...string) {
-	if output != "" && len(files) > 1 {
+	if output != "" && output != "-" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
@@ -52,7 +52,9 @@ func ToJson(output string, force bool, indent bool, files ...string) {
 			log.Panicf("Error serializing %s: %s", fn, err)
 		}
 
-		if output != "" {
+		if output == "-" {
+			fmt.Printf("%s", b)
+		} else if output != "" {
 			writeOutput(output, b, force)
 		} else if fn == "-" {
 			fmt.Printf("%s", b)
@@ -72,7 +74,7 @@ func ToJson(output string, force bool, indent bool, files ...string) {
 //	force: -f --force Force overwrite output
 //	files: ... List of files to process, or - for stdin
 func FromJson(output string, force bool, files ...string) {
-	if output != "" && len(files) > 1 {
+	if output != "" && output != "-" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
@@ -98,16 +100,21 @@ func FromJson(output string, force bool, files ...string) {
 
 		outBytes := []byte(r.String())
 
-		if output != "" {
+		if output == "-" {
+			fmt.Print(string(outBytes))
+		} else if output != "" {
 			writeOutput(output, outBytes, force)
 		} else if fn == "-" {
 			fmt.Print(string(outBytes))
 		} else {
-			// Default output: remove .json suffix
-			if !strings.HasSuffix(fn, ".json") {
-				log.Panicf("Input file %s does not have .json extension, use -o to specify output", fn)
+			// Default output: remove .json suffix, append ,v if not present
+			outPath := fn
+			if strings.HasSuffix(fn, ".json") {
+				outPath = strings.TrimSuffix(fn, ".json")
 			}
-			outPath := strings.TrimSuffix(fn, ".json")
+			if !strings.HasSuffix(outPath, ",v") {
+				outPath += ",v"
+			}
 			writeOutput(outPath, outBytes, force)
 		}
 	}

@@ -52,7 +52,7 @@ func (c *ListHeads) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") {
+		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {

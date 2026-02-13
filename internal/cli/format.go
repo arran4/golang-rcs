@@ -61,14 +61,14 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, keepTrun
 			if err := os.WriteFile(fn, []byte(content), 0644); err != nil {
 				log.Panicf("Error writing file %s: %s", fn, err)
 			}
-		} else if output == "-" {
-			_, _ = fmt.Fprint(stdout, content)
-		} else if output != "" {
+		} else if output != "" && output != "-" {
 			writeOutput(output, []byte(content), force)
 			fmt.Printf("Wrote: %s\n", fn)
-		} else {
+		} else if output == "-" || stdoutFlag || fn == "-" {
 			// Stdout
 			_, _ = fmt.Fprint(stdout, content)
+		} else {
+			writeOutput(fn, []byte(content), force)
 		}
 	}
 }
