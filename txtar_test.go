@@ -73,9 +73,7 @@ func runTest(t *testing.T, filename string) {
 
 	// description.txt check
 	if _, ok := parts["description.txt"]; !ok {
-		// Just log for now, or maybe enforce strictly? User said "This file contains..." implying it should exist.
-		// But existing tests don't have it.
-		// For now, I won't fail if it's missing, but the plan implies I will add it.
+		t.Log("description.txt is missing")
 	}
 
 	// options.conf

@@ -1980,7 +1980,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 	}{
 		{
 			name:    "Unknown field",
-			input:   "1.1\nunknown",
+			input:   "1.1\nunknown;",
 			wantErr: "",
 		},
 		{
@@ -2110,7 +2110,7 @@ func TestParseFile_Errors(t *testing.T) {
 		},
 		{
 			name:    "Revision headers error",
-			input:   "head 1.1;\n\n\n1.1\nbad",
+			input:   "head 1.1;\n\n\n1.1\nbad;",
 			wantErr: "looking for \"desc",
 		},
 		{
