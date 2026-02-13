@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"golang.org/x/tools/txtar"
 )
 
 //go:embed testdata/txtar/*.txtar
@@ -132,27 +133,10 @@ func TestTxtarFiles(t *testing.T) {
 }
 
 func parseTxtar(content string) map[string]string {
+	archive := txtar.Parse([]byte(content))
 	parts := make(map[string]string)
-	lines := strings.Split(content, "\n")
-	var currentFile string
-	var currentContent strings.Builder
-
-	for _, line := range lines {
-		line = strings.TrimRight(line, "\r")
-		if strings.HasPrefix(line, "-- ") && strings.HasSuffix(line, " --") {
-			if currentFile != "" {
-				parts[currentFile] = currentContent.String()
-				currentContent.Reset()
-			}
-			currentFile = strings.TrimSuffix(strings.TrimPrefix(line, "-- "), " --")
-			continue
-		}
-		if currentFile != "" {
-			currentContent.WriteString(line + "\n")
-		}
-	}
-	if currentFile != "" {
-		parts[currentFile] = currentContent.String()
+	for _, f := range archive.Files {
+		parts[f.Name] = string(f.Data)
 	}
 	return parts
 }
