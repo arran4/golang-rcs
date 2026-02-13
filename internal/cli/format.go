@@ -77,7 +77,9 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			// Stdout
 			_, _ = fmt.Fprint(stdout, content)
 		} else {
-			writeOutput(fn, []byte(content), force)
+			if err := writeOutput(fn, []byte(content), force); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

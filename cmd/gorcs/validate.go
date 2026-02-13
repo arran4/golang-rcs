@@ -114,7 +114,6 @@ func (c *Validate) Execute(args []string) error {
 	if err := cli.Validate(c.output, c.force, c.files...); err != nil {
 		return err
 	}
-	
 
 	return nil
 }

@@ -125,7 +125,6 @@ func (c *Format) Execute(args []string) error {
 	if err := cli.Format(c.output, c.force, c.keepTruncatedYears, c.files...); err != nil {
 		return err
 	}
-	
 
 	return nil
 }
