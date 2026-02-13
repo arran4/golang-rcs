@@ -46,3 +46,4 @@ parse error: ErrTooManyNewLines
 Test specifically for ErrTooManyNewLines when there are too many newlines between revisions.
 
 -- options.conf --
+* unix line endings

@@ -13,3 +13,4 @@ parse error: ErrParseProperty
 Test specifically for ErrParseProperty when head is invalid.
 
 -- options.conf --
+* unix line endings
