@@ -27,6 +27,11 @@ type Symbol struct {
 	Revision string
 }
 
+type NewPhrase struct {
+	Key   string
+	Value []string
+}
+
 type RevisionHead struct {
 	Revision      string
 	Date          time.Time
@@ -36,10 +41,16 @@ type RevisionHead struct {
 	Branches      []string
 	NextRevision  string
 	CommitID      string
-	Owner         string `json:",omitempty"`
-	Group         string `json:",omitempty"`
-	Permissions   string `json:",omitempty"`
-	Hardlinks     string `json:",omitempty"`
+	Owner         []string     `json:",omitempty"` // CVS-NT
+	Group         []string     `json:",omitempty"` // CVS-NT
+	Permissions   []string     `json:",omitempty"` // CVS-NT
+	Hardlinks     []string     `json:",omitempty"` // CVS-NT
+	Deltatype     []string     `json:",omitempty"` // CVS-NT
+	Kopt          []string     `json:",omitempty"` // CVS-NT
+	Mergepoint    []string     `json:",omitempty"` // CVS-NT
+	Filename      []string     `json:",omitempty"` // CVS-NT
+	Username      []string     `json:",omitempty"` // CVS-NT
+	NewPhrases    []*NewPhrase `json:",omitempty"`
 }
 
 func (h *RevisionHead) String() string {
@@ -64,20 +75,36 @@ func (h *RevisionHead) String() string {
 	if h.CommitID != "" {
 		fmt.Fprintf(&sb, "commitid\t%s;\n", h.CommitID)
 	}
-	if h.Owner != "" {
-		sb.WriteString(fmt.Sprintf("owner\t%s;\n", h.Owner))
-	}
-	if h.Group != "" {
-		sb.WriteString(fmt.Sprintf("group\t%s;\n", h.Group))
-	}
-	if h.Permissions != "" {
-		sb.WriteString(fmt.Sprintf("permissions\t%s;\n", h.Permissions))
-	}
-	if h.Hardlinks != "" {
-		sb.WriteString("hardlinks\t")
-		_, _ = WriteAtQuote(&sb, h.Hardlinks)
+
+	writePhrase := func(key string, values []string) {
+		if len(values) == 0 {
+			return
+		}
+		sb.WriteString(key)
+		sb.WriteString("\t")
+		for i, v := range values {
+			if i > 0 {
+				sb.WriteString(" ")
+			}
+			_, _ = WritePhraseValue(&sb, v)
+		}
 		sb.WriteString(";\n")
 	}
+
+	writePhrase("owner", h.Owner)
+	writePhrase("group", h.Group)
+	writePhrase("permissions", h.Permissions)
+	writePhrase("hardlinks", h.Hardlinks)
+	writePhrase("deltatype", h.Deltatype)
+	writePhrase("kopt", h.Kopt)
+	writePhrase("mergepoint", h.Mergepoint)
+	writePhrase("filename", h.Filename)
+	writePhrase("username", h.Username)
+
+	for _, phrase := range h.NewPhrases {
+		writePhrase(phrase.Key, phrase.Value)
+	}
+
 	return sb.String()
 }
 
@@ -256,6 +283,24 @@ func WriteAtQuote(w io.Writer, s string) (int, error) {
 	n, err = io.WriteString(w, "@")
 	total += n
 	return total, err
+}
+
+func WritePhraseValue(w io.Writer, s string) (int, error) {
+	validId := true
+	if len(s) == 0 {
+		validId = false
+	} else {
+		for _, r := range s {
+			if !isIdChar(r) && r != '.' {
+				validId = false
+				break
+			}
+		}
+	}
+	if validId {
+		return io.WriteString(w, s)
+	}
+	return WriteAtQuote(w, s)
 }
 
 func ParseFile(r io.Reader) (*File, error) {
@@ -480,16 +525,45 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 		return nil, false, true, nil
 	}
 	for {
-		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
+		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "deltatype", "kopt", "mergepoint", "filename", "username", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
 			if IsNotFound(err) {
-				var snf ScanNotFound
-				if errors.As(err, &snf) && snf.Found == "" {
-					return rh, false, false, nil
+				// Try to parse as generic ID (NewPhrase)
+				// We expect an ID here.
+				id, idErr := ScanTokenId(s)
+				if idErr == nil && id != "" {
+					// Check if it is "desc"
+					if id == "desc" {
+						// "desc" marks start of description.
+						// We should return.
+						// But we consumed "desc".
+						// We need to return true (descConsumed) but `ParseRevisionHeader` returns (rh, next, descConsumed, err).
+						// Wait, `ParseRevisionHeader` returns `descConsumed` as bool.
+						// If we return `descConsumed=true`, caller assumes we consumed "desc".
+
+						// We must also consume the following whitespace/newline to match ParseRevisionHeader logic when it consumes "desc".
+						// ParseDescription expects to be at the value (start of @...@) if descConsumed is true.
+						if err := ScanWhiteSpace(s, 0); err != nil {
+							return nil, false, false, err
+						}
+
+						return rh, false, true, nil
+					}
+
+					// It's a new phrase key
+					if np, err := ParseNewPhraseValue(s); err != nil {
+						return nil, false, false, fmt.Errorf("parsing new phrase %q: %w", id, err)
+					} else {
+						rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: id, Value: np})
+						continue
+					}
 				}
-				return rh, true, false, nil
+
+				// If ScanTokenId failed or empty
+				return rh, false, false, nil
 			}
 			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
 		}
+
 		nt := s.Text()
 		switch nt {
 		case "branches":
@@ -513,28 +587,58 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 				rh.CommitID = c
 			}
 		case "owner":
-			if o, err := ParseProperty(s, true, "owner", true); err != nil {
+			if v, err := ParseNewPhraseValue(s); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.Owner = o
+				rh.Owner = v
 			}
 		case "group":
-			if g, err := ParseProperty(s, true, "group", true); err != nil {
+			if v, err := ParseNewPhraseValue(s); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.Group = g
+				rh.Group = v
 			}
 		case "permissions":
-			if p, err := ParseProperty(s, true, "permissions", true); err != nil {
+			if v, err := ParseNewPhraseValue(s); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.Permissions = p
+				rh.Permissions = v
 			}
 		case "hardlinks":
-			if h, err := ParseHeaderComment(s, true); err != nil {
+			if v, err := ParseNewPhraseValue(s); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.Hardlinks = h
+				rh.Hardlinks = v
+			}
+		case "deltatype":
+			if v, err := ParseNewPhraseValue(s); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Deltatype = v
+			}
+		case "kopt":
+			if v, err := ParseNewPhraseValue(s); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Kopt = v
+			}
+		case "mergepoint":
+			if v, err := ParseNewPhraseValue(s); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Mergepoint = v
+			}
+		case "filename":
+			if v, err := ParseNewPhraseValue(s); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Filename = v
+			}
+		case "username":
+			if v, err := ParseNewPhraseValue(s); err != nil {
+				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				rh.Username = v
 			}
 		case "\n\n", "\r\n\r\n":
 			return rh, true, false, nil
@@ -544,6 +648,24 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 			return nil, false, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
+}
+
+func ParseNewPhraseValue(s *Scanner) ([]string, error) {
+	var words []string
+	for {
+		if err := ScanWhiteSpace(s, 0); err != nil {
+			return nil, err
+		}
+		if err := ScanStrings(s, ";"); err == nil {
+			break
+		}
+		word, err := ScanTokenWord(s)
+		if err != nil {
+			return nil, err
+		}
+		words = append(words, word)
+	}
+	return words, nil
 }
 
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
