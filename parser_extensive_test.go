@@ -172,7 +172,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Unknown field",
 			input:   "1.1\nunknown",
-			wantErr: "",
+			wantErr: "parsing new phrase \"unknown\": scanning for \"id\"",
 		},
 		{
 			name:    "Bad branches",
@@ -302,7 +302,7 @@ func TestParseFile_Errors(t *testing.T) {
 		{
 			name:    "Revision headers error",
 			input:   "head 1.1;\n\n\n1.1\nbad",
-			wantErr: "looking for \"desc",
+			wantErr: "parsing new phrase \"bad\": scanning for \"id\"",
 		},
 		{
 			name:    "Description error",

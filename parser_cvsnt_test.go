@@ -1,9 +1,9 @@
 package rcs
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"strings"
 	"testing"
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestParseRevisionHeader_CVSNT(t *testing.T) {
