@@ -138,10 +138,10 @@ func NormalizeRevisions(padCommits bool, files ...string) error {
 }
 
 func WriteFile(fn string, file *rcs.File) error {
-	fmt.Println("Saving: ", fn)
 	if err := os.WriteFile(fn, []byte(file.String()), 0644); err != nil {
 		return fmt.Errorf("error saving file: %s: %w", fn, err)
 	}
+	fmt.Printf("Wrote: %s\n", fn)
 	return nil
 }
 

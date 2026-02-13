@@ -19,6 +19,7 @@ type ToJson struct {
 	Flags       *flag.FlagSet
 	output      string
 	force       bool
+	indent      bool
 	files       []string
 	SubCommands map[string]Cmd
 }
@@ -55,7 +56,7 @@ func (c *ToJson) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") {
+		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
 			value := ""
 			hasValue := false
@@ -89,6 +90,16 @@ func (c *ToJson) Execute(args []string) error {
 				} else {
 					c.force = true
 				}
+			case "indent", "I":
+				if hasValue {
+					b, err := strconv.ParseBool(value)
+					if err != nil {
+						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
+					}
+					c.indent = b
+				} else {
+					c.indent = true
+				}
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -109,9 +120,10 @@ func (c *ToJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.ToJson(c.output, c.force, c.files...); err != nil {
+	if err := cli.ToJson(c.output, c.force, c.indent, c.files...); err != nil {
 		return err
 	}
+	
 
 	return nil
 }
@@ -129,6 +141,10 @@ func (c *RootCmd) NewToJson() *ToJson {
 
 	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 	set.BoolVar(&v.force, "force", false, "Force overwrite output")
+
+	set.BoolVar(&v.indent, "I", false, "Indent JSON output")
+	set.BoolVar(&v.indent, "indent", false, "Indent JSON output")
+
 	set.Usage = v.Usage
 
 	v.SubCommands["help"] = &InternalCommand{

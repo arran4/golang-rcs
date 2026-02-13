@@ -13,16 +13,14 @@ import (
 //
 //			output: -o --output Output file path
 //			force: -f --force Force overwrite output
-//			overwrite: -w --overwrite Overwrite input file
-//			stdout: -s --stdout Force output to stdout
 //	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
 //			files: ... List of files to process, or - for stdin
-func Format(output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) error {
-	return runFormat(os.Stdin, os.Stdout, output, force, overwrite, stdoutFlag, keepTruncatedYears, files...)
+func Format(output string, force, keepTruncatedYears bool, files ...string) error {
+	return runFormat(os.Stdin, os.Stdout, output, force, keepTruncatedYears, files...)
 }
 
 func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) error {
-	if output != "" && len(files) > 1 {
+	if output != "" && output != "-" && len(files) > 1 {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
 	if overwrite && output != "" {
@@ -63,20 +61,23 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			}
 		}
 
-		if overwrite {
+		if output == "" && force {
 			if fn == "-" {
 				return fmt.Errorf("cannot overwrite stdin")
 			}
 			if err := os.WriteFile(fn, []byte(content), 0644); err != nil {
 				return fmt.Errorf("error writing file %s: %w", fn, err)
 			}
-		} else if output != "" {
+		} else if output != "" && output != "-" {
 			if err := writeOutput(output, []byte(content), force); err != nil {
 				return err
 			}
-		} else {
+			fmt.Printf("Wrote: %s\n", fn)
+		} else if output == "-" || stdoutFlag || fn == "-" {
 			// Stdout
 			_, _ = fmt.Fprint(stdout, content)
+		} else {
+			writeOutput(fn, []byte(content), force)
 		}
 	}
 	return nil

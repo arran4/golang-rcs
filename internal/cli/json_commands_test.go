@@ -91,7 +91,7 @@ func TestJsonCommandsStdIO(t *testing.T) {
 		}
 	}()
 
-	if err := ToJson("", false, "-"); err != nil {
+	if err := ToJson("", false, false, "-"); err != nil {
 		t.Errorf("ToJson failed: %v", err)
 	}
 
@@ -153,13 +153,13 @@ func TestJsonCommandsStdIO(t *testing.T) {
 func TestJsonCommandsFileToFile(t *testing.T) {
 	dir := t.TempDir()
 	input := loadTestInput(t)
-	inputFile := filepath.Join(dir, "input.v")
+	inputFile := filepath.Join(dir, "input,v")
 	if err := os.WriteFile(inputFile, input, 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	// 1. ToJson default output
-	if err := ToJson("", false, inputFile); err != nil {
+	if err := ToJson("", false, false, inputFile); err != nil {
 		t.Errorf("ToJson failed: %v", err)
 	}
 	expectedJsonFile := inputFile + ".json"
@@ -168,9 +168,9 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 	}
 
 	// 2. FromJson default output
-	// Need to handle potential overwrite issue if we write back to input.v?
-	// FromJson writes to trimmed suffix. input.v.json -> input.v
-	// input.v already exists. Should fail without force.
+	// Need to handle potential overwrite issue if we write back to input,v?
+	// FromJson writes to trimmed suffix. input,v.json -> input,v
+	// input,v already exists. Should fail without force.
 
 	if err := FromJson("", false, expectedJsonFile); err == nil {
 		t.Errorf("Expected error due to existing output file without force, got nil")
@@ -195,7 +195,7 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 
 	// 4. Custom output
 	customOut := filepath.Join(dir, "custom.json")
-	if err := ToJson(customOut, false, inputFile); err != nil {
+	if err := ToJson(customOut, false, false, inputFile); err != nil {
 		t.Errorf("ToJson failed: %v", err)
 	}
 	if _, err := os.Stat(customOut); os.IsNotExist(err) {
