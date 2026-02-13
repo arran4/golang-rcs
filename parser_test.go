@@ -1568,7 +1568,6 @@ func TestParseLockBody(t *testing.T) {
 	}
 }
 
-
 func TestParseLocalFiles(t *testing.T) {
 	testParseFiles(t, localTests, "testdata/local")
 }
@@ -1722,6 +1721,12 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 		"group\t15;\n" +
 		"permissions\t644;\n" +
 		"hardlinks\t@stringize.m4@;\n" +
+		"deltatype\ttext;\n" +
+		"kopt\tkv;\n" +
+		"mergepoint\t1.1.1.1;\n" +
+		"filename\treadme.txt;\n" +
+		"username\tuser1;\n" +
+		"newfield\tvalue1 @value 2@;\n" +
 		"\n\n"
 
 	s := NewScanner(strings.NewReader(input))
@@ -1733,20 +1738,47 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 	if rh.Revision != "1.2" {
 		t.Errorf("Revision = %q, want %q", rh.Revision, "1.2")
 	}
-	if rh.Owner != "640" {
+	if len(rh.Owner) != 1 || rh.Owner[0] != "640" {
 		t.Errorf("Owner = %q, want %q", rh.Owner, "640")
 	}
-	if rh.Group != "15" {
+	if len(rh.Group) != 1 || rh.Group[0] != "15" {
 		t.Errorf("Group = %q, want %q", rh.Group, "15")
 	}
-	if rh.Permissions != "644" {
+	if len(rh.Permissions) != 1 || rh.Permissions[0] != "644" {
 		t.Errorf("Permissions = %q, want %q", rh.Permissions, "644")
 	}
-	if rh.Hardlinks != "stringize.m4" {
+	if len(rh.Hardlinks) != 1 || rh.Hardlinks[0] != "stringize.m4" {
 		t.Errorf("Hardlinks = %q, want %q", rh.Hardlinks, "stringize.m4")
+	}
+	if len(rh.Deltatype) != 1 || rh.Deltatype[0] != "text" {
+		t.Errorf("Deltatype = %q, want %q", rh.Deltatype, "text")
+	}
+	if len(rh.Kopt) != 1 || rh.Kopt[0] != "kv" {
+		t.Errorf("Kopt = %q, want %q", rh.Kopt, "kv")
+	}
+	if len(rh.Mergepoint) != 1 || rh.Mergepoint[0] != "1.1.1.1" {
+		t.Errorf("Mergepoint = %q, want %q", rh.Mergepoint, "1.1.1.1")
+	}
+	if len(rh.Filename) != 1 || rh.Filename[0] != "readme.txt" {
+		t.Errorf("Filename = %q, want %q", rh.Filename, "readme.txt")
+	}
+	if len(rh.Username) != 1 || rh.Username[0] != "user1" {
+		t.Errorf("Username = %q, want %q", rh.Username, "user1")
+	}
+	if len(rh.NewPhrases) != 1 {
+		t.Errorf("NewPhrases length = %d, want 1", len(rh.NewPhrases))
+	} else {
+		if rh.NewPhrases[0].Key != "newfield" {
+			t.Errorf("NewPhrase Key = %q, want %q", rh.NewPhrases[0].Key, "newfield")
+		}
+		expectedValues := []string{"value1", "value 2"}
+		if diff := cmp.Diff(rh.NewPhrases[0].Value, expectedValues); diff != "" {
+			t.Errorf("NewPhrase Value mismatch (-got +want):\n%s", diff)
+		}
 	}
 
 	// Verify String() output
+	// Note: stringize.m4 is a valid ID, so it will be output unquoted by default now.
 	expectedOutput := "1.2\n" +
 		"date\t99.01.12.14.05.31;\tauthor lhecking;\tstate dead;\n" +
 		"branches;\n" +
@@ -1754,7 +1786,13 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 		"owner\t640;\n" +
 		"group\t15;\n" +
 		"permissions\t644;\n" +
-		"hardlinks\t@stringize.m4@;\n"
+		"hardlinks\tstringize.m4;\n" +
+		"deltatype\ttext;\n" +
+		"kopt\tkv;\n" +
+		"mergepoint\t1.1.1.1;\n" +
+		"filename\treadme.txt;\n" +
+		"username\tuser1;\n" +
+		"newfield\tvalue1 @value 2@;\n"
 
 	if diff := cmp.Diff(rh.String(), expectedOutput); diff != "" {
 		t.Errorf("String() mismatch (-want +got):\n%s", diff)
