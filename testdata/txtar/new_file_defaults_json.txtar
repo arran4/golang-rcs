@@ -31,6 +31,7 @@ desc
 json to rcs
 
 -- description.txt --
-Test case split from new_file_defaults.txtar
+Test serialization of a new file with default values (strict mode).
 
 -- options.conf --
+* unix line endings

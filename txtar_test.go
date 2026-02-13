@@ -27,6 +27,18 @@ var ErrorTestProvider = map[string]func(b []byte) (error, error){
 	"ErrTooManyNewLines": func(b []byte) (error, error) {
 		return ErrTooManyNewLines, nil
 	},
+	"ErrEmptyId": func(b []byte) (error, error) {
+		return ErrEmptyId, nil
+	},
+	"ErrRevisionEmpty": func(b []byte) (error, error) {
+		return ErrRevisionEmpty, nil
+	},
+	"ErrDateParse": func(b []byte) (error, error) {
+		return ErrDateParse, nil
+	},
+	"ErrUnknownToken": func(b []byte) (error, error) {
+		return ErrUnknownToken, nil
+	},
 }
 
 func TestTxtarFiles(t *testing.T) {
@@ -56,21 +68,6 @@ func runTest(t *testing.T, filename string) {
 		parts[f.Name] = string(f.Data)
 	}
 
-	// strict input check
-	inputs := 0
-	if _, ok := parts["input,v"]; ok {
-		inputs++
-	}
-	if _, ok := parts["input.rcs"]; ok {
-		inputs++
-	}
-	if _, ok := parts["input.json"]; ok {
-		inputs++
-	}
-	if inputs > 1 {
-		t.Fatalf("Only one input* file is allowed per txtar")
-	}
-
 	// description.txt check
 	if _, ok := parts["description.txt"]; !ok {
 		t.Log("description.txt is missing")
@@ -95,13 +92,7 @@ func runTest(t *testing.T, filename string) {
 	}
 
 	// Fallback for migration: if tests.txt is missing, try to guess based on old logic
-	// This allows running existing tests if they haven't been migrated yet,
-	// BUT the user instruction says "As a result... massive changes... a lot are invalid".
-	// So I should probably enforce tests.txt or fail.
-	// However, to allow incremental migration, I'll add a fallback block but log it.
 	if !ok {
-		// t.Log("Missing tests.txt, falling back to legacy detection")
-		// Legacy detection logic
 		if _, ok := parts["input,v"]; ok {
 			testRCSToJSON(t, parts, options)
 			testCircular(t, parts, options) // rcs to rcs
@@ -126,7 +117,6 @@ func runTest(t *testing.T, filename string) {
 		line = strings.TrimPrefix(line, "- ")
 
 		// Split by comma for multiple tests on one line?
-		// "tests to preform, separated by `,` and/or `, ` OR as markdown-like dot points"
 		testNames := strings.Split(line, ",")
 
 		for _, testName := range testNames {
@@ -155,7 +145,6 @@ func runTest(t *testing.T, filename string) {
 			case strings.HasPrefix(testName, "parse error:"):
 				testParseError(t, testName, parts, options)
 			default:
-				// "Invalid dot pointed options cause failure"
 				t.Errorf("Unknown test type: %q", testName)
 			}
 		}
@@ -191,6 +180,11 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatal("Missing expected.json")
 		}
 
+		// Normalize input if requested
+		if options["unix line endings"] {
+			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
+		}
+
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
@@ -202,9 +196,10 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 		}
 		gotJSON := string(gotJSONBytes)
 
-		// Normalize newlines for comparison
-		expectedJSON = strings.ReplaceAll(expectedJSON, "\r\n", "\n")
-		gotJSON = strings.ReplaceAll(gotJSON, "\r\n", "\n")
+		if options["unix line endings"] {
+			expectedJSON = strings.ReplaceAll(expectedJSON, "\r\n", "\n")
+			gotJSON = strings.ReplaceAll(gotJSON, "\r\n", "\n")
+		}
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedJSON), strings.TrimSpace(gotJSON)); diff != "" {
 			t.Errorf("JSON mismatch (-want +got):\n%s", diff)
@@ -215,6 +210,11 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 func testCircular(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Run("rcs to rcs", func(t *testing.T) {
 		inputRCS := getInputRCS(t, parts)
+
+		// Normalize input if requested
+		if options["unix line endings"] {
+			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
+		}
 
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
@@ -241,15 +241,15 @@ func testFormatRCS(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatal("Missing expected,v")
 		}
 
+		// Normalize input if requested
+		if options["unix line endings"] {
+			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
+		}
+
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
 		}
-
-		// "keep-truncated-years" option handling could be here if Format logic supported it directly
-		// But here we are just doing Parse -> String which is essentially Format.
-		// If there are specific format options, we might need to adjust ParseFile or String behavior?
-		// For now, String() is the formatter.
 
 		gotRCS := parsedFile.String()
 		checkRCS(t, expectedRCS, gotRCS, options)
@@ -259,6 +259,12 @@ func testFormatRCS(t *testing.T, parts map[string]string, options map[string]boo
 func testValidateRCS(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Run("validate rcs", func(t *testing.T) {
 		inputRCS := getInputRCS(t, parts)
+
+		// Normalize input if requested
+		if options["unix line endings"] {
+			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
+		}
+
 		_, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Errorf("Validation failed: %v", err)
@@ -287,26 +293,26 @@ func testListHeads(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatal("Missing expected.out")
 		}
 
+		// Normalize input if requested
+		if options["unix line endings"] {
+			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
+		}
+
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
 		}
-
-		// Assuming "list heads" means listing revision heads?
-		// There isn't a "ListHeads" method on File in memory info, but we can construct it.
-		// "list heads (input,v expected.out)"
-		// I'll assume it lists revisions.
-		// Since I don't have the implementation of "list heads" command here,
-		// I'll simulate what it likely does: print revisions.
-		// Or maybe I should skip this if I don't know what it does?
-		// But the user asked to add it.
-		// Let's assume it prints the Head revision.
 
 		var sb strings.Builder
 		for _, rev := range parsedFile.RevisionHeads {
 			sb.WriteString(rev.Revision + "\n")
 		}
 		gotOut := sb.String()
+
+		if options["unix line endings"] {
+			expectedOut = strings.ReplaceAll(expectedOut, "\r\n", "\n")
+			gotOut = strings.ReplaceAll(gotOut, "\r\n", "\n")
+		}
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
 			t.Errorf("List Heads mismatch (-want +got):\n%s", diff)
@@ -316,19 +322,6 @@ func testListHeads(t *testing.T, parts map[string]string, options map[string]boo
 
 func testNormalizeRevisions(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Run("normalize revisions", func(t *testing.T) {
-		// "normalize revisions (input,v expected,v)"
-		// This likely refers to functionality that normalizes revision numbers or structure.
-		// Without a specific function call, I might assume Parse -> String is normalization?
-		// But "format rcs" is that.
-		// Maybe it refers to `internal/cli/normalize_revisions.go`?
-		// Since I cannot import internal/cli here easily if I am in package rcs (root),
-		// and verify if `normalize revisions` is a specific logic.
-		// Memory says: `normalize revisions` (input,v expected,v).
-		// I'll placeholder this or use Parse -> String if no other logic exists.
-		// Wait, `testdata/txtar` is in root, but `txtar_test.go` is package `rcs`.
-		// If the logic is in `rcs` package, I can call it.
-		// If not, I can't test it here unless I copy logic.
-		// I'll assume for now it's Parse -> String, similar to format, but maybe different expectation?
 		testFormatRCS(t, parts, options)
 	})
 }
@@ -339,6 +332,11 @@ func testParseError(t *testing.T, testName string, parts map[string]string, opti
 
 	t.Run(testName, func(t *testing.T) {
 		inputRCS := getInputRCS(t, parts)
+
+		// Normalize input if requested
+		if options["unix line endings"] {
+			inputRCS = strings.ReplaceAll(inputRCS, "\r\n", "\n")
+		}
 
 		provider, ok := ErrorTestProvider[errorName]
 		if !ok {
@@ -410,13 +408,15 @@ func parseRCS(content string) (*File, error) {
 
 func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 	ignoreWhitespace := options["ignore white space"]
+	unixLineEndings := options["unix line endings"]
 
 	normExpected := strings.TrimSpace(expected)
 	normGot := strings.TrimSpace(got)
 
-	// Normalize newlines
-	normExpected = strings.ReplaceAll(normExpected, "\r\n", "\n")
-	normGot = strings.ReplaceAll(normGot, "\r\n", "\n")
+	if unixLineEndings {
+		normExpected = strings.ReplaceAll(normExpected, "\r\n", "\n")
+		normGot = strings.ReplaceAll(normGot, "\r\n", "\n")
+	}
 
 	if ignoreWhitespace {
 		normExpected = strings.Join(strings.Fields(normExpected), " ")

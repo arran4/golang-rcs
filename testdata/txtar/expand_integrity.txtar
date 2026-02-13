@@ -54,6 +54,7 @@ text
 rcs to rcs
 
 -- description.txt --
-Migrated test from expand_integrity.go,v
+Test parsing of integrity field and reordering of header fields.
 
 -- options.conf --
+* unix line endings

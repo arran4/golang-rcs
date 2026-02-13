@@ -52,6 +52,7 @@ text
 rcs to rcs
 
 -- description.txt --
-Migrated test from expand_integrity_unquoted.go,v
+Test parsing of unquoted expand field and normalization to quoted.
 
 -- options.conf --
+* unix line endings
