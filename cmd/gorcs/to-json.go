@@ -109,6 +109,20 @@ func (c *ToJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
+	if len(c.files) == 0 {
+		stat, err := os.Stdin.Stat()
+		if err != nil {
+			c.Usage()
+			return nil
+		}
+		if (stat.Mode() & os.ModeCharDevice) == 0 {
+			c.files = []string{"-"}
+		} else {
+			c.Usage()
+			return nil
+		}
+	}
+
 	cli.ToJson(c.output, c.force, c.files...)
 
 	return nil
