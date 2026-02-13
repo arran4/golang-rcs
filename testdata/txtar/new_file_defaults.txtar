@@ -1,51 +1,51 @@
 -- input.json --
 {
-  "Head": "1.7",
+  "Head": "1.1",
   "Branch": "",
-  "Description": "",
-  "Comment": "",
+  "Description": "d",
+  "Comment": "c",
   "Access": false,
-  "HasSymbols": false,
-  "Symbols": null,
-  "SymbolMap": null,
+  "Symbols": [],
   "AccessUsers": null,
   "Locks": [],
   "Strict": true,
   "Integrity": "",
   "Expand": "",
-  "RevisionHeads": [],
-  "RevisionContents": []
+  "RevisionHeads": null,
+  "RevisionContents": null
 }
 -- expected,v --
-head	1.7;
+head	1.1;
+symbols;
 locks; strict;
-comment	@@;
+comment	@c@;
 
 
 
 desc
-@@
+@d@
 
 
 -- input.rcs --
-head	1.7;
+head	1.1;
+symbols;
 locks; strict;
-comment	@@;
+comment	@c@;
 
 
 
 desc
-@@
+@d@
 
 
 -- expected.json --
 {
-  "Head": "1.7",
+  "Head": "1.1",
   "Branch": "",
-  "Description": "",
-  "Comment": "",
+  "Description": "d",
+  "Comment": "c",
   "Access": false,
-  "Symbols": null,
+  "Symbols": [],
   "AccessUsers": null,
   "Locks": [],
   "Strict": true,

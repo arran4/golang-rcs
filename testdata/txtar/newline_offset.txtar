@@ -51,13 +51,18 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
   "Description": "",
   "Comment": "# Master with an expand field that's data, not a token.",
   "Access": true,
-  "Symbols": true,
+  "Symbols": [
+    {
+      "Name": "rc1",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "ic",
+      "Revision": "1.1.1"
+    }
+  ],
   "AccessUsers": null,
-  "SymbolMap": {
-    "ic": "1.1.1",
-    "rc1": "1.1.1.1"
-  },
-  "Locks": null,
+  "Locks": [],
   "Strict": true,
   "Integrity": "",
   "Expand": "b",
@@ -98,3 +103,52 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
     }
   ]
 }
+-- expected,v --
+head	1.1;
+branch	1.1.1;
+access;
+symbols
+	ic:1.1.1
+	rc1:1.1.1.1;
+locks; strict;
+comment	@# Master with an expand field that's data, not a token.@;
+expand	@b@;
+
+
+1.1
+date	2004.09.07.08.24.09;	author cisers;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2004.09.07.08.24.09;	author cisers;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+
+1.1
+log
+@da28248b4ec75efbe0ba7461142ed60d
+@
+text
+@projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1
+@
+
+
+
+
+1.1.1.1
+log
+@03a6ecc1dbc74cfaacfeb8b1f09b8998
+@
+text
+@d1 1
+a1 1
+projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
+@

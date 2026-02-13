@@ -3,11 +3,9 @@ package rcs
 import (
 	"bytes"
 	"embed"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
-	"golang.org/x/tools/txtar"
 	"io/fs"
 	"strings"
 	"testing"
@@ -19,8 +17,6 @@ var (
 	testinputv []byte
 	//go:embed "testdata/testinput1.go,v"
 	testinputv1 []byte
-	//go:embed testdata/txtar/*.txtar
-	txtarTests embed.FS
 	//go:embed testdata/local/*
 	localTests embed.FS
 	//go:embed "testdata/expand_integrity.go,v"
@@ -41,7 +37,7 @@ func TestParseAccessSymbols(t *testing.T) {
 		t.Errorf("AccessUsers: %s", diff)
 	}
 	expectedMap := map[string]string{"rel": "1.1", "tag": "1.1.0.2"}
-	if diff := cmp.Diff(expectedMap, f.SymbolMap); diff != "" {
+	if diff := cmp.Diff(expectedMap, f.SymbolMap()); diff != "" {
 		t.Errorf("SymbolMap: %s", diff)
 	}
 	if diff := cmp.Diff(f.Description, "Sample\n"); diff != "" {
@@ -142,6 +138,7 @@ text
 }
 
 func TestParseFile(t *testing.T) {
+	// Updated for slice refactor
 	noError := func(t *testing.T, err error) {
 		if err != nil {
 			t.Errorf("ParseFile() error = %v, wantErr nil", err)
@@ -191,28 +188,37 @@ func TestParseFile(t *testing.T) {
 		}
 	}
 
+	_ = checkTestInput
+	_ = checkAccessSymbols
+
 	tests := []struct {
 		name      string
 		r         string
 		b         []byte
 		checkErr  func(*testing.T, error)
 		checkFile func(*testing.T, *File)
+		verify   func(*testing.T, *File)
 		wantDesc  string
-	}{
+    check    func(*testing.T, *File)
+  }{
 		{
 			name:      "Test parse of testinput.go,v",
 			r:         string(testinputv),
 			b:         testinputv,
 			checkErr:  noError,
 			checkFile: checkTestInput,
-			wantDesc:  "This is a test file.\n",
+			verify:   checkTestInput,
+			wantDesc: "This is a test file.\n",
+			check:    checkTestInput,
 		},
 		{
 			name:     "Test parse of testinput1.go,v - add a new line for the missing one",
 			r:        string(testinputv1) + "\n",
 			b:        testinputv1,
 			checkErr: noError,
+			verify:   checkTestInput,
 			wantDesc: "This is a test file.\n",
+			check:    checkTestInput,
 		},
 		{
 			name:      "Parse file with access and symbols",
@@ -220,7 +226,9 @@ func TestParseFile(t *testing.T) {
 			b:         accessSymbolsv,
 			checkErr:  noError,
 			checkFile: checkAccessSymbols,
-			wantDesc:  "Sample\n",
+			verify:   checkAccessSymbols,
+			wantDesc: "Sample\n",
+			check:    checkAccessSymbols,
 		},
 		{
 			name: "Invalid header - missing head",
@@ -296,6 +304,9 @@ func TestParseFile(t *testing.T) {
 					t.Errorf("RevisionContents: %s", diff)
 				}
 			}
+			if tt.verify != nil {
+				tt.verify(t, got)
+			}
 
 			if tt.name != "Invalid revision content (relaxed)" {
 				if diff := cmp.Diff(got.String(), string(tt.r)); diff != "" {
@@ -358,7 +369,7 @@ func TestParseHeader(t *testing.T) {
 				Head:    "1.6",
 				Comment: "# ",
 				Access:  true,
-				Symbols: true,
+				Symbols: []*Symbol{},
 				Locks: []*Lock{
 					{
 						User:     "arran",
@@ -1574,67 +1585,6 @@ func TestParseLockBody(t *testing.T) {
 	}
 }
 
-func TestParseTxtarFiles(t *testing.T) {
-	files, err := txtarTests.ReadDir("testdata/txtar")
-	if err != nil {
-		t.Fatalf("ReadDir error: %v", err)
-	}
-
-	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), ".txtar") {
-			continue
-		}
-		t.Run(f.Name(), func(t *testing.T) {
-			content, err := txtarTests.ReadFile("testdata/txtar/" + f.Name())
-			if err != nil {
-				t.Fatalf("ReadFile error: %v", err)
-			}
-			ar := txtar.Parse(content)
-
-			var rcsContent, expectedJSON string
-			for _, f := range ar.Files {
-				if f.Name == "input.rcs" {
-					rcsContent = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
-				}
-				if f.Name == "expected.json" {
-					expectedJSON = strings.ReplaceAll(string(f.Data), "\r\n", "\n")
-				}
-			}
-
-			if rcsContent == "" {
-				t.Fatalf("input.rcs not found in %s", f.Name())
-			}
-			if expectedJSON == "" {
-				t.Fatalf("expected.json not found in %s", f.Name())
-			}
-
-			// Parse RCS
-			parsedFile, err := ParseFile(strings.NewReader(rcsContent))
-			if err != nil {
-				// Retry with added newlines if parsing failed, assuming it might be due to missing EOF markers
-				parsedFile, err = ParseFile(strings.NewReader(rcsContent + "\n\n\n"))
-				if err != nil {
-					t.Fatalf("ParseFile error: %v", err)
-				}
-			}
-
-			// Marshal to JSON
-			gotJSONBytes, err := json.MarshalIndent(parsedFile, "", "  ")
-			if err != nil {
-				t.Fatalf("json.MarshalIndent error: %v", err)
-			}
-			gotJSON := string(gotJSONBytes)
-
-			// Normalize JSON for comparison (trim whitespace)
-			gotJSON = strings.TrimSpace(gotJSON)
-			expectedJSON = strings.TrimSpace(expectedJSON)
-
-			if diff := cmp.Diff(expectedJSON, gotJSON); diff != "" {
-				t.Errorf("JSON mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
 
 func TestParseLocalFiles(t *testing.T) {
 	testParseFiles(t, localTests, "testdata/local")

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -21,6 +20,11 @@ type Lock struct {
 
 func (l *Lock) String() string {
 	return fmt.Sprintf("%s:%s;", l.User, l.Revision)
+}
+
+type Symbol struct {
+	Name     string
+	Revision string
 }
 
 type RevisionHead struct {
@@ -70,7 +74,9 @@ func (h *RevisionHead) String() string {
 		sb.WriteString(fmt.Sprintf("permissions\t%s;\n", h.Permissions))
 	}
 	if h.Hardlinks != "" {
-		sb.WriteString(fmt.Sprintf("hardlinks\t%s;\n", AtQuote(h.Hardlinks)))
+		sb.WriteString("hardlinks\t")
+		_, _ = WriteAtQuote(&sb, h.Hardlinks)
+		sb.WriteString(";\n")
 	}
 	return sb.String()
 }
@@ -89,10 +95,10 @@ func (c *RevisionContent) String() string {
 	}
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
-	sb.WriteString(AtQuote(c.Log))
+	_, _ = WriteAtQuote(&sb, c.Log)
 	sb.WriteString("\n")
 	sb.WriteString("text\n")
-	sb.WriteString(AtQuote(c.Text))
+	_, _ = WriteAtQuote(&sb, c.Text)
 	sb.WriteString("\n")
 	return sb.String()
 }
@@ -103,9 +109,8 @@ type File struct {
 	Description             string
 	Comment                 string
 	Access                  bool
-	Symbols                 bool
+	Symbols                 []*Symbol
 	AccessUsers             []string
-	SymbolMap               map[string]string
 	Locks                   []*Lock
 	Strict                  bool
 	StrictOnOwnLine         bool `json:",omitempty"`
@@ -114,6 +119,36 @@ type File struct {
 	Expand                  string
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
+}
+
+func NewFile() *File {
+	return &File{
+		Symbols: make([]*Symbol, 0),
+		Locks:   make([]*Lock, 0),
+		Strict:  true,
+	}
+}
+
+func (f *File) SymbolMap() map[string]string {
+	if f.Symbols == nil {
+		return nil
+	}
+	m := make(map[string]string)
+	for _, s := range f.Symbols {
+		m[s.Name] = s.Revision
+	}
+	return m
+}
+
+func (f *File) LocksMap() map[string]string {
+	if f.Locks == nil {
+		return nil
+	}
+	m := make(map[string]string)
+	for _, l := range f.Locks {
+		m[l.User] = l.Revision
+	}
+	return m
 }
 
 func (f *File) String() string {
@@ -131,44 +166,43 @@ func (f *File) String() string {
 			sb.WriteString("access;\n")
 		}
 	}
-	if f.Symbols {
-		if len(f.SymbolMap) > 0 {
-			sb.WriteString("symbols")
-			keys := make([]string, 0, len(f.SymbolMap))
-			for k := range f.SymbolMap {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				sb.WriteString("\n\t")
-				sb.WriteString(fmt.Sprintf("%s:%s", k, f.SymbolMap[k]))
-			}
-			sb.WriteString(";\n")
-		} else {
-			sb.WriteString("symbols;\n")
+	if f.Symbols != nil {
+		sb.WriteString("symbols")
+		for _, sym := range f.Symbols {
+			sb.WriteString("\n\t")
+			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
 		}
+		sb.WriteString(";\n")
 	}
-	sb.WriteString("locks")
-	if len(f.Locks) == 0 {
+
+	if f.Locks != nil {
+		sb.WriteString("locks")
+		for _, lock := range f.Locks {
+			sb.WriteString("\n\t")
+			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
+		}
 		sb.WriteString(";")
+		if f.Strict && !f.StrictOnOwnLine {
+			sb.WriteString(" strict;")
+		}
+		sb.WriteString("\n")
 	}
-	for _, lock := range f.Locks {
-		sb.WriteString("\n\t")
-		sb.WriteString(lock.String())
-	}
-	if f.Strict && !f.StrictOnOwnLine {
-		sb.WriteString(" strict;")
-	}
-	sb.WriteString("\n")
+
 	if f.Strict && f.StrictOnOwnLine {
 		sb.WriteString("strict;\n")
 	}
 	if f.Integrity != "" {
-		sb.WriteString(fmt.Sprintf("integrity\t%s;\n", AtQuote(f.Integrity)))
+		sb.WriteString("integrity\t")
+		_, _ = WriteAtQuote(&sb, f.Integrity)
+		sb.WriteString(";\n")
 	}
-	sb.WriteString(fmt.Sprintf("comment\t%s;\n", AtQuote(f.Comment)))
+	sb.WriteString("comment\t")
+	_, _ = WriteAtQuote(&sb, f.Comment)
+	sb.WriteString(";\n")
 	if f.Expand != "" {
-		sb.WriteString(fmt.Sprintf("expand\t%s;\n", AtQuote(f.Expand)))
+		sb.WriteString("expand\t")
+		_, _ = WriteAtQuote(&sb, f.Expand)
+		sb.WriteString(";\n")
 	}
 	sb.WriteString("\n")
 	sb.WriteString("\n")
@@ -178,7 +212,8 @@ func (f *File) String() string {
 	}
 	sb.WriteString("\n")
 	sb.WriteString("desc\n")
-	sb.WriteString(fmt.Sprintf("%s\n", AtQuote(f.Description)))
+	_, _ = WriteAtQuote(&sb, f.Description)
+	sb.WriteString("\n")
 
 	for _, content := range f.RevisionContents {
 		sb.WriteString(content.String())
@@ -188,6 +223,39 @@ func (f *File) String() string {
 
 func AtQuote(s string) string {
 	return "@" + strings.ReplaceAll(s, "@", "@@") + "@"
+}
+
+func WriteAtQuote(w io.Writer, s string) (int, error) {
+	n, err := io.WriteString(w, "@")
+	if err != nil {
+		return n, err
+	}
+	total := n
+
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == '@' {
+			n, err = io.WriteString(w, s[start:i+1])
+			total += n
+			if err != nil {
+				return total, err
+			}
+			n, err = io.WriteString(w, "@")
+			total += n
+			if err != nil {
+				return total, err
+			}
+			start = i + 1
+		}
+	}
+	n, err = io.WriteString(w, s[start:])
+	total += n
+	if err != nil {
+		return total, err
+	}
+	n, err = io.WriteString(w, "@")
+	total += n
+	return total, err
 }
 
 func ParseFile(r io.Reader) (*File, error) {
@@ -316,13 +384,10 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.AccessUsers = users
 			}
 		case "symbols":
-			f.Symbols = true
-			if err := ParseTerminatorFieldLine(s); err != nil {
-				sym, err := ParseHeaderSymbols(s, true)
-				if err != nil {
-					return fmt.Errorf("token %#v: %w", nt, err)
-				}
-				f.SymbolMap = sym
+			if sym, err := ParseHeaderSymbols(s, true); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
+			} else {
+				f.Symbols = sym
 			}
 		case "locks":
 			var err error
@@ -627,13 +692,13 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	return ids, nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "symbols"); err != nil {
 			return nil, err
 		}
 	}
-	m := map[string]string{}
+	m := make([]*Symbol, 0)
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, err
@@ -655,7 +720,7 @@ func ParseHeaderSymbols(s *Scanner, havePropertyName bool) (map[string]string, e
 		if err != nil {
 			return nil, fmt.Errorf("expected num for sym %q: %w", sym, err)
 		}
-		m[sym] = num
+		m = append(m, &Symbol{Name: sym, Revision: num})
 	}
 	return m, nil
 }
@@ -695,7 +760,7 @@ func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, string,
 			return nil, false, "", err
 		}
 	}
-	var locks []*Lock
+	locks := make([]*Lock, 0)
 	var strict bool
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
