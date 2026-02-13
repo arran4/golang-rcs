@@ -16,8 +16,9 @@ import (
 //
 //	output: -o --output Output file path
 //	force: -f --force Force overwrite output
+//	indent: -I --indent Indent JSON output
 //	files: ... List of files to process, or - for stdin
-func ToJson(output string, force bool, files ...string) {
+func ToJson(output string, force bool, indent bool, files ...string) {
 	if output != "" && output != "-" && len(files) > 1 {
 		log.Panicf("Cannot specify output file with multiple input files")
 	}
@@ -41,7 +42,12 @@ func ToJson(output string, force bool, files ...string) {
 		if err != nil {
 			log.Panicf("Error parsing %s: %s", fn, err)
 		}
-		b, err := json.Marshal(r)
+		var b []byte
+		if indent {
+			b, err = json.MarshalIndent(r, "", "  ")
+		} else {
+			b, err = json.Marshal(r)
+		}
 		if err != nil {
 			log.Panicf("Error serializing %s: %s", fn, err)
 		}
@@ -123,4 +129,5 @@ func writeOutput(path string, data []byte, force bool) {
 	if err := os.WriteFile(path, data, 0644); err != nil {
 		log.Panicf("Error writing output to %s: %s", path, err)
 	}
+	fmt.Printf("Wrote: %s\n", path)
 }

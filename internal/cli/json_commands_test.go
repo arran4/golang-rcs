@@ -91,7 +91,7 @@ func TestJsonCommandsStdIO(t *testing.T) {
 		}
 	}()
 
-	ToJson("", false, "-")
+	ToJson("", false, false, "-")
 
 	if err := w.Close(); err != nil {
 		t.Fatalf("close pipe: %v", err)
@@ -155,7 +155,7 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 	}
 
 	// 1. ToJson default output
-	ToJson("", false, inputFile)
+	ToJson("", false, false, inputFile)
 	expectedJsonFile := inputFile + ".json"
 	if _, err := os.Stat(expectedJsonFile); os.IsNotExist(err) {
 		t.Fatalf("Expected output file %s does not exist", expectedJsonFile)
@@ -196,7 +196,7 @@ func TestJsonCommandsFileToFile(t *testing.T) {
 
 	// 4. Custom output
 	customOut := filepath.Join(dir, "custom.json")
-	ToJson(customOut, false, inputFile)
+	ToJson(customOut, false, false, inputFile)
 	if _, err := os.Stat(customOut); os.IsNotExist(err) {
 		t.Fatalf("Expected custom output file %s", customOut)
 	}

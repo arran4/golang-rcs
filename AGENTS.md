@@ -12,3 +12,6 @@
 *   Use standard Go formatting (`go fmt`).
 *   Ensure all new files have appropriate package declarations.
 *   Avoid adding binary artifacts to the repository.
+
+## Documentation
+*   Whenever subcommands are updated, update the documentation such as `readme.md`.

@@ -4,3 +4,4 @@
 /normalize-revisions
 /testdata/local/*,v
 /testdata/local/**/*,v
+/test.*
