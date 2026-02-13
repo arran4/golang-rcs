@@ -93,13 +93,13 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
       "Revision": "1.1",
       "Log": "da28248b4ec75efbe0ba7461142ed60d\n",
       "Text": "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n",
-      "RevisionDescriptionNewLineOffset": 1
+      "PrecedingNewLinesOffset": 1
     },
     {
       "Revision": "1.1.1.1",
       "Log": "03a6ecc1dbc74cfaacfeb8b1f09b8998\n",
       "Text": "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n",
-      "RevisionDescriptionNewLineOffset": 2
+      "PrecedingNewLinesOffset": 2
     }
   ]
 }

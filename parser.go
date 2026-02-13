@@ -82,15 +82,17 @@ func (h *RevisionHead) String() string {
 }
 
 type RevisionContent struct {
-	Revision                         string
-	Log                              string
-	Text                             string
-	RevisionDescriptionNewLineOffset int `json:",omitempty"`
+	Revision                 string
+	Log                      string
+	Text                     string
+	PrecedingNewLinesOffset  int `json:",omitempty"`
 }
 
 func (c *RevisionContent) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(strings.Repeat("\n", c.RevisionDescriptionNewLineOffset))
+	if 2+c.PrecedingNewLinesOffset > 0 {
+		sb.WriteString(strings.Repeat("\n", 2+c.PrecedingNewLinesOffset))
+	}
 	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
 	sb.WriteString("log\n")
 	_, _ = WriteAtQuote(&sb, c.Log)
@@ -214,8 +216,6 @@ func (f *File) String() string {
 	sb.WriteString("\n")
 
 	for _, content := range f.RevisionContents {
-		sb.WriteString("\n")
-		sb.WriteString("\n")
 		sb.WriteString(content.String())
 	}
 	return sb.String()
@@ -306,9 +306,6 @@ func ParseDescription(s *Scanner, havePropertyName bool) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("description tag: %s", err)
 		}
-	}
-	if err = ScanStrings(s, "\n\n", "\r\n\r\n"); err != nil {
-		return "", fmt.Errorf("description scan string: %s", err)
 	}
 	return d, nil
 }
@@ -551,17 +548,20 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 
 func ParseRevisionContents(s *Scanner) ([]*RevisionContent, error) {
 	var rcs []*RevisionContent
+	var initialOffset int
 	for {
 		rc, next, err := ParseRevisionContent(s)
 		if err != nil {
 			return nil, err
 		}
 		if rc != nil {
+			rc.PrecedingNewLinesOffset += initialOffset
 			rcs = append(rcs, rc)
 		}
 		if !next {
 			return rcs, nil
 		}
+		initialOffset = 2
 	}
 }
 
@@ -581,7 +581,7 @@ func ParseRevisionContent(s *Scanner) (*RevisionContent, bool, error) {
 		}
 		if rev != "" {
 			rh.Revision = rev
-			rh.RevisionDescriptionNewLineOffset = precedingNewLines
+			rh.PrecedingNewLinesOffset = precedingNewLines - 2
 			break
 		}
 		precedingNewLines++
@@ -853,7 +853,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		case " ", "\t":
 			continue
 		case "author":
-			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("author"), WithConsumed(true)); err != nil {
+			if s, err := ParseOptionalToken(s, ScanTokenAuthor, WithPropertyName("author"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				rh.Author = s
@@ -1168,24 +1168,20 @@ func (e ErrEOF) Error() string {
 
 func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
-		err = nil
-		for o := 0; o < len(data); o++ {
-			for _, ss := range strs {
-				if len(ss) == 0 && atEOF {
-					rs := data[:o]
-					return o, rs, nil
-				} else if len(ss) == 0 {
-					continue
-				}
-				i := len(ss)
-				if i >= len(data[o:]) && !atEOF && bytes.HasPrefix([]byte(ss), data[o:]) {
-					return 0, nil, nil
-				}
-				if bytes.HasPrefix(data[o:], []byte(ss)) {
-					rs := data[:o]
-					return o, rs, nil
+		bestIdx := -1
+		for _, ss := range strs {
+			if len(ss) == 0 {
+				continue
+			}
+			idx := bytes.Index(data, []byte(ss))
+			if idx >= 0 {
+				if bestIdx == -1 || idx < bestIdx {
+					bestIdx = idx
 				}
 			}
+		}
+		if bestIdx >= 0 {
+			return bestIdx, data[:bestIdx], nil
 		}
 		if atEOF {
 			err = ErrEOF{ScanNotFound{

@@ -115,3 +115,16 @@ func ScanTokenIntString(s *Scanner) (string, error) {
 	}
 	return val, nil
 }
+
+func ScanTokenAuthor(s *Scanner) (string, error) {
+	if err := ScanStrings(s, "@"); err == nil {
+		return ParseAtQuotedStringBody(s)
+	}
+	err := ScanRunesUntil(s, 1, func(b []byte) bool {
+		return b[0] == ';'
+	}, "author")
+	if err != nil {
+		return "", err
+	}
+	return s.Text(), nil
+}

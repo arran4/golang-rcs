@@ -81,6 +81,9 @@ func NormalizeRevisions(padCommits bool, files ...string) {
 
 		byDate := map[time.Time]hc{}
 		for i, h := range r.Rcs.RevisionHeads {
+			if i >= len(r.Rcs.RevisionContents) {
+				log.Panicf("File %s has mismatching heads (%d) and contents (%d)", r.FN, len(r.Rcs.RevisionHeads), len(r.Rcs.RevisionContents))
+			}
 			byDate[h.Date] = hc{h: h, c: r.Rcs.RevisionContents[i]}
 		}
 		for _, rc := range r.Rcs.RevisionContents {
