@@ -58,10 +58,14 @@ func (h *RevisionHead) String() string {
 }
 
 func (h *RevisionHead) StringWithNewLine(nl string) string {
-	return h.StringWithConfig(nl, "", 0)
+	return h.StringWithConfig(FormattingOptions{NewLine: nl})
 }
 
-func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceStop int) string {
+func (h *RevisionHead) StringWithConfig(ops FormattingOptions) string {
+	nl := ops.NewLine
+	if nl == "" {
+		nl = "\n"
+	}
 	sb := strings.Builder{}
 	sb.WriteString(h.Revision.String())
 	sb.WriteString(nl)
@@ -71,7 +75,7 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 	sb.WriteString("date")
 	lineLen += 4
 
-	indent := calculateIndent(lineLen, spaceStop, indentString)
+	indent := calculateIndent(lineLen, ops)
 	sb.WriteString(indent)
 	lineLen += len(indent)
 
@@ -81,14 +85,14 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 	sb.WriteString(";")
 	lineLen++
 
-	indent = calculateIndent(lineLen, spaceStop, indentString)
+	indent = calculateIndent(lineLen, ops)
 	sb.WriteString(indent)
 	lineLen += len(indent)
 
 	sb.WriteString("author")
 	lineLen += 6
 
-	indent = calculateIndent(lineLen, spaceStop, indentString)
+	indent = calculateIndent(lineLen, ops)
 	sb.WriteString(indent)
 	lineLen += len(indent)
 
@@ -98,14 +102,14 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 	sb.WriteString(";")
 	lineLen++
 
-	indent = calculateIndent(lineLen, spaceStop, indentString)
+	indent = calculateIndent(lineLen, ops)
 	sb.WriteString(indent)
 	lineLen += len(indent)
 
 	sb.WriteString("state")
 	lineLen += 5
 
-	indent = calculateIndent(lineLen, spaceStop, indentString)
+	indent = calculateIndent(lineLen, ops)
 	sb.WriteString(indent)
 
 	sb.WriteString(h.State.String())
@@ -116,7 +120,7 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		sb.WriteString(nl)
-		indent = calculateIndent(0, spaceStop, indentString)
+		indent = calculateIndent(0, ops)
 		sb.WriteString(indent)
 		for i, b := range h.Branches {
 			if i > 0 {
@@ -131,7 +135,7 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 	sb.WriteString(nl)
 
 	sb.WriteString("next")
-	indent = calculateIndent(4, spaceStop, indentString)
+	indent = calculateIndent(4, ops)
 	sb.WriteString(indent)
 	sb.WriteString(h.NextRevision.String())
 	sb.WriteString(";")
@@ -139,7 +143,7 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 
 	if h.CommitID != "" {
 		sb.WriteString("commitid")
-		indent = calculateIndent(8, spaceStop, indentString)
+		indent = calculateIndent(8, ops)
 		sb.WriteString(indent)
 		sb.WriteString(h.CommitID.String())
 		sb.WriteString(";")
@@ -151,7 +155,7 @@ func (h *RevisionHead) StringWithConfig(nl string, indentString string, spaceSto
 			return
 		}
 		sb.WriteString(key)
-		indent = calculateIndent(len(key), spaceStop, indentString)
+		indent = calculateIndent(len(key), ops)
 		sb.WriteString(indent)
 		for i, v := range values {
 			if i > 0 {
@@ -206,27 +210,30 @@ func (c *RevisionContent) StringWithNewLine(nl string) string {
 	return sb.String()
 }
 
+type FormattingOptions struct {
+	StrictOnOwnLine         bool   `json:",omitempty"`
+	DateYearPrefixTruncated bool   `json:",omitempty"`
+	EndOfFileNewLineOffset  int    `json:",omitempty"`
+	FirstIndentOffset       int    `json:",omitempty"`
+	IndentTab               int    `json:",omitempty"`
+	NewLine                 string `json:",omitempty"`
+}
+
 type File struct {
-	Head                    string
-	Branch                  string
-	Description             string
-	Comment                 string
-	Access                  bool
-	Symbols                 []*Symbol
-	AccessUsers             []string
-	Locks                   []*Lock
-	Strict                  bool
-	StrictOnOwnLine         bool `json:",omitempty"`
-	DateYearPrefixTruncated bool `json:",omitempty"`
-	Integrity               string
-	Expand                  string
-	NewLine                 string
-	SpaceStop               int    `json:",omitempty"`
-	IndentString            string `json:",omitempty"`
-	indentSet               bool
-	EndOfFileNewLineOffset  int `json:",omitempty"`
-	RevisionHeads           []*RevisionHead
-	RevisionContents        []*RevisionContent
+	FormattingOptions
+	Head             string
+	Branch           string
+	Description      string
+	Comment          string
+	Access           bool
+	Symbols          []*Symbol
+	AccessUsers      []string
+	Locks            []*Lock
+	Strict           bool
+	Integrity        string
+	Expand           string
+	RevisionHeads    []*RevisionHead
+	RevisionContents []*RevisionContent
 }
 
 func NewFile() *File {
@@ -238,16 +245,15 @@ func NewFile() *File {
 }
 
 func (f *File) SetIndent(key, ws string) {
-	if f.indentSet {
+	if f.FirstIndentOffset > 0 || f.IndentTab > 0 {
 		return
 	}
-	f.indentSet = true
 	if strings.Contains(ws, "\t") {
-		f.IndentString = ws
-		f.SpaceStop = 0
+		f.IndentTab = 1
+		f.FirstIndentOffset = 0
 	} else {
-		f.IndentString = ""
-		f.SpaceStop = len(key) + len(ws)
+		f.IndentTab = 0
+		f.FirstIndentOffset = len(key) + len(ws)
 	}
 }
 
@@ -271,6 +277,16 @@ func (f *File) LocksMap() map[string]string {
 		m[l.User] = l.Revision
 	}
 	return m
+}
+
+func (f *File) Format(ops *FormattingOptions) error {
+	f.StrictOnOwnLine = ops.StrictOnOwnLine
+	f.DateYearPrefixTruncated = ops.DateYearPrefixTruncated
+	f.EndOfFileNewLineOffset = ops.EndOfFileNewLineOffset
+	f.FirstIndentOffset = ops.FirstIndentOffset
+	f.IndentTab = ops.IndentTab
+	f.NewLine = ops.NewLine
+	return nil
 }
 
 func (f *File) SwitchLineEnding(nl string) {
@@ -350,7 +366,7 @@ func (f *File) String() string {
 
 	writeField := func(key string, val string) {
 		sb.WriteString(key)
-		indent := calculateIndent(len(key), f.SpaceStop, f.IndentString)
+		indent := calculateIndent(len(key), f.FormattingOptions)
 		sb.WriteString(indent)
 		sb.WriteString(val)
 		sb.WriteString(";")
@@ -364,7 +380,7 @@ func (f *File) String() string {
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
 			sb.WriteString("access")
-			indent := calculateIndent(len("access"), f.SpaceStop, f.IndentString)
+			indent := calculateIndent(len("access"), f.FormattingOptions)
 			sb.WriteString(indent)
 			sb.WriteString(strings.Join(f.AccessUsers, " "))
 			sb.WriteString(";")
@@ -376,7 +392,7 @@ func (f *File) String() string {
 	}
 	if f.Symbols != nil {
 		sb.WriteString("symbols")
-		indent := calculateIndent(0, f.SpaceStop, f.IndentString)
+		indent := calculateIndent(0, f.FormattingOptions)
 		for _, sym := range f.Symbols {
 			sb.WriteString(nl + indent)
 			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
@@ -387,7 +403,7 @@ func (f *File) String() string {
 
 	if f.Locks != nil {
 		sb.WriteString("locks")
-		indent := calculateIndent(0, f.SpaceStop, f.IndentString)
+		indent := calculateIndent(0, f.FormattingOptions)
 		for _, lock := range f.Locks {
 			sb.WriteString(nl + indent)
 			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
@@ -405,21 +421,21 @@ func (f *File) String() string {
 	}
 	if f.Integrity != "" {
 		sb.WriteString("integrity")
-		indent := calculateIndent(len("integrity"), f.SpaceStop, f.IndentString)
+		indent := calculateIndent(len("integrity"), f.FormattingOptions)
 		sb.WriteString(indent)
 		_, _ = WriteAtQuote(&sb, f.Integrity)
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
 	sb.WriteString("comment")
-	indent := calculateIndent(len("comment"), f.SpaceStop, f.IndentString)
+	indent := calculateIndent(len("comment"), f.FormattingOptions)
 	sb.WriteString(indent)
 	_, _ = WriteAtQuote(&sb, f.Comment)
 	sb.WriteString(";")
 	sb.WriteString(nl)
 	if f.Expand != "" {
 		sb.WriteString("expand")
-		indent := calculateIndent(len("expand"), f.SpaceStop, f.IndentString)
+		indent := calculateIndent(len("expand"), f.FormattingOptions)
 		sb.WriteString(indent)
 		_, _ = WriteAtQuote(&sb, f.Expand)
 		sb.WriteString(";")
@@ -428,7 +444,7 @@ func (f *File) String() string {
 	sb.WriteString(nl)
 	sb.WriteString(nl)
 	for _, head := range f.RevisionHeads {
-		sb.WriteString(head.StringWithConfig(nl, f.IndentString, f.SpaceStop))
+		sb.WriteString(head.StringWithConfig(f.FormattingOptions))
 		sb.WriteString(nl)
 	}
 	sb.WriteString(nl)
@@ -447,10 +463,11 @@ func (f *File) String() string {
 	return sb.String()
 }
 
-func calculateIndent(currentCol int, spaceStop int, indentString string) string {
-	if indentString != "" {
-		return indentString
+func calculateIndent(currentCol int, ops FormattingOptions) string {
+	if ops.IndentTab > 0 {
+		return strings.Repeat("\t", ops.IndentTab)
 	}
+	spaceStop := ops.FirstIndentOffset
 	if spaceStop == 0 {
 		spaceStop = 8
 	}

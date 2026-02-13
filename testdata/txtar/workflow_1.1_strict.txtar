@@ -1,5 +1,7 @@
 -- expected.json --
 {
+  "FirstIndentOffset": 8,
+  "NewLine": "\n",
   "Head": "1.1",
   "Branch": "",
   "Description": "asdkjfa\nsadfsaa\nmessage!\n",
@@ -11,8 +13,6 @@
   "Strict": true,
   "Integrity": "",
   "Expand": "",
-  "NewLine": "\n",
-  "SpaceStop": 8,
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -32,7 +32,6 @@
     }
   ]
 }
-
 -- expected,v --
 head    1.1;
 access;

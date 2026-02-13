@@ -19,6 +19,7 @@ text
 @@
 -- expected.json --
 {
+  "NewLine": "\n",
   "Head": "1.1",
   "Branch": "",
   "Description": "",
@@ -30,7 +31,6 @@ text
   "Strict": false,
   "Integrity": "",
   "Expand": "",
-  "NewLine": "\n",
   "RevisionHeads": [
     {
       "Revision": "1.1",

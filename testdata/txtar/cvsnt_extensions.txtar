@@ -1,0 +1,126 @@
+-- input,v --
+head	1.2;
+
+
+1.2
+date	99.01.12.14.05.31;	author lhecking;	state dead;
+branches;
+next	1.1;
+owner	640;
+group	15;
+permissions	644;
+hardlinks	README @install.txt@ @Installation Notes@;
+deltatype	text;
+kopt	kv;
+mergepoint	1.1.1.1;
+filename	readme.txt;
+username	user1;
+newfield	value1 @value 2@;
+
+
+desc
+@@
+
+
+-- expected.json --
+{
+  "DateYearPrefixTruncated": true,
+  "EndOfFileNewLineOffset": 1,
+  "IndentTab": 1,
+  "Head": "1.2",
+  "Branch": "",
+  "Description": "",
+  "Comment": "",
+  "Access": false,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": false,
+  "Integrity": "",
+  "Expand": "",
+  "RevisionHeads": [
+    {
+      "Revision": "1.2",
+      "Date": "99.01.12.14.05.31",
+      "YearTruncated": true,
+      "Author": "lhecking",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": "",
+      "Owner": [
+        "640"
+      ],
+      "Group": [
+        "15"
+      ],
+      "Permissions": [
+        "644"
+      ],
+      "Hardlinks": [
+        "README",
+        "install.txt",
+        "Installation Notes"
+      ],
+      "Deltatype": [
+        "text"
+      ],
+      "Kopt": [
+        "kv"
+      ],
+      "Mergepoint": [
+        "1.1.1.1"
+      ],
+      "Filename": [
+        "readme.txt"
+      ],
+      "Username": [
+        "user1"
+      ],
+      "NewPhrases": [
+        {
+          "Key": "newfield",
+          "Value": [
+            "value1",
+            "value 2"
+          ]
+        }
+      ]
+    }
+  ],
+  "RevisionContents": null
+}
+
+-- expected,v --
+head	1.2;
+symbols;
+locks;
+comment	@@;
+
+
+1.2
+date	99.01.12.14.05.31;	author	lhecking;	state	dead;
+branches;
+next	1.1;
+owner	640;
+group	15;
+permissions	644;
+hardlinks	README @install.txt@ @Installation Notes@;
+deltatype	text;
+kopt	kv;
+mergepoint	1.1.1.1;
+filename	readme.txt;
+username	user1;
+newfield	value1 @value 2@;
+
+
+desc
+@@
+
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- description.txt --
+Test parsing of CVSNT extension fields in revision header.

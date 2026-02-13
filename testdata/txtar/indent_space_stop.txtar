@@ -53,6 +53,10 @@ text
 @@
 -- expected.json --
 {
+  "DateYearPrefixTruncated": true,
+  "EndOfFileNewLineOffset": -1,
+  "FirstIndentOffset": 9,
+  "NewLine": "\n",
   "Head": "4.14",
   "Branch": "1.1",
   "Description": "",
@@ -69,12 +73,8 @@ text
   ],
   "Locks": [],
   "Strict": true,
-  "DateYearPrefixTruncated": true,
   "Integrity": "",
   "Expand": "o",
-  "NewLine": "\n",
-  "SpaceStop": 9,
-  "EndOfFileNewLineOffset": -1,
   "RevisionHeads": [
     {
       "Revision": "1.1",

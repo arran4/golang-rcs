@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 )
 
 // Format is a subcommand `gorcs format`
@@ -86,17 +87,25 @@ func processReader(r io.Reader, keepTruncatedYears bool, spaceStop int, indentSt
 	if err != nil {
 		return "", err
 	}
+	opts := parsedFile.FormattingOptions
 	if spaceStop != 0 {
-		parsedFile.SpaceStop = spaceStop
+		opts.FirstIndentOffset = spaceStop
+		// If user explicitly requests space alignment via space-stop, we assume they want spaces unless indent-string overrides.
 		if indentString == "" {
-			parsedFile.IndentString = ""
+			opts.IndentTab = 0
 		}
 	}
 	if indentString != "" {
-		parsedFile.IndentString = indentString
+		if strings.Contains(indentString, "\t") {
+			opts.IndentTab = 1
+			opts.FirstIndentOffset = 0
+		} else {
+			opts.IndentTab = 0
+			opts.FirstIndentOffset = len(indentString)
+		}
 	}
 	if !keepTruncatedYears {
-		parsedFile.DateYearPrefixTruncated = false
+		opts.DateYearPrefixTruncated = false
 		for _, h := range parsedFile.RevisionHeads {
 			if h.YearTruncated {
 				if t, err := h.Date.DateTime(); err == nil {
@@ -105,6 +114,9 @@ func processReader(r io.Reader, keepTruncatedYears bool, spaceStop int, indentSt
 				}
 			}
 		}
+	}
+	if err := parsedFile.Format(&opts); err != nil {
+		return "", err
 	}
 	return parsedFile.String(), nil
 }

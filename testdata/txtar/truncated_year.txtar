@@ -1,5 +1,8 @@
 -- expected.json --
 {
+  "DateYearPrefixTruncated": true,
+  "IndentTab": 1,
+  "NewLine": "\n",
   "Head": "1.1",
   "Branch": "",
   "Description": "Description\n",
@@ -9,11 +12,8 @@
   "AccessUsers": null,
   "Locks": [],
   "Strict": true,
-  "DateYearPrefixTruncated": true,
   "Integrity": "",
   "Expand": "",
-  "NewLine": "\n",
-  "IndentString": "\t",
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -34,7 +34,6 @@
     }
   ]
 }
-
 -- input,v --
 head	1.1;
 access;

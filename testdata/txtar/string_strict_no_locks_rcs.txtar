@@ -11,6 +11,9 @@ desc
 
 -- expected.json --
 {
+  "EndOfFileNewLineOffset": 1,
+  "IndentTab": 1,
+  "NewLine": "\n",
   "Head": "1.7",
   "Branch": "",
   "Description": "",
@@ -22,13 +25,9 @@ desc
   "Strict": true,
   "Integrity": "",
   "Expand": "",
-  "NewLine": "\n",
-  "IndentString": "\t",
-  "EndOfFileNewLineOffset": 1,
   "RevisionHeads": null,
   "RevisionContents": null
 }
-
 -- expected,v --
 head	1.7;
 symbols;

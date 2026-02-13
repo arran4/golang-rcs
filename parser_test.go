@@ -367,6 +367,11 @@ func TestParseHeader(t *testing.T) {
 				s: NewScanner(bytes.NewReader(testinputv)),
 			},
 			want: &File{
+				FormattingOptions: FormattingOptions{
+					StrictOnOwnLine: false,
+					NewLine:         "\n",
+					IndentTab:       1,
+				},
 				Head:    "1.6",
 				Comment: "# ",
 				Access:  true,
@@ -377,10 +382,7 @@ func TestParseHeader(t *testing.T) {
 						Revision: "1.6",
 					},
 				},
-				Strict:          true,
-				StrictOnOwnLine: false,
-				NewLine:         "\n",
-				IndentString:    "\t",
+				Strict: true,
 			},
 			wantErr: false,
 		},
