@@ -72,6 +72,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			if err := os.WriteFile(fn, []byte(content), 0644); err != nil {
 				log.Panicf("Error writing file %s: %s", fn, err)
 			}
+			fmt.Printf("Wrote: %s\n", fn)
 		} else if output != "" {
 			writeOutput(output, []byte(content), force)
 		} else {

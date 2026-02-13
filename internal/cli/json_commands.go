@@ -116,4 +116,5 @@ func writeOutput(path string, data []byte, force bool) {
 	if err := os.WriteFile(path, data, 0644); err != nil {
 		log.Panicf("Error writing output to %s: %s", path, err)
 	}
+	fmt.Printf("Wrote: %s\n", path)
 }
