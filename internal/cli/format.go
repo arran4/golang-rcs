@@ -74,9 +74,11 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			}
 		} else if output != "" && output != "-" {
 			writeOutput(output, []byte(content), force)
-		} else {
+		} else if output == "-" || stdoutFlag || fn == "-" {
 			// Stdout
 			_, _ = fmt.Fprint(stdout, content)
+		} else {
+			writeOutput(fn, []byte(content), force)
 		}
 	}
 }

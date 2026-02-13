@@ -101,11 +101,14 @@ func FromJson(output string, force bool, files ...string) {
 		} else if fn == "-" {
 			fmt.Print(string(outBytes))
 		} else {
-			// Default output: remove .json suffix
-			if !strings.HasSuffix(fn, ".json") {
-				log.Panicf("Input file %s does not have .json extension, use -o to specify output", fn)
+			// Default output: remove .json suffix, append ,v if not present
+			outPath := fn
+			if strings.HasSuffix(fn, ".json") {
+				outPath = strings.TrimSuffix(fn, ".json")
 			}
-			outPath := strings.TrimSuffix(fn, ".json")
+			if !strings.HasSuffix(outPath, ",v") {
+				outPath += ",v"
+			}
 			writeOutput(outPath, outBytes, force)
 		}
 	}
