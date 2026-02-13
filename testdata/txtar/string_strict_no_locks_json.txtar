@@ -37,3 +37,4 @@ Test case split from string_strict_no_locks.txtar
 
 -- options.conf --
 * unix line endings
+* force unix line endings

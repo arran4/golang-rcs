@@ -47,3 +47,4 @@ Test specifically for ErrTooManyNewLines when there are too many newlines betwee
 
 -- options.conf --
 * unix line endings
+* force unix line endings

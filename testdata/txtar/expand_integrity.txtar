@@ -58,3 +58,4 @@ Test parsing of integrity field and reordering of header fields.
 
 -- options.conf --
 * unix line endings
+* force unix line endings

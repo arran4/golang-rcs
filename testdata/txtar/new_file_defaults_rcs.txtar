@@ -49,3 +49,4 @@ Test case split from new_file_defaults.txtar
 
 -- options.conf --
 * unix line endings
+* force unix line endings

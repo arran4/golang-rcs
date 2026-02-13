@@ -87,3 +87,4 @@ Test checks parsing of empty fields and reformatting from spaces to tabs.
 
 -- options.conf --
 * unix line endings
+* force unix line endings

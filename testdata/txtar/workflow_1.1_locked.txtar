@@ -110,3 +110,4 @@ Test case converted from workflow_1.1_locked.txtar
 
 -- options.conf --
 * unix line endings
+* force unix line endings

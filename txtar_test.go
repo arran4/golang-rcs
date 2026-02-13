@@ -185,7 +185,7 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatalf("ParseFile error: %v", err)
 		}
 
-		if options["unix line endings"] || options["force unix line endings"] {
+		if options["unix line endings"] {
 			forceUnixLineEndings(parsedFile)
 		}
 
@@ -195,10 +195,8 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 		}
 		gotJSON := string(gotJSONBytes)
 
-		// Also normalize expected JSON from file because it might have CRLF on Windows
-		if options["unix line endings"] || options["force unix line endings"] {
+		if options["force unix line endings"] {
 			expectedJSON = strings.ReplaceAll(expectedJSON, "\r\n", "\n")
-			// gotJSON already has \n because parsedFile was normalized
 		}
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedJSON), strings.TrimSpace(gotJSON)); diff != "" {
@@ -216,7 +214,7 @@ func testCircular(t *testing.T, parts map[string]string, options map[string]bool
 			t.Fatalf("ParseFile error: %v", err)
 		}
 
-		if options["unix line endings"] || options["force unix line endings"] {
+		if options["unix line endings"] {
 			forceUnixLineEndings(parsedFile)
 		}
 
@@ -245,7 +243,7 @@ func testFormatRCS(t *testing.T, parts map[string]string, options map[string]boo
 			t.Fatalf("ParseFile error: %v", err)
 		}
 
-		if options["unix line endings"] || options["force unix line endings"] {
+		if options["unix line endings"] {
 			forceUnixLineEndings(parsedFile)
 		}
 
@@ -273,7 +271,7 @@ func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool) 
 		}
 
 		f := NewFile()
-		if options["unix line endings"] || options["force unix line endings"] {
+		if options["unix line endings"] {
 			f.NewLine = "\n"
 		}
 		gotRCS := f.String()
@@ -300,9 +298,8 @@ func testListHeads(t *testing.T, parts map[string]string, options map[string]boo
 		}
 		gotOut := sb.String()
 
-		if options["unix line endings"] || options["force unix line endings"] {
+		if options["force unix line endings"] {
 			expectedOut = strings.ReplaceAll(expectedOut, "\r\n", "\n")
-			gotOut = strings.ReplaceAll(gotOut, "\r\n", "\n")
 		}
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
@@ -394,17 +391,20 @@ func parseRCS(content string) (*File, error) {
 
 func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 	ignoreWhitespace := options["ignore white space"]
-	unixLineEndings := options["unix line endings"] || options["force unix line endings"]
 
 	normExpected := strings.TrimSpace(expected)
 	normGot := strings.TrimSpace(got)
 
-	if unixLineEndings {
+	if options["force unix line endings"] {
 		normExpected = strings.ReplaceAll(normExpected, "\r\n", "\n")
-		// got should already be normalized via forceUnixLineEndings -> String(),
-		// but explicit replacement doesn't hurt and handles edge cases
-		normGot = strings.ReplaceAll(normGot, "\r\n", "\n")
 	}
+
+	// 'got' comes from parsedFile.String().
+	// If 'unix line endings' is ON, parsedFile is normalized to \n, so got has \n.
+	// If 'unix line endings' is OFF, parsedFile might have \r\n (from input).
+	// If input had \r\n and we compare against normalized expected (\n), we need to normalize got too?
+	// The user request suggests 'unix line endings' ensures the object has \n.
+	// So got should be correct.
 
 	if ignoreWhitespace {
 		normExpected = strings.Join(strings.Fields(normExpected), " ")

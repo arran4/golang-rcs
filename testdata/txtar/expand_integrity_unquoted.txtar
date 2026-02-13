@@ -56,3 +56,4 @@ Test parsing of unquoted expand field and normalization to quoted.
 
 -- options.conf --
 * unix line endings
+* force unix line endings

@@ -154,3 +154,4 @@ Migrated test from testinput1.go,v
 
 -- options.conf --
 * unix line endings
+* force unix line endings

@@ -153,3 +153,4 @@ Test case converted from workflow_1.2_strict.txtar
 
 -- options.conf --
 * unix line endings
+* force unix line endings

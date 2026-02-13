@@ -36,3 +36,4 @@ Test serialization of a new file with default values (strict mode).
 
 -- options.conf --
 * unix line endings
+* force unix line endings

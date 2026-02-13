@@ -73,3 +73,4 @@ Test parsing of inline locks field (single line).
 
 -- options.conf --
 * unix line endings
+* force unix line endings

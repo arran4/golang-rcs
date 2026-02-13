@@ -34,3 +34,4 @@ Migrated test from access_symbols.go,v
 
 -- options.conf --
 * unix line endings
+* force unix line endings

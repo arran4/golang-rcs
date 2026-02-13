@@ -170,3 +170,4 @@ Test case converted from user_provided_strict_newline.txtar
 
 -- options.conf --
 * unix line endings
+* force unix line endings
