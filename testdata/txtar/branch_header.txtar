@@ -1,0 +1,91 @@
+-- input.rcs --
+head	1.1;
+branch	1.1.1;
+access;
+symbols;
+locks;
+strict;
+comment	@# @;
+expand	@kv@;
+
+
+1.1
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@test features
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@content
+@
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "1.1.1",
+  "Description": "test features\n",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "StrictOnOwnLine": true,
+  "Integrity": "",
+  "Expand": "kv",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2022-01-01T00:00:00Z",
+      "Author": "user",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "content\n"
+    }
+  ]
+}
+-- expected,v --
+head	1.1;
+branch	1.1.1;
+access;
+symbols;
+locks;
+strict;
+comment	@# @;
+expand	@kv@;
+
+
+1.1
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@test features
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@content
+@
