@@ -378,6 +378,7 @@ func TestParseHeader(t *testing.T) {
 				},
 				Strict:          true,
 				StrictOnOwnLine: false,
+				NewLine:         "\n",
 			},
 			wantErr: false,
 		},
@@ -2171,5 +2172,42 @@ func TestParseHeaderLocks_Errors(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestParseFile_CRLF(t *testing.T) {
+	content := "head\t1.1;\r\naccess;\r\nsymbols;\r\nlocks; strict;\r\ncomment\t@# @;\r\n\r\n\r\n1.1\r\ndate\t2020.01.01.00.00.00;\tauthor user;\tstate Exp;\r\nbranches;\r\nnext\t;\r\n\r\n\r\ndesc\r\n@@\r\n\r\n1.1\r\nlog\r\n@@\r\ntext\r\n@@\r\n"
+	f, err := ParseFile(strings.NewReader(content))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f.NewLine != "\r\n" {
+		t.Errorf("expected \\r\\n, got %q", f.NewLine)
+	}
+	out := f.String()
+	if !strings.Contains(out, "\r\n") {
+		t.Errorf("expected output to contain \\r\\n")
+	}
+	// Check if it round-trips exactly
+	if out != content {
+		t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
+	}
+}
+
+func TestParseFile_LF(t *testing.T) {
+	content := "head\t1.1;\naccess;\nsymbols;\nlocks; strict;\ncomment\t@# @;\n\n\n1.1\ndate\t2020.01.01.00.00.00;\tauthor user;\tstate Exp;\nbranches;\nnext\t;\n\n\ndesc\n@@\n\n1.1\nlog\n@@\ntext\n@@\n"
+	f, err := ParseFile(strings.NewReader(content))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f.NewLine != "\n" {
+		t.Errorf("expected \\n, got %q", f.NewLine)
+	}
+	out := f.String()
+	if strings.Contains(out, "\r\n") {
+		t.Errorf("expected output to not contain \\r\\n")
+	}
+	if out != content {
+		t.Errorf("RoundTrip mismatch (-want +got):\n%s", cmp.Diff(content, out))
 	}
 }

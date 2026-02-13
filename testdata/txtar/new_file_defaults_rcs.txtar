@@ -23,6 +23,7 @@ desc
   "Strict": true,
   "Integrity": "",
   "Expand": "",
+  "NewLine": "\n",
   "RevisionHeads": null,
   "RevisionContents": null
 }

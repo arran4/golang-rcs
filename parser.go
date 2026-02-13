@@ -54,26 +54,30 @@ type RevisionHead struct {
 }
 
 func (h *RevisionHead) String() string {
+	return h.StringWithNewLine("\n")
+}
+
+func (h *RevisionHead) StringWithNewLine(nl string) string {
 	sb := strings.Builder{}
 	sb.WriteString(h.Revision)
-	sb.WriteByte('\n')
+	sb.WriteString(nl)
 	dateFormat := DateFormat
 	if h.YearTruncated {
 		dateFormat = DateFormatTruncated
 	}
-	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;\n", h.Date.Format(dateFormat), h.Author, h.State)
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date.Format(dateFormat), h.Author, h.State, nl)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
-		sb.WriteString("\n\t")
-		sb.WriteString(strings.Join(h.Branches, "\n\t"))
+		sb.WriteString(nl + "\t")
+		sb.WriteString(strings.Join(h.Branches, nl+"\t"))
 		sb.WriteString(";")
 	} else {
 		sb.WriteString(";")
 	}
-	sb.WriteString("\n")
-	fmt.Fprintf(&sb, "next\t%s;\n", h.NextRevision)
+	sb.WriteString(nl)
+	fmt.Fprintf(&sb, "next\t%s;%s", h.NextRevision, nl)
 	if h.CommitID != "" {
-		fmt.Fprintf(&sb, "commitid\t%s;\n", h.CommitID)
+		fmt.Fprintf(&sb, "commitid\t%s;%s", h.CommitID, nl)
 	}
 
 	writePhrase := func(key string, values []string) {
@@ -88,7 +92,8 @@ func (h *RevisionHead) String() string {
 			}
 			_, _ = WritePhraseValue(&sb, v)
 		}
-		sb.WriteString(";\n")
+		sb.WriteString(";")
+		sb.WriteString(nl)
 	}
 
 	writePhrase("owner", h.Owner)
@@ -116,17 +121,21 @@ type RevisionContent struct {
 }
 
 func (c *RevisionContent) String() string {
+	return c.StringWithNewLine("\n")
+}
+
+func (c *RevisionContent) StringWithNewLine(nl string) string {
 	sb := strings.Builder{}
 	if 2+c.PrecedingNewLinesOffset > 0 {
-		sb.WriteString(strings.Repeat("\n", 2+c.PrecedingNewLinesOffset))
+		sb.WriteString(strings.Repeat(nl, 2+c.PrecedingNewLinesOffset))
 	}
-	sb.WriteString(fmt.Sprintf("%s\n", c.Revision))
-	sb.WriteString("log\n")
+	sb.WriteString(fmt.Sprintf("%s%s", c.Revision, nl))
+	sb.WriteString("log" + nl)
 	_, _ = WriteAtQuote(&sb, c.Log)
-	sb.WriteString("\n")
-	sb.WriteString("text\n")
+	sb.WriteString(nl)
+	sb.WriteString("text" + nl)
 	_, _ = WriteAtQuote(&sb, c.Text)
-	sb.WriteString("\n")
+	sb.WriteString(nl)
 	return sb.String()
 }
 
@@ -144,6 +153,7 @@ type File struct {
 	DateYearPrefixTruncated bool `json:",omitempty"`
 	Integrity               string
 	Expand                  string
+	NewLine                 string
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
 }
@@ -179,71 +189,82 @@ func (f *File) LocksMap() map[string]string {
 }
 
 func (f *File) String() string {
+	nl := f.NewLine
+	if nl == "" {
+		nl = "\n"
+	}
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("head\t%s;\n", f.Head))
+	sb.WriteString(fmt.Sprintf("head\t%s;%s", f.Head, nl))
 	if f.Branch != "" {
-		sb.WriteString(fmt.Sprintf("branch\t%s;\n", f.Branch))
+		sb.WriteString(fmt.Sprintf("branch\t%s;%s", f.Branch, nl))
 	}
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
 			sb.WriteString("access ")
 			sb.WriteString(strings.Join(f.AccessUsers, " "))
-			sb.WriteString(";\n")
+			sb.WriteString(";")
+			sb.WriteString(nl)
 		} else {
-			sb.WriteString("access;\n")
+			sb.WriteString("access;")
+			sb.WriteString(nl)
 		}
 	}
 	if f.Symbols != nil {
 		sb.WriteString("symbols")
 		for _, sym := range f.Symbols {
-			sb.WriteString("\n\t")
+			sb.WriteString(nl + "\t")
 			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
 		}
-		sb.WriteString(";\n")
+		sb.WriteString(";")
+		sb.WriteString(nl)
 	}
 
 	if f.Locks != nil {
 		sb.WriteString("locks")
 		for _, lock := range f.Locks {
-			sb.WriteString("\n\t")
+			sb.WriteString(nl + "\t")
 			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
 		}
 		sb.WriteString(";")
 		if f.Strict && !f.StrictOnOwnLine {
 			sb.WriteString(" strict;")
 		}
-		sb.WriteString("\n")
+		sb.WriteString(nl)
 	}
 
 	if f.Strict && f.StrictOnOwnLine {
-		sb.WriteString("strict;\n")
+		sb.WriteString("strict;")
+		sb.WriteString(nl)
 	}
 	if f.Integrity != "" {
 		sb.WriteString("integrity\t")
 		_, _ = WriteAtQuote(&sb, f.Integrity)
-		sb.WriteString(";\n")
+		sb.WriteString(";")
+		sb.WriteString(nl)
 	}
 	sb.WriteString("comment\t")
 	_, _ = WriteAtQuote(&sb, f.Comment)
-	sb.WriteString(";\n")
+	sb.WriteString(";")
+	sb.WriteString(nl)
 	if f.Expand != "" {
 		sb.WriteString("expand\t")
 		_, _ = WriteAtQuote(&sb, f.Expand)
-		sb.WriteString(";\n")
+		sb.WriteString(";")
+		sb.WriteString(nl)
 	}
-	sb.WriteString("\n")
-	sb.WriteString("\n")
+	sb.WriteString(nl)
+	sb.WriteString(nl)
 	for _, head := range f.RevisionHeads {
-		sb.WriteString(head.String())
-		sb.WriteString("\n")
+		sb.WriteString(head.StringWithNewLine(nl))
+		sb.WriteString(nl)
 	}
-	sb.WriteString("\n")
-	sb.WriteString("desc\n")
+	sb.WriteString(nl)
+	sb.WriteString("desc" + nl)
 	_, _ = WriteAtQuote(&sb, f.Description)
-	sb.WriteString("\n")
+	sb.WriteString(nl)
 
 	for _, content := range f.RevisionContents {
-		sb.WriteString(content.String())
+		sb.WriteString(content.StringWithNewLine(nl))
 	}
 	return sb.String()
 }
@@ -412,6 +433,9 @@ func ParseHeader(s *Scanner, f *File) error {
 
 		switch nt {
 		case " ", "\t", "\n", "\r\n":
+			if f.NewLine == "" && (nt == "\n" || nt == "\r\n") {
+				f.NewLine = nt
+			}
 			continue
 		case "branch":
 			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(true), WithLine(true)); err != nil {
