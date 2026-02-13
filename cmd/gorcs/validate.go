@@ -17,7 +17,6 @@ type Validate struct {
 	Flags       *flag.FlagSet
 	output      string
 	force       bool
-	overwrite   bool
 	files       []string
 	SubCommands map[string]Cmd
 }
@@ -86,16 +85,6 @@ func (c *Validate) Execute(args []string) error {
 				} else {
 					c.force = true
 				}
-			case "overwrite", "w":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.overwrite = b
-				} else {
-					c.overwrite = true
-				}
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -116,7 +105,7 @@ func (c *Validate) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.Validate(c.output, c.force, c.overwrite, c.files...)
+	cli.Validate(c.output, c.force, c.files...)
 
 	return nil
 }
@@ -134,9 +123,6 @@ func (c *RootCmd) NewValidate() *Validate {
 
 	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 	set.BoolVar(&v.force, "force", false, "Force overwrite output")
-
-	set.BoolVar(&v.overwrite, "w", false, "Overwrite input file")
-	set.BoolVar(&v.overwrite, "overwrite", false, "Overwrite input file")
 
 	set.Usage = v.Usage
 

@@ -17,7 +17,6 @@ type Format struct {
 	Flags              *flag.FlagSet
 	output             string
 	force              bool
-	overwrite          bool
 	keepTruncatedYears bool
 	files              []string
 	SubCommands        map[string]Cmd
@@ -87,16 +86,6 @@ func (c *Format) Execute(args []string) error {
 				} else {
 					c.force = true
 				}
-			case "overwrite", "w":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.overwrite = b
-				} else {
-					c.overwrite = true
-				}
 			case "keep-truncated-years":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
@@ -127,7 +116,7 @@ func (c *Format) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	cli.Format(c.output, c.force, c.overwrite, c.keepTruncatedYears, c.files...)
+	cli.Format(c.output, c.force, c.keepTruncatedYears, c.files...)
 
 	return nil
 }
@@ -145,9 +134,6 @@ func (c *RootCmd) NewFormat() *Format {
 
 	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 	set.BoolVar(&v.force, "force", false, "Force overwrite output")
-
-	set.BoolVar(&v.overwrite, "w", false, "Overwrite input file")
-	set.BoolVar(&v.overwrite, "overwrite", false, "Overwrite input file")
 
 	set.BoolVar(&v.keepTruncatedYears, "keep-truncated-years", false, "Keep truncated years (do not expand to 4 digits)")
 
