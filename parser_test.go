@@ -197,19 +197,19 @@ func TestParseFile(t *testing.T) {
 		b         []byte
 		checkErr  func(*testing.T, error)
 		checkFile func(*testing.T, *File)
-		verify   func(*testing.T, *File)
+		verify    func(*testing.T, *File)
 		wantDesc  string
-    check    func(*testing.T, *File)
-  }{
+		check     func(*testing.T, *File)
+	}{
 		{
 			name:      "Test parse of testinput.go,v",
 			r:         string(testinputv),
 			b:         testinputv,
 			checkErr:  noError,
 			checkFile: checkTestInput,
-			verify:   checkTestInput,
-			wantDesc: "This is a test file.\n",
-			check:    checkTestInput,
+			verify:    checkTestInput,
+			wantDesc:  "This is a test file.\n",
+			check:     checkTestInput,
 		},
 		{
 			name:     "Test parse of testinput1.go,v - add a new line for the missing one",
@@ -226,9 +226,9 @@ func TestParseFile(t *testing.T) {
 			b:         accessSymbolsv,
 			checkErr:  noError,
 			checkFile: checkAccessSymbols,
-			verify:   checkAccessSymbols,
-			wantDesc: "Sample\n",
-			check:    checkAccessSymbols,
+			verify:    checkAccessSymbols,
+			wantDesc:  "Sample\n",
+			check:     checkAccessSymbols,
 		},
 		{
 			name: "Invalid header - missing head",
@@ -986,9 +986,9 @@ func TestParseRevisionContent(t *testing.T) {
 				s: NewScanner(strings.NewReader("1.2\nlog\n@New version\n@\ntext\n@a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n@\n\n\n1.1\nlog\n@Initial revision\n@\ntext\n@d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n@\n")),
 			},
 			wantRC: &RevisionContent{
-				Revision:                          "1.2",
-				Log:                               "New version\n",
-				Text:                              "a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n",
+				Revision:                "1.2",
+				Log:                     "New version\n",
+				Text:                    "a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n",
 				PrecedingNewLinesOffset: -2,
 			},
 			wantMore: true,
@@ -1000,9 +1000,9 @@ func TestParseRevisionContent(t *testing.T) {
 				s: NewScanner(strings.NewReader("1.1\nlog\n@Initial revision\n@\ntext\n@d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n@\n")),
 			},
 			wantRC: &RevisionContent{
-				Revision:                          "1.1",
-				Log:                               "Initial revision\n",
-				Text:                              "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
+				Revision:                "1.1",
+				Log:                     "Initial revision\n",
+				Text:                    "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
 				PrecedingNewLinesOffset: -2,
 			},
 			wantMore: false,
@@ -1043,15 +1043,15 @@ func TestParseRevisionContents(t *testing.T) {
 			},
 			wantRcs: []*RevisionContent{
 				{
-					Revision:                          "1.2",
-					Log:                               "New version\n",
-					Text:                              "a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n",
+					Revision:                "1.2",
+					Log:                     "New version\n",
+					Text:                    "a14 10\n\t//Feed in training data\n\tchain.Add(strings.Split(\"I want a cheese burger\", \" \"))\n\tchain.Add(strings.Split(\"I want a chilled sprite\", \" \"))\n\tchain.Add(strings.Split(\"I want to go to the movies\", \" \"))\n\n\t//Get transition probability of a sequence\n\tprob, _ := chain.TransitionProbability(\"a\", []string{\"I\", \"want\"})\n\tfmt.Println(prob)\n\t//Output: 0.6666666666666666\n\n",
 					PrecedingNewLinesOffset: -2,
 				},
 				{
-					Revision:                          "1.1",
-					Log:                               "Initial revision\n",
-					Text:                              "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
+					Revision:                "1.1",
+					Log:                     "Initial revision\n",
+					Text:                    "d3 7\na9 1\nimport \"fmt\"\nd12 26\na37 1\n\tfmt.Println(\"HI\")\n",
 					PrecedingNewLinesOffset: 0,
 				},
 			},
@@ -1584,7 +1584,6 @@ func TestParseLockBody(t *testing.T) {
 		})
 	}
 }
-
 
 func TestParseLocalFiles(t *testing.T) {
 	testParseFiles(t, localTests, "testdata/local")

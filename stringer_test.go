@@ -8,7 +8,6 @@ import (
 	"testing"
 )
 
-
 func TestStringLocalFiles(t *testing.T) {
 	testRoundTrip(t, localTests, "testdata/local")
 }
