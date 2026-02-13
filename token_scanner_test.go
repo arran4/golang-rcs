@@ -1,6 +1,7 @@
 package rcs
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -34,6 +35,107 @@ func TestScanTokenNum(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("ScanTokenNum() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestScanTokenPhrase(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		want     string // Raw value
+		wantType string // "SimpleString" or "QuotedString"
+		wantErr  bool
+	}{
+		{"Quoted string", "@foo@", "foo", "QuotedString", false},
+		{"Quoted with @", "@foo@@bar@", "foo@bar", "QuotedString", false},
+		{"Unquoted ID", "foo;", "foo", "SimpleString", false},
+		{"Colon", ":", ":", "SimpleString", false},
+		{"Empty string", "@@", "", "QuotedString", false},
+		{"Empty ID", ";", "", "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewScanner(strings.NewReader(tt.input))
+			got, err := ScanTokenPhrase(s)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ScanTokenPhrase() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if got.Raw() != tt.want {
+					t.Errorf("ScanTokenPhrase() raw = %q, want %q", got.Raw(), tt.want)
+				}
+				var gotType string
+				switch got.(type) {
+				case SimpleString:
+					gotType = "SimpleString"
+				case QuotedString:
+					gotType = "QuotedString"
+				default:
+					gotType = fmt.Sprintf("%T", got)
+				}
+				if gotType != tt.wantType {
+					t.Errorf("ScanTokenPhrase() type = %s, want %s", gotType, tt.wantType)
+				}
+			}
+		})
+	}
+}
+
+func TestPhraseValuesFormat(t *testing.T) {
+	tests := []struct {
+		name  string
+		input PhraseValues
+		want  PhraseValues // Expected types/values after Format
+	}{
+		{
+			"All valid SimpleStrings",
+			PhraseValues{SimpleString("foo"), SimpleString("bar")},
+			PhraseValues{SimpleString("foo"), SimpleString("bar")},
+		},
+		{
+			"Invalid SimpleString to Quoted",
+			PhraseValues{SimpleString("foo bar"), SimpleString("baz")},
+			PhraseValues{QuotedString("foo bar"), SimpleString("baz")},
+		},
+		{
+			"Valid QuotedString to Simple",
+			PhraseValues{QuotedString("foo"), QuotedString("bar")},
+			PhraseValues{SimpleString("foo"), SimpleString("bar")},
+		},
+		{
+			"Invalid QuotedString stays Quoted",
+			PhraseValues{QuotedString("foo bar")},
+			PhraseValues{QuotedString("foo bar")},
+		},
+		{
+			"Mixed",
+			PhraseValues{SimpleString("a b"), QuotedString("c"), SimpleString("d")},
+			PhraseValues{QuotedString("a b"), SimpleString("c"), SimpleString("d")},
+		},
+		{
+			"With dot",
+			PhraseValues{SimpleString("foo.bar"), QuotedString("baz.qux")},
+			PhraseValues{SimpleString("foo.bar"), SimpleString("baz.qux")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Make a copy to modify
+			input := make(PhraseValues, len(tt.input))
+			copy(input, tt.input)
+			input.Format()
+
+			if len(input) != len(tt.want) {
+				t.Fatalf("Format() len = %d, want %d", len(input), len(tt.want))
+			}
+			for i, v := range input {
+				w := tt.want[i]
+				if v != w {
+					t.Errorf("Format()[%d] = %#v, want %#v", i, v, w)
+				}
 			}
 		})
 	}

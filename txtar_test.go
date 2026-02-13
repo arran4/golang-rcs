@@ -294,7 +294,7 @@ func testListHeads(t *testing.T, parts map[string]string, options map[string]boo
 
 		var sb strings.Builder
 		for _, rev := range parsedFile.RevisionHeads {
-			sb.WriteString(rev.Revision + "\n")
+			sb.WriteString(rev.Revision.String() + "\n")
 		}
 		gotOut := sb.String()
 

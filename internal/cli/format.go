@@ -89,7 +89,12 @@ func processReader(r io.Reader, keepTruncatedYears bool) (string, error) {
 	if !keepTruncatedYears {
 		parsedFile.DateYearPrefixTruncated = false
 		for _, h := range parsedFile.RevisionHeads {
-			h.YearTruncated = false
+			if h.YearTruncated {
+				if t, err := h.Date.DateTime(); err == nil {
+					h.Date = rcs.DateTime(t.Format(rcs.DateFormat))
+					h.YearTruncated = false
+				}
+			}
 		}
 	}
 	return parsedFile.String(), nil

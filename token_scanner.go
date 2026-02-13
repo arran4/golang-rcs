@@ -2,6 +2,9 @@ package rcs
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
+	"time"
 	"unicode"
 )
 
@@ -59,6 +62,92 @@ func ScanTokenNum(s *Scanner) (string, error) {
 	return s.Text(), nil
 }
 
+type PhraseValue interface {
+	fmt.Stringer
+	Raw() string
+}
+
+type SimpleString string
+
+func (s SimpleString) String() string {
+	return string(s)
+}
+
+func (s SimpleString) Raw() string {
+	return string(s)
+}
+
+type QuotedString string
+
+func (s QuotedString) String() string {
+	return "@" + strings.ReplaceAll(string(s), "@", "@@") + "@"
+}
+
+func (s QuotedString) Raw() string {
+	return string(s)
+}
+
+type PhraseValues []PhraseValue
+
+func (p PhraseValues) Format() {
+	for i, v := range p {
+		raw := v.Raw()
+		valid := true
+		if len(raw) == 0 {
+			valid = false
+		} else {
+			for _, r := range raw {
+				if !isIdChar(r) && r != '.' {
+					valid = false
+					break
+				}
+			}
+		}
+
+		if valid {
+			// If it is valid ID, prefer SimpleString
+			if _, ok := v.(SimpleString); !ok {
+				p[i] = SimpleString(raw)
+			}
+		} else {
+			// If it is invalid ID, must be QuotedString
+			if _, ok := v.(QuotedString); !ok {
+				p[i] = QuotedString(raw)
+			}
+		}
+	}
+}
+
+type DateTime string
+
+func (dt DateTime) String() string {
+	return string(dt)
+}
+
+// DateTime returns the date.Time representation of the DateTime string.
+// It tries to parse using DateFormat and DateFormatTruncated.
+func (dt DateTime) DateTime() (time.Time, error) {
+	return ParseDate(string(dt), time.Time{}, nil)
+}
+
+type Num string
+
+func (n Num) String() string {
+	return string(n)
+}
+
+type ID string
+
+func (i ID) String() string {
+	return string(i)
+}
+
+type Sym string
+
+func (s Sym) String() string {
+	return string(s)
+}
+
 func ScanTokenId(s *Scanner) (string, error) {
 	// id ::= { idchar | "." }+
 	// idchar excludes '.', so id is (idchar OR '.')
@@ -91,14 +180,30 @@ func ScanTokenString(s *Scanner) (string, error) {
 	return ParseAtQuotedString(s)
 }
 
-func ScanTokenWord(s *Scanner) (string, error) {
+func ScanTokenPhrase(s *Scanner) (PhraseValue, error) {
 	if err := ScanStrings(s, "@"); err == nil {
-		return ParseAtQuotedStringBody(s)
+		body, err := ParseAtQuotedStringBody(s)
+		if err != nil {
+			return nil, err
+		}
+		return QuotedString(body), nil
 	}
 	if err := ScanStrings(s, ":"); err == nil {
-		return ":", nil
+		return SimpleString(":"), nil
 	}
-	return ScanTokenId(s)
+	id, err := ScanTokenId(s)
+	if err != nil {
+		return nil, err
+	}
+	return SimpleString(id), nil
+}
+
+func ScanTokenWord(s *Scanner) (string, error) {
+	pv, err := ScanTokenPhrase(s)
+	if err != nil {
+		return "", err
+	}
+	return pv.Raw(), nil
 }
 
 func ScanTokenIntString(s *Scanner) (string, error) {

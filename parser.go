@@ -28,28 +28,28 @@ type Symbol struct {
 }
 
 type NewPhrase struct {
-	Key   string
-	Value []string
+	Key   ID
+	Value PhraseValues
 }
 
 type RevisionHead struct {
-	Revision      string
-	Date          time.Time
+	Revision      Num
+	Date          DateTime
 	YearTruncated bool `json:",omitempty"`
-	Author        string
-	State         string
-	Branches      []string
-	NextRevision  string
-	CommitID      string
-	Owner         []string     `json:",omitempty"` // CVS-NT
-	Group         []string     `json:",omitempty"` // CVS-NT
-	Permissions   []string     `json:",omitempty"` // CVS-NT
-	Hardlinks     []string     `json:",omitempty"` // CVS-NT
-	Deltatype     []string     `json:",omitempty"` // CVS-NT
-	Kopt          []string     `json:",omitempty"` // CVS-NT
-	Mergepoint    []string     `json:",omitempty"` // CVS-NT
-	Filename      []string     `json:",omitempty"` // CVS-NT
-	Username      []string     `json:",omitempty"` // CVS-NT
+	Author        ID
+	State         ID
+	Branches      []Num
+	NextRevision  Num
+	CommitID      Sym
+	Owner         PhraseValues `json:",omitempty"` // CVS-NT
+	Group         PhraseValues `json:",omitempty"` // CVS-NT
+	Permissions   PhraseValues `json:",omitempty"` // CVS-NT
+	Hardlinks     PhraseValues `json:",omitempty"` // CVS-NT
+	Deltatype     PhraseValues `json:",omitempty"` // CVS-NT
+	Kopt          PhraseValues `json:",omitempty"` // CVS-NT
+	Mergepoint    PhraseValues `json:",omitempty"` // CVS-NT
+	Filename      PhraseValues `json:",omitempty"` // CVS-NT
+	Username      PhraseValues `json:",omitempty"` // CVS-NT
 	NewPhrases    []*NewPhrase `json:",omitempty"`
 }
 
@@ -59,17 +59,18 @@ func (h *RevisionHead) String() string {
 
 func (h *RevisionHead) StringWithNewLine(nl string) string {
 	sb := strings.Builder{}
-	sb.WriteString(h.Revision)
+	sb.WriteString(h.Revision.String())
 	sb.WriteString(nl)
-	dateFormat := DateFormat
-	if h.YearTruncated {
-		dateFormat = DateFormatTruncated
-	}
-	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date.Format(dateFormat), h.Author, h.State, nl)
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date, h.Author, h.State, nl)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		sb.WriteString(nl + "\t")
-		sb.WriteString(strings.Join(h.Branches, nl+"\t"))
+		for i, b := range h.Branches {
+			if i > 0 {
+				sb.WriteString(nl + "\t")
+			}
+			sb.WriteString(b.String())
+		}
 		sb.WriteString(";")
 	} else {
 		sb.WriteString(";")
@@ -80,7 +81,7 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 		fmt.Fprintf(&sb, "commitid\t%s;%s", h.CommitID, nl)
 	}
 
-	writePhrase := func(key string, values []string) {
+	writePhrase := func(key string, values PhraseValues) {
 		if len(values) == 0 {
 			return
 		}
@@ -90,7 +91,7 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 			if i > 0 {
 				sb.WriteString(" ")
 			}
-			_, _ = WritePhraseValue(&sb, v)
+			sb.WriteString(v.String())
 		}
 		sb.WriteString(";")
 		sb.WriteString(nl)
@@ -107,7 +108,7 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 	writePhrase("username", h.Username)
 
 	for _, phrase := range h.NewPhrases {
-		writePhrase(phrase.Key, phrase.Value)
+		writePhrase(phrase.Key.String(), phrase.Value)
 	}
 
 	return sb.String()
@@ -202,10 +203,30 @@ func (f *File) SwitchLineEnding(nl string) {
 	replace := func(s string) string {
 		return strings.ReplaceAll(s, oldNL, nl)
 	}
-	replaceSlice := func(strs []string) []string {
-		out := make([]string, len(strs))
+	replaceSlice := func(strs PhraseValues) PhraseValues {
+		out := make(PhraseValues, len(strs))
 		for i, s := range strs {
-			out[i] = replace(s)
+			newS := replace(s.Raw())
+			if _, ok := s.(QuotedString); ok {
+				out[i] = QuotedString(newS)
+			} else {
+				valid := true
+				if len(newS) == 0 {
+					valid = false
+				} else {
+					for _, r := range newS {
+						if !isIdChar(r) && r != '.' {
+							valid = false
+							break
+						}
+					}
+				}
+				if valid {
+					out[i] = SimpleString(newS)
+				} else {
+					out[i] = QuotedString(newS)
+				}
+			}
 		}
 		return out
 	}
@@ -358,24 +379,6 @@ func WriteAtQuote(w io.Writer, s string) (int, error) {
 	n, err = io.WriteString(w, "@")
 	total += n
 	return total, err
-}
-
-func WritePhraseValue(w io.Writer, s string) (int, error) {
-	validId := true
-	if len(s) == 0 {
-		validId = false
-	} else {
-		for _, r := range s {
-			if !isIdChar(r) && r != '.' {
-				validId = false
-				break
-			}
-		}
-	}
-	if validId {
-		return io.WriteString(w, s)
-	}
-	return WriteAtQuote(w, s)
 }
 
 func ParseFile(r io.Reader) (*File, error) {
@@ -596,7 +599,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 			return nil, false, false, err
 		}
 		if rev != "" {
-			rh.Revision = rev
+			rh.Revision = Num(rev)
 			break
 		}
 	}
@@ -632,7 +635,7 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 					if np, err := ParseNewPhraseValue(s); err != nil {
 						return nil, false, false, fmt.Errorf("parsing new phrase %q: %w", id, err)
 					} else {
-						rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: id, Value: np})
+						rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: ID(id), Value: np})
 						continue
 					}
 				}
@@ -657,13 +660,13 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.NextRevision = n
+				rh.NextRevision = Num(n)
 			}
 		case "commitid":
 			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true)); err != nil {
 				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.CommitID = c
+				rh.CommitID = Sym(c)
 			}
 		case "owner":
 			if v, err := ParseNewPhraseValue(s); err != nil {
@@ -729,8 +732,8 @@ func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
 	}
 }
 
-func ParseNewPhraseValue(s *Scanner) ([]string, error) {
-	var words []string
+func ParseNewPhraseValue(s *Scanner) (PhraseValues, error) {
+	var words PhraseValues
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, err
@@ -738,7 +741,7 @@ func ParseNewPhraseValue(s *Scanner) ([]string, error) {
 		if err := ScanStrings(s, ";"); err == nil {
 			break
 		}
-		word, err := ScanTokenWord(s)
+		word, err := ScanTokenPhrase(s)
 		if err != nil {
 			return nil, err
 		}
@@ -835,7 +838,7 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 			return err
 		}
 	}
-	rh.Branches = []string{}
+	rh.Branches = []Num{}
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return err
@@ -847,7 +850,7 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 		if err != nil {
 			return fmt.Errorf("expected num in branches: %w", err)
 		}
-		rh.Branches = append(rh.Branches, num)
+		rh.Branches = append(rh.Branches, Num(num))
 	}
 	return nil
 }
@@ -1038,10 +1041,10 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 		if i := strings.Index(dateStr, "."); i == 2 {
 			rh.YearTruncated = true
 		}
-		if date, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
+		if _, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
 			return err
 		} else {
-			rh.Date = date
+			rh.Date = DateTime(dateStr)
 		}
 	}
 	for {
@@ -1059,13 +1062,13 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 			if s, err := ParseOptionalToken(s, ScanTokenAuthor, WithPropertyName("author"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.Author = s
+				rh.Author = ID(s)
 			}
 		case "state":
 			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state"), WithConsumed(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				rh.State = s
+				rh.State = ID(s)
 			}
 		default:
 			return fmt.Errorf("%w: %s", ErrUnknownToken, nt)
