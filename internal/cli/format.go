@@ -69,6 +69,7 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			_, _ = fmt.Fprint(stdout, content)
 		} else if output != "" {
 			writeOutput(output, []byte(content), force)
+			fmt.Printf("Wrote: %s\n", fn)
 		} else {
 			// Stdout
 			_, _ = fmt.Fprint(stdout, content)
