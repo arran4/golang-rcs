@@ -1057,7 +1057,7 @@ func TestParseRevisionContents(t *testing.T) {
 					PrecedingNewLinesOffset: 0,
 				},
 			},
-			wantOffset: 0,
+			wantOffset: -1,
 			wantErr:    false,
 		},
 	}
@@ -1841,7 +1841,7 @@ func TestFile_String(t *testing.T) {
 		},
 		Description: "test desc\n",
 	}
-	expected := "head\t1.1;\ncomment\t@# @;\n\n\n1.1\ndate\t2022.01.01.00.00.00;\tauthor user;\tstate Exp;\nbranches;\nnext\t;\n\n\ndesc\n@test desc\n@\n"
+	expected := "head\t1.1;\ncomment\t@# @;\n\n\n1.1\ndate\t2022.01.01.00.00.00;\tauthor user;\tstate Exp;\nbranches;\nnext\t;\n\n\ndesc\n@test desc\n@\n\n"
 	if got := f.String(); got != expected {
 		t.Errorf("File.String() = %q, want %q", got, expected)
 	}

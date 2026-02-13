@@ -315,9 +315,9 @@ func (f *File) String() string {
 	for _, content := range f.RevisionContents {
 		sb.WriteString(content.StringWithNewLine(nl))
 	}
-	if f.EndOfFileNewLineOffset > 0 {
-		sb.WriteString(strings.Repeat(nl, f.EndOfFileNewLineOffset))
-	} else if f.EndOfFileNewLineOffset < 0 {
+	if f.EndOfFileNewLineOffset+1 > 0 {
+		sb.WriteString(strings.Repeat(nl, f.EndOfFileNewLineOffset+1))
+	} else if f.EndOfFileNewLineOffset+1 < 0 {
 		return strings.TrimSuffix(sb.String(), nl)
 	}
 	return sb.String()
@@ -759,10 +759,10 @@ func ParseRevisionContents(s *Scanner) ([]*RevisionContent, int, error) {
 			rc.PrecedingNewLinesOffset += initialOffset
 			rcs = append(rcs, rc)
 		} else {
-			return rcs, initialOffset + newLines, nil
+			return rcs, initialOffset + newLines - 1, nil
 		}
 		if newLines < 2 {
-			return rcs, newLines, nil
+			return rcs, newLines - 1, nil
 		}
 		initialOffset = newLines
 	}
