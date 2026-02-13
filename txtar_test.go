@@ -202,6 +202,10 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 		}
 		gotJSON := string(gotJSONBytes)
 
+		// Normalize newlines for comparison
+		expectedJSON = strings.ReplaceAll(expectedJSON, "\r\n", "\n")
+		gotJSON = strings.ReplaceAll(gotJSON, "\r\n", "\n")
+
 		if diff := cmp.Diff(strings.TrimSpace(expectedJSON), strings.TrimSpace(gotJSON)); diff != "" {
 			t.Errorf("JSON mismatch (-want +got):\n%s", diff)
 		}
@@ -409,6 +413,10 @@ func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 
 	normExpected := strings.TrimSpace(expected)
 	normGot := strings.TrimSpace(got)
+
+	// Normalize newlines
+	normExpected = strings.ReplaceAll(normExpected, "\r\n", "\n")
+	normGot = strings.ReplaceAll(normGot, "\r\n", "\n")
 
 	if ignoreWhitespace {
 		normExpected = strings.Join(strings.Fields(normExpected), " ")
