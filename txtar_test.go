@@ -426,11 +426,28 @@ func forceUnixLineEndings(f *File) {
 	f.Integrity = strings.ReplaceAll(f.Integrity, "\r\n", "\n")
 	f.Expand = strings.ReplaceAll(f.Expand, "\r\n", "\n")
 
+	normalizeStrings := func(strs []string) []string {
+		out := make([]string, len(strs))
+		for i, s := range strs {
+			out[i] = strings.ReplaceAll(s, "\r\n", "\n")
+		}
+		return out
+	}
+
 	for _, rh := range f.RevisionHeads {
-		// RevisionHead fields are mostly single line, but we can check if needed.
-		// Usually no multiline strings in RevisionHead except maybe NewPhrases?
-		// We'll skip for now unless needed.
-		_ = rh
+		rh.Owner = normalizeStrings(rh.Owner)
+		rh.Group = normalizeStrings(rh.Group)
+		rh.Permissions = normalizeStrings(rh.Permissions)
+		rh.Hardlinks = normalizeStrings(rh.Hardlinks)
+		rh.Deltatype = normalizeStrings(rh.Deltatype)
+		rh.Kopt = normalizeStrings(rh.Kopt)
+		rh.Mergepoint = normalizeStrings(rh.Mergepoint)
+		rh.Filename = normalizeStrings(rh.Filename)
+		rh.Username = normalizeStrings(rh.Username)
+
+		for _, np := range rh.NewPhrases {
+			np.Value = normalizeStrings(np.Value)
+		}
 	}
 
 	for _, rc := range f.RevisionContents {
