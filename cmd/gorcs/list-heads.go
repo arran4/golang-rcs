@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 
+	"errors"
+	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -15,9 +17,10 @@ var _ Cmd = (*ListHeads)(nil)
 
 type ListHeads struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	files       []string
-	SubCommands map[string]Cmd
+	Flags         *flag.FlagSet
+	files         []string
+	SubCommands   map[string]Cmd
+	CommandAction func(c *ListHeads) error
 }
 
 type UsageDataListHeads struct {
@@ -76,8 +79,12 @@ func (c *ListHeads) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.ListHeads(c.files...); err != nil {
-		return err
+	if c.CommandAction != nil {
+		if err := c.CommandAction(c); err != nil {
+			return fmt.Errorf("list-heads failed: %w", err)
+		}
+	} else {
+		c.Usage()
 	}
 
 	return nil
@@ -91,6 +98,23 @@ func (c *RootCmd) NewListHeads() *ListHeads {
 		SubCommands: make(map[string]Cmd),
 	}
 	set.Usage = v.Usage
+
+	v.CommandAction = func(c *ListHeads) error {
+
+		err := cli.ListHeads(c.files...)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
+			}
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
+			}
+			return fmt.Errorf("list-heads failed: %w", err)
+		}
+		return nil
+	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

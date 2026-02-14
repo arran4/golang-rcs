@@ -11,12 +11,16 @@ import (
 //
 // Flags:
 //
-//			output: -o --output Output file path
-//			force: -f --force Force overwrite output
-//	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
-//			files: ... List of files to process, or - for stdin
+//	output: -o --output Output file path
+//	force: -f --force Force overwrite output
+//	keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
+//	files: ... List of files to process, or - for stdin
 func Format(output string, force, keepTruncatedYears bool, files ...string) error {
-	return runFormat(os.Stdin, os.Stdout, output, force, keepTruncatedYears, files...)
+	var err error
+	if files, err = ensureFiles(files); err != nil {
+		return err
+	}
+	return runFormat(os.Stdin, os.Stdout, output, force, false, false, keepTruncatedYears, files...)
 }
 
 func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) error {
@@ -77,7 +81,9 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 			// Stdout
 			_, _ = fmt.Fprint(stdout, content)
 		} else {
-			writeOutput(fn, []byte(content), force)
+			if err := writeOutput(fn, []byte(content), force); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

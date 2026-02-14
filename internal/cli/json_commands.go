@@ -17,7 +17,11 @@ import (
 //	force: -f --force Force overwrite output
 //	indent: -I --indent Indent JSON output
 //	files: ... List of files to process, or - for stdin
-func ToJson(output string, force bool, files ...string) error {
+func ToJson(output string, force, indent bool, files ...string) error {
+	var err error
+	if files, err = ensureFiles(files); err != nil {
+		return err
+	}
 	if output != "" && output != "-" && len(files) > 1 {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
@@ -56,6 +60,7 @@ func ToJson(output string, force bool, files ...string) error {
 				return err
 			}
 		} else if fn == "-" {
+			// When reading from stdin and no output file specified, write to stdout
 			fmt.Printf("%s", b)
 		} else {
 			// Default output: filename + .json
@@ -76,6 +81,10 @@ func ToJson(output string, force bool, files ...string) error {
 //	force: -f --force Force overwrite output
 //	files: ... List of files to process, or - for stdin
 func FromJson(output string, force bool, files ...string) error {
+	var err error
+	if files, err = ensureFiles(files); err != nil {
+		return err
+	}
 	if output != "" && output != "-" && len(files) > 1 {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
@@ -106,6 +115,8 @@ func FromJson(output string, force bool, files ...string) error {
 			if err := writeOutput(output, outBytes, force); err != nil {
 				return err
 			}
+		} else if fn == "-" {
+			fmt.Print(string(outBytes))
 		} else {
 			// Default output: remove .json suffix, append ,v if not present
 			outPath := fn
