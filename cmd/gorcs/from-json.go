@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
+	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -16,11 +18,12 @@ var _ Cmd = (*FromJson)(nil)
 
 type FromJson struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	output      string
-	force       bool
-	files       []string
-	SubCommands map[string]Cmd
+	Flags         *flag.FlagSet
+	output        string
+	force         bool
+	files         []string
+	SubCommands   map[string]Cmd
+	CommandAction func(c *FromJson) error
 }
 
 type UsageDataFromJson struct {
@@ -109,8 +112,12 @@ func (c *FromJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.FromJson(c.output, c.force, c.files...); err != nil {
-		return err
+	if c.CommandAction != nil {
+		if err := c.CommandAction(c); err != nil {
+			return fmt.Errorf("from-json failed: %w", err)
+		}
+	} else {
+		c.Usage()
 	}
 
 	return nil
@@ -124,12 +131,29 @@ func (c *RootCmd) NewFromJson() *FromJson {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.output, "o", "", "Output file path")
 	set.StringVar(&v.output, "output", "", "Output file path")
+	set.StringVar(&v.output, "o", "", "Output file path")
 
-	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 	set.BoolVar(&v.force, "force", false, "Force overwrite output")
+	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 	set.Usage = v.Usage
+
+	v.CommandAction = func(c *FromJson) error {
+
+		err := cli.FromJson(c.output, c.force, c.files...)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
+			}
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
+			}
+			return fmt.Errorf("from-json failed: %w", err)
+		}
+		return nil
+	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

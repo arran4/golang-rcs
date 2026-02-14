@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
+	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -16,12 +18,13 @@ var _ Cmd = (*ToJson)(nil)
 
 type ToJson struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	output      string
-	force       bool
-	indent      bool
-	files       []string
-	SubCommands map[string]Cmd
+	Flags         *flag.FlagSet
+	output        string
+	force         bool
+	indent        bool
+	files         []string
+	SubCommands   map[string]Cmd
+	CommandAction func(c *ToJson) error
 }
 
 type UsageDataToJson struct {
@@ -90,6 +93,7 @@ func (c *ToJson) Execute(args []string) error {
 				} else {
 					c.force = true
 				}
+
 			case "indent", "I":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
@@ -120,8 +124,12 @@ func (c *ToJson) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.ToJson(c.output, c.force, c.indent, c.files...); err != nil {
-		return err
+	if c.CommandAction != nil {
+		if err := c.CommandAction(c); err != nil {
+			return fmt.Errorf("to-json failed: %w", err)
+		}
+	} else {
+		c.Usage()
 	}
 
 	return nil
@@ -135,16 +143,32 @@ func (c *RootCmd) NewToJson() *ToJson {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.output, "o", "", "Output file path")
 	set.StringVar(&v.output, "output", "", "Output file path")
+	set.StringVar(&v.output, "o", "", "Output file path")
 
-	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 	set.BoolVar(&v.force, "force", false, "Force overwrite output")
+	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 
-	set.BoolVar(&v.indent, "I", false, "Indent JSON output")
 	set.BoolVar(&v.indent, "indent", false, "Indent JSON output")
-
+	set.BoolVar(&v.indent, "I", false, "Indent JSON output")
 	set.Usage = v.Usage
+
+	v.CommandAction = func(c *ToJson) error {
+
+		err := cli.ToJson(c.output, c.force, c.indent, c.files...)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
+			}
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
+			}
+			return fmt.Errorf("to-json failed: %w", err)
+		}
+		return nil
+	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
