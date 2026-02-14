@@ -11,10 +11,10 @@ import (
 //
 // Flags:
 //
-//			output: -o --output Output file path
-//			force: -f --force Force overwrite output
-//	    keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
-//			files: ... List of files to process, or - for stdin
+//	output: -o --output Output file path
+//	force: -f --force Force overwrite output
+//	keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
+//	files: ... List of files to process, or - for stdin
 func Format(output string, force, keepTruncatedYears bool, files ...string) error {
 	var err error
 	if files, err = ensureFiles(files); err != nil {
