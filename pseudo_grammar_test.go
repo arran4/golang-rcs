@@ -15,7 +15,11 @@ func TestPseudoGrammar(t *testing.T) {
 	f := &File{}
 	grammar := f.PseudoGrammar()
 
-	if diff := cmp.Diff(strings.TrimSpace(expectedGrammar), strings.TrimSpace(grammar)); diff != "" {
+	expected := strings.ReplaceAll(expectedGrammar, "\r\n", "\n")
+	expected = strings.TrimSpace(expected)
+	grammar = strings.TrimSpace(grammar)
+
+	if diff := cmp.Diff(expected, grammar); diff != "" {
 		t.Errorf("PseudoGrammar mismatch (-expected +got):\n%s", diff)
 	}
 }
