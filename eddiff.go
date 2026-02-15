@@ -1,6 +1,7 @@
 package rcs
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"strings"
@@ -8,48 +9,111 @@ import (
 
 type EdDiff []EdDiffCommand
 
-func ParseEdDiff(r io.Reader) (EdDiff, error) {
-	// TODO implement and fully test
-	// d1 2 (deletes at position 1 2 lines.
-	// a1 2 (at position 1, insert the 2 lines after a1 2
-
+func (ed EdDiff) String() string {
+	var sb strings.Builder
+	for _, c := range ed {
+		sb.WriteString(c.String())
+		sb.WriteString("\n")
+	}
+	return sb.String()
 }
 
-var _ fmt.Stringer = (EdDiff)(nil) // TODO Ensure that EdDiff serializes the rules as well as implements them for circular testing
+func ParseEdDiff(r io.Reader) (EdDiff, error) {
+	scanner := bufio.NewScanner(r)
+	var commands []EdDiffCommand
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+
+		var cmdType rune
+		var start, count int
+
+		n, err := fmt.Sscanf(line, "%c%d %d", &cmdType, &start, &count)
+		if err != nil {
+			return nil, fmt.Errorf("invalid command line %q: %v", line, err)
+		}
+		if n < 3 {
+			return nil, fmt.Errorf("invalid command line %q: expected 3 items", line)
+		}
+
+		switch cmdType {
+		case 'd':
+			commands = append(commands, Delete{start, count})
+		case 'a':
+			var lines []string
+			for i := 0; i < count; i++ {
+				if !scanner.Scan() {
+					return nil, fmt.Errorf("unexpected EOF reading add lines for command %s", line)
+				}
+				lines = append(lines, scanner.Text())
+			}
+			commands = append(commands, Add{Lines: lines, LineStart: start})
+		default:
+			return nil, fmt.Errorf("unknown command type: %c", cmdType)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return commands, nil
+}
+
+var _ fmt.Stringer = (EdDiff)(nil)
 
 func (ed EdDiff) Apply(onto LineReader, into LineWriter) error {
-	lineAction := map[int][]EdDiffCommand{}
-	for _, c := range ed {
-		lineAction[c.StartLine()] = append(lineAction[c.StartLine()], c)
+	adds := make(map[int][]Add)
+	dels := make(map[int]Delete)
+
+	for _, cmd := range ed {
+		switch c := cmd.(type) {
+		case Add:
+			adds[c.LineStart] = append(adds[c.LineStart], c)
+		case Delete:
+			dels[c.StartLine()] = c
+		}
 	}
-	writtenLinePos := 0
-	var err error
-outer:
+
+	linesRead := 0
 	for {
-		for _, c := range lineAction[writtenLinePos] {
-			writtenLinePos, err = c.Apply(onto, into)
-			if err != nil {
-				return err // TODO fmt.Errorf
-			}
-		}
-		var line string
-		line, err = onto.ReadLine()
-		if err != nil {
-			switch {
-			case err == io.EOF:
-				if len(line) == 0 {
-					break outer // TODO verify
+		// 1. Process Adds (insertions after current line)
+		if cmds, ok := adds[linesRead]; ok {
+			for _, cmd := range cmds {
+				if _, err := cmd.Apply(onto, into); err != nil {
+					return err
 				}
-			default:
-				return err // TODO fmt.Errorf
 			}
+			delete(adds, linesRead)
 		}
-		err = into.WriteLine(line)
+
+		// 2. Process Deletes (starting at next line)
+		if cmd, ok := dels[linesRead+1]; ok {
+			n, err := cmd.Apply(onto, into)
+			if err != nil {
+				return err
+			}
+			linesRead += n
+			continue
+		}
+
+		// 3. Read/Write one line
+		line, err := onto.ReadLine()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
-			return err // TODO fmt.Errorf
+			return err
 		}
-		writtenLinePos++
+		if err := into.WriteLine(line); err != nil {
+			return err
+		}
+		linesRead++
 	}
+
 	return nil
 }
 
@@ -67,22 +131,27 @@ type LineWriter interface {
 	WriteLine(line string) error
 }
 
-// TODO io.Reader/io.Writer based line reader / writer (scanner wrapper?)
-// TODO slice based line reader / writer
-
 type Delete [2]int
+
+func (d Delete) StartLine() int {
+	return d[0]
+}
+
+func (d Delete) String() string {
+	return fmt.Sprintf("d%d %d", d[0], d[1])
+}
 
 func (d Delete) Apply(onto LineReader, into LineWriter) (int, error) {
 	for i := 0; i < d[1]; i++ {
 		_, err := onto.ReadLine()
 		if err != nil {
-			return 0, err // TODO fmt.Errorf
+			return 0, err
 		}
 	}
 	return d[1], nil
 }
 
-var _ EdDiffCommand = (Delete)(0)
+var _ EdDiffCommand = Delete{}
 
 type Add struct {
 	Lines     []string
@@ -90,7 +159,15 @@ type Add struct {
 }
 
 func (a Add) String() string {
-	return fmt.Sprintf("a%d %d\n%s", a.LineStart, len(a.Lines), strings.Join(a.Lines, "\n"))
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "a%d %d\n", a.LineStart, len(a.Lines))
+	for i, l := range a.Lines {
+		sb.WriteString(l)
+		if i < len(a.Lines)-1 {
+			sb.WriteString("\n")
+		}
+	}
+	return sb.String()
 }
 
 func (a Add) StartLine() int {
@@ -101,10 +178,10 @@ func (a Add) Apply(onto LineReader, into LineWriter) (int, error) {
 	for _, line := range a.Lines {
 		err := into.WriteLine(line)
 		if err != nil {
-			return 0, err // TODO fmt.Errorf
+			return 0, err
 		}
 	}
-	return len(a.Lines), nil
+	return 0, nil
 }
 
-var _ EdDiffCommand = (Add)(nil)
+var _ EdDiffCommand = Add{}

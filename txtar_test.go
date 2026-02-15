@@ -201,20 +201,12 @@ func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool
 	t.Skip("rcs merge test type not implemented yet")
 }
 
-func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
-	t.Skip("rcs clean test type not implemented yet")
-}
-
 func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("ci test type not implemented yet")
 }
 
 func testCO(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("co test type not implemented yet")
-}
-
-func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {
-	t.Skip("rcsdiff test type not implemented yet")
 }
 
 func testJSONToRCS(t *testing.T, parts map[string]string, options map[string]bool) {
