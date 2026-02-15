@@ -1,0 +1,67 @@
+DateTime := string;
+File := {
+	Head: string;
+	Branch: string;
+	Description: string;
+	Comment: string;
+	Access: bool;
+	Symbols: {Symbol}*;
+	AccessUsers: {string}*;
+	Locks: {Lock}*;
+	Strict: bool;
+	StrictOnOwnLine: bool?;
+	DateYearPrefixTruncated: bool?;
+	Integrity: string;
+	Expand: string;
+	NewLine: string;
+	EndOfFileNewLineOffset: int?;
+	RevisionHeads: {RevisionHead}*;
+	RevisionContents: {RevisionContent}*;
+};
+ID := string;
+Lock := {
+	User: string;
+	Revision: string;
+};
+NewPhrase := {
+	Key: ID;
+	Value: {PhraseValue}*;
+};
+Num := string;
+PhraseValue := {
+	SimpleString;
+	QuotedString;
+};
+QuotedString := string;
+RevisionContent := {
+	Revision: string;
+	Log: string;
+	Text: string;
+	PrecedingNewLinesOffset: int?;
+};
+RevisionHead := {
+	Revision: Num;
+	Date: DateTime;
+	YearTruncated: bool?;
+	Author: ID;
+	State: ID;
+	Branches: {Num}*;
+	NextRevision: Num;
+	CommitID: Sym;
+	Owner: {PhraseValue}*?;
+	Group: {PhraseValue}*?;
+	Permissions: {PhraseValue}*?;
+	Hardlinks: {PhraseValue}*?;
+	Deltatype: {PhraseValue}*?;
+	Kopt: {PhraseValue}*?;
+	Mergepoint: {PhraseValue}*?;
+	Filename: {PhraseValue}*?;
+	Username: {PhraseValue}*?;
+	NewPhrases: {NewPhrase}*?;
+};
+SimpleString := string;
+Sym := string;
+Symbol := {
+	Name: string;
+	Revision: string;
+};
