@@ -1,5 +1,5 @@
 -- description.txt --
-rcs clean -r1.1 (check against specific revision)
+# rcs clean -r1.1 (check against specific revision)
 
 -- options.conf --
 {"args": ["-q", "-r1.1", "input.txt"]}
@@ -51,7 +51,7 @@ Initial content
 @
 
 -- tests.txt --
-rcs clean
+# rcs clean
 
 -- expected.txt,v --
 head	1.2;

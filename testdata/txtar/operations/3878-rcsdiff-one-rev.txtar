@@ -1,5 +1,5 @@
 -- description.txt --
-rcsdiff -rREV (compare working file with revision)
+# rcsdiff -rREV (compare working file with revision)
 
 -- options.conf --
 {"args": ["-r1.1", "file.txt"] }
@@ -10,7 +10,7 @@ Line 2
 Line 3
 
 -- tests.txt --
-rcsdiff
+# rcsdiff
 
 -- input.txt,v --
 head	1.2;

@@ -1,5 +1,5 @@
 -- description.txt --
-rcs clean -u1.1 (unlock specific revision)
+# rcs clean -u1.1 (unlock specific revision)
 
 -- options.conf --
 {"args": ["-q", "-u1.1", "input.txt"]}
@@ -36,7 +36,7 @@ text
 @
 
 -- tests.txt --
-rcs clean
+# rcs clean
 
 -- expected.txt,v --
 head	1.1;
