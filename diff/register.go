@@ -2,11 +2,10 @@ package diff
 
 import (
 	"fmt"
-	"github.com/arran4/golang-rcs"
 )
 
 // DiffAlgorithm generates an EdDiff from two line slices.
-type DiffAlgorithm func(from []string, to []string) (rcs.EdDiff, error)
+type DiffAlgorithm func(from []string, to []string) (EdDiff, error)
 
 var (
 	registry    = make(map[string]DiffAlgorithm)
@@ -18,7 +17,6 @@ func Register(name string, algo DiffAlgorithm) {
 	registry[name] = algo
 	if defaultAlgo == "" {
 		defaultAlgo = name
-		rcs.DiffAlgorithm = algo
 	}
 }
 

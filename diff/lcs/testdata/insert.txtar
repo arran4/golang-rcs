@@ -5,3 +5,6 @@ C
 A
 B
 C
+-- expected.diff --
+a1 1
+B
