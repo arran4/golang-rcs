@@ -13,7 +13,7 @@ import (
 	"golang.org/x/tools/txtar"
 )
 
-//go:embed testdata/txtar/*.txtar
+//go:embed testdata/txtar/*.txtar testdata/txtar/operations/*.txtar
 var txtarTests embed.FS
 
 var ErrorTestProvider = map[string]func(b []byte) (error, error){
@@ -99,16 +99,17 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 
 	// Fallback for migration: if tests.txt is missing, try to guess based on old logic
 	if !ok {
-		if _, ok := parts["input,v"]; ok {
-			testRCSToJSON(t, parts, options)
-			testCircular(t, parts, options) // rcs to rcs
-		} else if _, ok := parts["input.rcs"]; ok {
-			parts["input,v"] = parts["input.rcs"] // map old name
-			testRCSToJSON(t, parts, options)
-			testCircular(t, parts, options)
-		} else if _, ok := parts["input.json"]; ok {
-			testJSONToRCS(t, parts, options)
-		}
+		t.Fatalf("Missing tests.txt or tests.md")
+		//if _, ok := parts["input,v"]; ok {
+		//	testRCSToJSON(t, parts, options)
+		//	testCircular(t, parts, options) // rcs to rcs
+		//} else if _, ok := parts["input.rcs"]; ok {
+		//	parts["input,v"] = parts["input.rcs"] // map old name
+		//	testRCSToJSON(t, parts, options)
+		//	testCircular(t, parts, options)
+		//} else if _, ok := parts["input.json"]; ok {
+		//	testJSONToRCS(t, parts, options)
+		//}
 		return
 	}
 
@@ -123,36 +124,35 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		line = strings.TrimPrefix(line, "- ")
 
 		// Split by comma for multiple tests on one line?
-		testNames := strings.Split(line, ",")
+		testLine := strings.SplitN(line, ":", 2)
+		testName := testLine[0]
 
-		for _, testName := range testNames {
-			testName = strings.TrimSpace(testName)
-			if testName == "" {
-				continue
-			}
+		testName = strings.TrimSpace(testName)
+		if testName == "" {
+			continue
+		}
 
-			switch {
-			case testName == "json to rcs":
-				testJSONToRCS(t, parts, options)
-			case testName == "rcs to json":
-				testRCSToJSON(t, parts, options)
-			case testName == "rcs to rcs":
-				testCircular(t, parts, options)
-			case testName == "format rcs":
-				testFormatRCS(t, parts, options)
-			case testName == "validate rcs":
-				testValidateRCS(t, parts, options)
-			case testName == "new rcs":
-				testNewRCS(t, parts, options)
-			case testName == "list heads":
-				testListHeads(t, parts, options)
-			case testName == "normalize revisions":
-				testNormalizeRevisions(t, parts, options)
-			case strings.HasPrefix(testName, "parse error:"):
-				testParseError(t, testName, parts, options)
-			default:
-				t.Errorf("Unknown test type: %q", testName)
-			}
+		switch {
+		case testName == "json to rcs":
+			testJSONToRCS(t, parts, options)
+		case testName == "rcs to json":
+			testRCSToJSON(t, parts, options)
+		case testName == "rcs to rcs":
+			testCircular(t, parts, options)
+		case testName == "format rcs":
+			testFormatRCS(t, parts, options)
+		case testName == "validate rcs":
+			testValidateRCS(t, parts, options)
+		case testName == "new rcs":
+			testNewRCS(t, parts, options)
+		case testName == "list heads":
+			testListHeads(t, parts, options)
+		case testName == "normalize revisions":
+			testNormalizeRevisions(t, parts, options)
+		case strings.HasPrefix(testName, "parse error:"):
+			testParseError(t, testName, parts, options)
+		default:
+			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }

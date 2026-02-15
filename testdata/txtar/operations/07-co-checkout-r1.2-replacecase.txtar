@@ -1,0 +1,58 @@
+-- description.txt --
+co checkout revision 1.2 replace history
+
+-- options.conf --
+{"args": ["-q","-r1.2","input.txt"] }
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@replace
+@
+text
+@NEW
+NEW2
+NEW3
+@
+
+
+1.1
+log
+@r1
+@
+text
+@d1 3
+a3 2
+OLD
+OLD2
+@
+
+-- tests.txt --
+co
+
+-- expected.txt --
+NEW
+NEW2
+NEW3
