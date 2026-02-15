@@ -2,6 +2,7 @@ package rcs
 
 import (
 	"bufio"
+	"bytes"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -68,6 +69,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
+	content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
 	archive := txtar.Parse(content)
 	parts := make(map[string]string)
 	for _, f := range archive.Files {
