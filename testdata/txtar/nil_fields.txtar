@@ -1,3 +1,4 @@
+-- input,v --
 head 1.1;
 comment @c@;
 
@@ -31,6 +32,7 @@ text
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "EndOfFileNewLineOffset": -1,
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -70,5 +72,9 @@ log
 @@
 text
 @@
+-- options.conf --
 * unix line endings
 * force unix line endings
+-- tests.txt --
+rcs to json
+rcs to rcs
