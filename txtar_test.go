@@ -169,10 +169,22 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testCI(t, parts, options)
 		case testName == "co":
 			testCO(t, parts, options)
+		case testName == "rcs clean":
+			testRCSClean(t, parts, options)
+		case testName == "rcsdiff":
+			testRCSDiff(t, parts, options)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs clean test type not implemented yet")
+}
+
+func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcsdiff test type not implemented yet")
 }
 
 func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
