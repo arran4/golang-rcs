@@ -185,6 +185,14 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	}
 }
 
+func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs clean test type not implemented yet")
+}
+
+func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcsdiff test type not implemented yet")
+}
+
 func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("rcs test type not implemented yet")
 }
