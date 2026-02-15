@@ -1,8 +1,13 @@
 -- description.txt --
-nil fields
+Test nil fields handling.
+
+-- options.conf --
+* unix line endings
+* force unix line endings
 
 -- tests.txt --
 rcs to json
+rcs to rcs
 
 -- input,v --
 head 1.1;
@@ -78,5 +83,3 @@ log
 @@
 text
 @@
-* unix line endings
-* force unix line endings

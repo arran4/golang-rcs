@@ -1,0 +1,37 @@
+-- description.txt --
+ci checkin with simple message
+
+-- options.conf --
+{"args": ["-q","-i","-u","-m","Simple message","-wtester","-d","2020-01-01 00:00:00Z","input.txt"] }
+
+-- input.txt --
+This is a simple file.
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Simple message
+@
+text
+@This is a simple file.
+@
