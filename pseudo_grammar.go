@@ -2,139 +2,21 @@ package rcs
 
 import (
 	"fmt"
-	"reflect"
 	"sort"
 	"strings"
 )
 
-func (f *File) PseudoGrammar() string {
-	g := NewGrammarGenerator()
-	g.Consume(reflect.TypeOf(f))
-	return g.String()
-}
-
 type GrammarGenerator struct {
-	definitions              map[string]string
-	visited                  map[reflect.Type]bool
-	interfaceImplementations map[reflect.Type][]reflect.Type
-	rootPkgPath              string
+	sb          strings.Builder
+	visited     map[string]bool
+	definitions map[string]string
 }
 
 func NewGrammarGenerator() *GrammarGenerator {
 	return &GrammarGenerator{
+		visited:     make(map[string]bool),
 		definitions: make(map[string]string),
-		visited:     make(map[reflect.Type]bool),
-		interfaceImplementations: map[reflect.Type][]reflect.Type{
-			reflect.TypeOf((*PhraseValue)(nil)).Elem(): {
-				reflect.TypeOf(SimpleString("")),
-				reflect.TypeOf(QuotedString("")),
-			},
-		},
 	}
-}
-
-func (g *GrammarGenerator) Consume(t reflect.Type) {
-	if g.rootPkgPath == "" {
-		g.rootPkgPath = t.Elem().PkgPath()
-	}
-	g.walk(t)
-}
-
-func (g *GrammarGenerator) walk(t reflect.Type) {
-	base := g.unwrap(t)
-
-	if g.visited[base] {
-		return
-	}
-	g.visited[base] = true
-
-	if base.Kind() == reflect.Struct {
-		g.processStruct(base)
-	} else if base.Kind() == reflect.Interface {
-		g.processInterface(base)
-	} else if base.Name() != "" && (base.PkgPath() == g.rootPkgPath) {
-		g.processBasic(base)
-	}
-}
-
-func (g *GrammarGenerator) unwrap(t reflect.Type) reflect.Type {
-	for t.Kind() == reflect.Ptr || t.Kind() == reflect.Slice {
-		t = t.Elem()
-	}
-	return t
-}
-
-func (g *GrammarGenerator) processStruct(t reflect.Type) {
-	if t.PkgPath() != g.rootPkgPath && t.PkgPath() != "" {
-		return
-	}
-
-	var fields []string
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		if field.PkgPath != "" {
-			continue
-		}
-
-		fieldType := field.Type
-		displayType := g.formatType(fieldType)
-
-		// Recursively walk dependencies
-		g.collectDependencies(fieldType)
-
-		tag := field.Tag.Get("json")
-		if strings.Contains(tag, "omitempty") {
-			displayType += "?"
-		}
-
-		fields = append(fields, fmt.Sprintf("%s: %s;", field.Name, displayType))
-	}
-	g.definitions[t.Name()] = fmt.Sprintf("%s := {\n\t%s\n};", t.Name(), strings.Join(fields, "\n\t"))
-}
-
-func (g *GrammarGenerator) processInterface(t reflect.Type) {
-	if impls, ok := g.interfaceImplementations[t]; ok {
-		var implNames []string
-		for _, impl := range impls {
-			implNames = append(implNames, fmt.Sprintf("%s;", impl.Name()))
-			g.collectDependencies(impl)
-		}
-		g.definitions[t.Name()] = fmt.Sprintf("%s := {\n\t%s\n};", t.Name(), strings.Join(implNames, "\n\t"))
-	} else {
-		g.definitions[t.Name()] = fmt.Sprintf("%s := interface;", t.Name())
-	}
-}
-
-func (g *GrammarGenerator) processBasic(t reflect.Type) {
-	if t.Kind() != reflect.Struct && t.Kind() != reflect.Interface {
-		g.definitions[t.Name()] = fmt.Sprintf("%s := %s;", t.Name(), t.Kind().String())
-	}
-}
-
-func (g *GrammarGenerator) collectDependencies(t reflect.Type) {
-	base := g.unwrap(t)
-
-	if base.Kind() == reflect.Interface {
-		if implementations, ok := g.interfaceImplementations[base]; ok {
-			for _, impl := range implementations {
-				g.walk(impl)
-			}
-		}
-	}
-
-	if base.PkgPath() == g.rootPkgPath || base.PkgPath() == "" {
-		g.walk(base)
-	}
-}
-
-func (g *GrammarGenerator) formatType(t reflect.Type) string {
-	if t.Kind() == reflect.Ptr {
-		return g.formatType(t.Elem())
-	}
-	if t.Kind() == reflect.Slice {
-		return "{" + g.formatType(t.Elem()) + "}*"
-	}
-	return t.Name()
 }
 
 func (g *GrammarGenerator) String() string {
@@ -145,8 +27,6 @@ func (g *GrammarGenerator) String() string {
 	sort.Strings(keys)
 
 	var sb strings.Builder
-
-	// Legend
 	sb.WriteString("Legend:\n")
 	sb.WriteString("  Type := { ... }  : Sequential structure (all fields required unless marked)\n")
 	sb.WriteString("  Type := { A; B; }: Choice/Interface implementation (A or B)\n")
@@ -161,4 +41,215 @@ func (g *GrammarGenerator) String() string {
 		}
 	}
 	return sb.String()
+}
+
+type Grammerer interface {
+	Grammar(g *GrammarGenerator)
+}
+
+func (f *File) PseudoGrammar() string {
+	g := NewGrammarGenerator()
+	f.Grammar(g)
+	return g.String()
+}
+
+func (g *GrammarGenerator) AddDefinition(name string, body string) {
+	g.definitions[name] = fmt.Sprintf("%s := %s;", name, body)
+}
+
+func (f *File) Grammar(g *GrammarGenerator) {
+	if g.visited["File"] {
+		return
+	}
+	g.visited["File"] = true
+
+	var fields []string
+	fields = append(fields, "Head: string")
+	fields = append(fields, "Branch: string")
+	fields = append(fields, "Description: string")
+	fields = append(fields, "Comment: string")
+	fields = append(fields, "Access: bool")
+
+	fields = append(fields, "Symbols: {Symbol}*")
+	(&Symbol{}).Grammar(g)
+
+	fields = append(fields, "AccessUsers: {string}*")
+
+	fields = append(fields, "Locks: {Lock}*")
+	(&Lock{}).Grammar(g)
+
+	fields = append(fields, "Strict: bool")
+	fields = append(fields, "StrictOnOwnLine: bool?")
+	fields = append(fields, "DateYearPrefixTruncated: bool?")
+	fields = append(fields, "Integrity: string")
+	fields = append(fields, "Expand: string")
+	fields = append(fields, "NewLine: string")
+	fields = append(fields, "EndOfFileNewLineOffset: int?")
+
+	fields = append(fields, "RevisionHeads: {RevisionHead}*")
+	(&RevisionHead{}).Grammar(g)
+
+	fields = append(fields, "RevisionContents: {RevisionContent}*")
+	(&RevisionContent{}).Grammar(g)
+
+	g.AddDefinition("File", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+}
+
+func (s *Symbol) Grammar(g *GrammarGenerator) {
+	if g.visited["Symbol"] {
+		return
+	}
+	g.visited["Symbol"] = true
+	var fields []string
+	fields = append(fields, "Name: string")
+	fields = append(fields, "Revision: string")
+	g.AddDefinition("Symbol", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+}
+
+func (l *Lock) Grammar(g *GrammarGenerator) {
+	if g.visited["Lock"] {
+		return
+	}
+	g.visited["Lock"] = true
+	var fields []string
+	fields = append(fields, "User: string")
+	fields = append(fields, "Revision: string")
+	g.AddDefinition("Lock", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+}
+
+func (r *RevisionHead) Grammar(g *GrammarGenerator) {
+	if g.visited["RevisionHead"] {
+		return
+	}
+	g.visited["RevisionHead"] = true
+
+	var fields []string
+	fields = append(fields, "Revision: Num")
+	Num("").Grammar(g)
+
+	fields = append(fields, "Date: DateTime")
+	DateTime("").Grammar(g)
+
+	fields = append(fields, "YearTruncated: bool?")
+	fields = append(fields, "Author: ID")
+	ID("").Grammar(g)
+
+	fields = append(fields, "State: ID")
+	// ID already visited
+
+	fields = append(fields, "Branches: {Num}*")
+	// Num already visited
+
+	fields = append(fields, "NextRevision: Num")
+	fields = append(fields, "CommitID: Sym")
+	Sym("").Grammar(g)
+
+	fields = append(fields, "Owner: {PhraseValue}*?")
+	definePhraseValue(g)
+
+	fields = append(fields, "Group: {PhraseValue}*?")
+	fields = append(fields, "Permissions: {PhraseValue}*?")
+	fields = append(fields, "Hardlinks: {PhraseValue}*?")
+	fields = append(fields, "Deltatype: {PhraseValue}*?")
+	fields = append(fields, "Kopt: {PhraseValue}*?")
+	fields = append(fields, "Mergepoint: {PhraseValue}*?")
+	fields = append(fields, "Filename: {PhraseValue}*?")
+	fields = append(fields, "Username: {PhraseValue}*?")
+
+	fields = append(fields, "NewPhrases: {NewPhrase}*?")
+	(&NewPhrase{}).Grammar(g)
+
+	g.AddDefinition("RevisionHead", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+}
+
+func (r *RevisionContent) Grammar(g *GrammarGenerator) {
+	if g.visited["RevisionContent"] {
+		return
+	}
+	g.visited["RevisionContent"] = true
+	var fields []string
+	fields = append(fields, "Revision: string")
+	fields = append(fields, "Log: string")
+	fields = append(fields, "Text: string")
+	fields = append(fields, "PrecedingNewLinesOffset: int?")
+	g.AddDefinition("RevisionContent", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+}
+
+func (n *NewPhrase) Grammar(g *GrammarGenerator) {
+	if g.visited["NewPhrase"] {
+		return
+	}
+	g.visited["NewPhrase"] = true
+	var fields []string
+	fields = append(fields, "Key: ID")
+	ID("").Grammar(g)
+
+	fields = append(fields, "Value: {PhraseValue}*")
+	definePhraseValue(g)
+
+	g.AddDefinition("NewPhrase", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+}
+
+func definePhraseValue(g *GrammarGenerator) {
+	if g.visited["PhraseValue"] {
+		return
+	}
+	g.visited["PhraseValue"] = true
+
+	var options []string
+	options = append(options, "SimpleString")
+	SimpleString("").Grammar(g)
+
+	options = append(options, "QuotedString")
+	QuotedString("").Grammar(g)
+
+	g.AddDefinition("PhraseValue", "{\n\t"+strings.Join(options, ";\n\t")+";\n}")
+}
+
+func (n Num) Grammar(g *GrammarGenerator) {
+	if g.visited["Num"] {
+		return
+	}
+	g.visited["Num"] = true
+	g.AddDefinition("Num", "string")
+}
+
+func (id ID) Grammar(g *GrammarGenerator) {
+	if g.visited["ID"] {
+		return
+	}
+	g.visited["ID"] = true
+	g.AddDefinition("ID", "string")
+}
+
+func (s Sym) Grammar(g *GrammarGenerator) {
+	if g.visited["Sym"] {
+		return
+	}
+	g.visited["Sym"] = true
+	g.AddDefinition("Sym", "string")
+}
+
+func (d DateTime) Grammar(g *GrammarGenerator) {
+	if g.visited["DateTime"] {
+		return
+	}
+	g.visited["DateTime"] = true
+	g.AddDefinition("DateTime", "string")
+}
+
+func (s SimpleString) Grammar(g *GrammarGenerator) {
+	if g.visited["SimpleString"] {
+		return
+	}
+	g.visited["SimpleString"] = true
+	g.AddDefinition("SimpleString", "string")
+}
+
+func (s QuotedString) Grammar(g *GrammarGenerator) {
+	if g.visited["QuotedString"] {
+		return
+	}
+	g.visited["QuotedString"] = true
+	g.AddDefinition("QuotedString", "string")
 }
