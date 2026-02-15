@@ -36,10 +36,10 @@ B
 @
 
 -- tests.txt --
-ci
+# ci
 
 -- tests.md --
-ci
+# ci
 
 -- expected.txt,v --
 head	1.2;

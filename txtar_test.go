@@ -99,13 +99,6 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 
 	// Fallback for migration: if tests.txt is missing, try to guess based on old logic
 	if !ok {
-		// If these specific legacy files are missing description/tests, we can skip them or handle them.
-		// For now, let's just log and skip instead of failing the build,
-		// as they seem to be incomplete or legacy test cases.
-		if filename == "testdata/txtar/newline_offset.txtar" || filename == "testdata/txtar/nil_fields.txtar" {
-			t.Skip("Skipping legacy/incomplete txtar file")
-		}
-
 		t.Fatalf("Missing tests.txt or tests.md")
 		//if _, ok := parts["input,v"]; ok {
 		//	testRCSToJSON(t, parts, options)
@@ -158,11 +151,6 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testNormalizeRevisions(t, parts, options)
 		case strings.HasPrefix(testName, "parse error:"):
 			testParseError(t, testName, parts, options)
-		case testName == "ci" || testName == "co" || testName == "rcs":
-			t.Skipf("Test type %q not implemented in Go test runner (likely a shell test)", testName)
-		case testName == "parse error":
-			// Fallback for tests that use "parse error" without a specific type
-			t.Skip("Generic 'parse error' test type not implemented in Go test runner")
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}

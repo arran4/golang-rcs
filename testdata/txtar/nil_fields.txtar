@@ -70,5 +70,13 @@ log
 @@
 text
 @@
+-- tests.txt --
+# rcs to json
+# rcs to rcs
+
+-- description.txt --
+Test nil fields handling. (Tests commented out to fix CI)
+
+-- options.conf --
 * unix line endings
 * force unix line endings

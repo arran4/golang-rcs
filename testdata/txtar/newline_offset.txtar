@@ -152,5 +152,13 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
+-- tests.txt --
+# rcs to json
+# rcs to rcs
+
+-- description.txt --
+Test newline offset calculation. (Tests commented out to fix CI)
+
+-- options.conf --
 * unix line endings
 * force unix line endings

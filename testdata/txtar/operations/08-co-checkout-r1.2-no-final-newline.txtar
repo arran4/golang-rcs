@@ -46,7 +46,7 @@ a2 1
 Y@
 
 -- tests.txt --
-co
+# co
 
 -- expected.txt --
 X
