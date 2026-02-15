@@ -7,7 +7,6 @@ import (
 )
 
 type GrammarGenerator struct {
-	sb          strings.Builder
 	visited     map[string]bool
 	definitions map[string]string
 }
