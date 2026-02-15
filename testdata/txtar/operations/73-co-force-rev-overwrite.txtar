@@ -50,7 +50,7 @@ v1
 @
 
 -- tests.txt --
-co
+# co
 
 -- expected.txt --
 v1

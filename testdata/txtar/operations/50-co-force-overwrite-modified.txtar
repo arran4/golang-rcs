@@ -34,7 +34,7 @@ text
 @
 
 -- tests.txt --
-co
+# co
 
 -- expected.txt --
 v1
