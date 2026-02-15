@@ -24,7 +24,7 @@ func TestLCSWithTxtar(t *testing.T) {
 
 			var input1, input2 []string
 			for _, f := range a.Files {
-				switch f.Name {
+				switch strings.TrimSpace(f.Name) {
 				case "input1.txt":
 					input1 = splitLines(string(f.Data))
 				case "input2.txt":
