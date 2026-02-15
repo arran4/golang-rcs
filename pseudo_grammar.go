@@ -43,7 +43,7 @@ func (g *GrammarGenerator) String() string {
 }
 
 type Grammerer interface {
-	Grammar(g *GrammarGenerator)
+	Grammar(g *GrammarGenerator) string
 }
 
 func (f *File) PseudoGrammar() string {
@@ -56,11 +56,12 @@ func (g *GrammarGenerator) AddDefinition(name string, body string) {
 	g.definitions[name] = fmt.Sprintf("%s := %s;", name, body)
 }
 
-func (f *File) Grammar(g *GrammarGenerator) {
-	if g.visited["File"] {
-		return
+func (f *File) Grammar(g *GrammarGenerator) string {
+	name := "File"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["File"] = true
+	g.visited[name] = true
 
 	var fields []string
 	fields = append(fields, "Head: string")
@@ -69,13 +70,9 @@ func (f *File) Grammar(g *GrammarGenerator) {
 	fields = append(fields, "Comment: string")
 	fields = append(fields, "Access: bool")
 
-	fields = append(fields, "Symbols: {Symbol}*")
-	(&Symbol{}).Grammar(g)
-
+	fields = append(fields, fmt.Sprintf("Symbols: {%s}*", (&Symbol{}).Grammar(g)))
 	fields = append(fields, "AccessUsers: {string}*")
-
-	fields = append(fields, "Locks: {Lock}*")
-	(&Lock{}).Grammar(g)
+	fields = append(fields, fmt.Sprintf("Locks: {%s}*", (&Lock{}).Grammar(g)))
 
 	fields = append(fields, "Strict: bool")
 	fields = append(fields, "StrictOnOwnLine: bool?")
@@ -85,170 +82,175 @@ func (f *File) Grammar(g *GrammarGenerator) {
 	fields = append(fields, "NewLine: string")
 	fields = append(fields, "EndOfFileNewLineOffset: int?")
 
-	fields = append(fields, "RevisionHeads: {RevisionHead}*")
-	(&RevisionHead{}).Grammar(g)
+	fields = append(fields, fmt.Sprintf("RevisionHeads: {%s}*", (&RevisionHead{}).Grammar(g)))
+	fields = append(fields, fmt.Sprintf("RevisionContents: {%s}*", (&RevisionContent{}).Grammar(g)))
 
-	fields = append(fields, "RevisionContents: {RevisionContent}*")
-	(&RevisionContent{}).Grammar(g)
-
-	g.AddDefinition("File", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	return name
 }
 
-func (s *Symbol) Grammar(g *GrammarGenerator) {
-	if g.visited["Symbol"] {
-		return
+func (s *Symbol) Grammar(g *GrammarGenerator) string {
+	name := "Symbol"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["Symbol"] = true
+	g.visited[name] = true
 	var fields []string
 	fields = append(fields, "Name: string")
 	fields = append(fields, "Revision: string")
-	g.AddDefinition("Symbol", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	return name
 }
 
-func (l *Lock) Grammar(g *GrammarGenerator) {
-	if g.visited["Lock"] {
-		return
+func (l *Lock) Grammar(g *GrammarGenerator) string {
+	name := "Lock"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["Lock"] = true
+	g.visited[name] = true
 	var fields []string
 	fields = append(fields, "User: string")
 	fields = append(fields, "Revision: string")
-	g.AddDefinition("Lock", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	return name
 }
 
-func (r *RevisionHead) Grammar(g *GrammarGenerator) {
-	if g.visited["RevisionHead"] {
-		return
+func (r *RevisionHead) Grammar(g *GrammarGenerator) string {
+	name := "RevisionHead"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["RevisionHead"] = true
+	g.visited[name] = true
 
 	var fields []string
-	fields = append(fields, "Revision: Num")
-	Num("").Grammar(g)
-
-	fields = append(fields, "Date: DateTime")
-	DateTime("").Grammar(g)
+	fields = append(fields, fmt.Sprintf("Revision: %s", Num("").Grammar(g)))
+	fields = append(fields, fmt.Sprintf("Date: %s", DateTime("").Grammar(g)))
 
 	fields = append(fields, "YearTruncated: bool?")
-	fields = append(fields, "Author: ID")
-	ID("").Grammar(g)
+	fields = append(fields, fmt.Sprintf("Author: %s", ID("").Grammar(g)))
+	fields = append(fields, fmt.Sprintf("State: %s", ID("").Grammar(g)))
 
-	fields = append(fields, "State: ID")
-	// ID already visited
+	fields = append(fields, fmt.Sprintf("Branches: {%s}*", Num("").Grammar(g)))
+	fields = append(fields, fmt.Sprintf("NextRevision: %s", Num("").Grammar(g)))
+	fields = append(fields, fmt.Sprintf("CommitID: %s", Sym("").Grammar(g)))
 
-	fields = append(fields, "Branches: {Num}*")
-	// Num already visited
+	pvName := definePhraseValue(g)
+	fields = append(fields, fmt.Sprintf("Owner: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Group: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Permissions: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Hardlinks: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Deltatype: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Kopt: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Mergepoint: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Filename: {%s}*?", pvName))
+	fields = append(fields, fmt.Sprintf("Username: {%s}*?", pvName))
 
-	fields = append(fields, "NextRevision: Num")
-	fields = append(fields, "CommitID: Sym")
-	Sym("").Grammar(g)
+	fields = append(fields, fmt.Sprintf("NewPhrases: {%s}*?", (&NewPhrase{}).Grammar(g)))
 
-	fields = append(fields, "Owner: {PhraseValue}*?")
-	definePhraseValue(g)
-
-	fields = append(fields, "Group: {PhraseValue}*?")
-	fields = append(fields, "Permissions: {PhraseValue}*?")
-	fields = append(fields, "Hardlinks: {PhraseValue}*?")
-	fields = append(fields, "Deltatype: {PhraseValue}*?")
-	fields = append(fields, "Kopt: {PhraseValue}*?")
-	fields = append(fields, "Mergepoint: {PhraseValue}*?")
-	fields = append(fields, "Filename: {PhraseValue}*?")
-	fields = append(fields, "Username: {PhraseValue}*?")
-
-	fields = append(fields, "NewPhrases: {NewPhrase}*?")
-	(&NewPhrase{}).Grammar(g)
-
-	g.AddDefinition("RevisionHead", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	return name
 }
 
-func (r *RevisionContent) Grammar(g *GrammarGenerator) {
-	if g.visited["RevisionContent"] {
-		return
+func (r *RevisionContent) Grammar(g *GrammarGenerator) string {
+	name := "RevisionContent"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["RevisionContent"] = true
+	g.visited[name] = true
 	var fields []string
 	fields = append(fields, "Revision: string")
 	fields = append(fields, "Log: string")
 	fields = append(fields, "Text: string")
 	fields = append(fields, "PrecedingNewLinesOffset: int?")
-	g.AddDefinition("RevisionContent", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	return name
 }
 
-func (n *NewPhrase) Grammar(g *GrammarGenerator) {
-	if g.visited["NewPhrase"] {
-		return
+func (n *NewPhrase) Grammar(g *GrammarGenerator) string {
+	name := "NewPhrase"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["NewPhrase"] = true
+	g.visited[name] = true
 	var fields []string
-	fields = append(fields, "Key: ID")
-	ID("").Grammar(g)
+	fields = append(fields, fmt.Sprintf("Key: %s", ID("").Grammar(g)))
+	fields = append(fields, fmt.Sprintf("Value: {%s}*", definePhraseValue(g)))
 
-	fields = append(fields, "Value: {PhraseValue}*")
-	definePhraseValue(g)
-
-	g.AddDefinition("NewPhrase", "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	return name
 }
 
-func definePhraseValue(g *GrammarGenerator) {
-	if g.visited["PhraseValue"] {
-		return
+func definePhraseValue(g *GrammarGenerator) string {
+	name := "PhraseValue"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["PhraseValue"] = true
+	g.visited[name] = true
 
 	var options []string
-	options = append(options, "SimpleString")
-	SimpleString("").Grammar(g)
+	options = append(options, SimpleString("").Grammar(g))
+	options = append(options, QuotedString("").Grammar(g))
 
-	options = append(options, "QuotedString")
-	QuotedString("").Grammar(g)
-
-	g.AddDefinition("PhraseValue", "{\n\t"+strings.Join(options, ";\n\t")+";\n}")
+	g.AddDefinition(name, "{\n\t"+strings.Join(options, ";\n\t")+";\n}")
+	return name
 }
 
-func (n Num) Grammar(g *GrammarGenerator) {
-	if g.visited["Num"] {
-		return
+func (n Num) Grammar(g *GrammarGenerator) string {
+	name := "Num"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["Num"] = true
-	g.AddDefinition("Num", "string")
+	g.visited[name] = true
+	g.AddDefinition(name, "string")
+	return name
 }
 
-func (id ID) Grammar(g *GrammarGenerator) {
-	if g.visited["ID"] {
-		return
+func (id ID) Grammar(g *GrammarGenerator) string {
+	name := "ID"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["ID"] = true
-	g.AddDefinition("ID", "string")
+	g.visited[name] = true
+	g.AddDefinition(name, "string")
+	return name
 }
 
-func (s Sym) Grammar(g *GrammarGenerator) {
-	if g.visited["Sym"] {
-		return
+func (s Sym) Grammar(g *GrammarGenerator) string {
+	name := "Sym"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["Sym"] = true
-	g.AddDefinition("Sym", "string")
+	g.visited[name] = true
+	g.AddDefinition(name, "string")
+	return name
 }
 
-func (d DateTime) Grammar(g *GrammarGenerator) {
-	if g.visited["DateTime"] {
-		return
+func (d DateTime) Grammar(g *GrammarGenerator) string {
+	name := "DateTime"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["DateTime"] = true
-	g.AddDefinition("DateTime", "string")
+	g.visited[name] = true
+	g.AddDefinition(name, "string")
+	return name
 }
 
-func (s SimpleString) Grammar(g *GrammarGenerator) {
-	if g.visited["SimpleString"] {
-		return
+func (s SimpleString) Grammar(g *GrammarGenerator) string {
+	name := "SimpleString"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["SimpleString"] = true
-	g.AddDefinition("SimpleString", "string")
+	g.visited[name] = true
+	g.AddDefinition(name, "string")
+	return name
 }
 
-func (s QuotedString) Grammar(g *GrammarGenerator) {
-	if g.visited["QuotedString"] {
-		return
+func (s QuotedString) Grammar(g *GrammarGenerator) string {
+	name := "QuotedString"
+	if g.visited[name] {
+		return name
 	}
-	g.visited["QuotedString"] = true
-	g.AddDefinition("QuotedString", "string")
+	g.visited[name] = true
+	g.AddDefinition(name, "string")
+	return name
 }
