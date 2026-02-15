@@ -177,6 +177,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSDiff(t, parts, options)
 		case testName == "rcs merge":
 			testRCSMerge(t, parts, options)
+		case testName == "rcs clean":
+			testRCSClean(t, parts, options)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
@@ -189,6 +191,10 @@ func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
 
 func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("rcs merge test type not implemented yet")
+}
+
+func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs clean test type not implemented yet")
 }
 
 func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
