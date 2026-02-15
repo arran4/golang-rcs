@@ -2,6 +2,7 @@ package rcs
 
 import (
 	"bufio"
+	"bytes"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -68,6 +69,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
+	content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
 	archive := txtar.Parse(content)
 	parts := make(map[string]string)
 	for _, f := range archive.Files {
@@ -137,22 +139,22 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			continue
 		}
 
-		switch {
-		case testName == "json to rcs":
+		switch testName {
+		case "json to rcs":
 			testJSONToRCS(t, parts, options)
-		case testName == "rcs to json":
+		case "rcs to json":
 			testRCSToJSON(t, parts, options)
-		case testName == "rcs to rcs":
+		case "rcs to rcs":
 			testCircular(t, parts, options)
-		case testName == "format rcs":
+		case "format rcs":
 			testFormatRCS(t, parts, options)
-		case testName == "validate rcs":
+		case "validate rcs":
 			testValidateRCS(t, parts, options)
-		case testName == "new rcs":
+		case "new rcs":
 			testNewRCS(t, parts, options)
-		case testName == "list heads":
+		case "list heads":
 			testListHeads(t, parts, options)
-		case testName == "normalize revisions":
+		case "normalize revisions":
 			testNormalizeRevisions(t, parts, options)
 		default:
 			t.Skipf("Unknown test type: %q", testName)
