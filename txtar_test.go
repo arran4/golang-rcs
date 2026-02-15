@@ -169,6 +169,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testCO(t, parts, options)
 		case testName == "rcsdiff":
 			testRCSDiff(t, parts, options)
+		case testName == "rcs diff":
+			testRCSDiff(t, parts, options)
 		case testName == "rcs merge":
 			testRCSMerge(t, parts, options)
 		default:
