@@ -155,7 +155,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		case testName == "parse error":
 			testParseError(t, line, parts, options)
 		case strings.HasPrefix(testName, "parse error:"):
-      // TODO this test case should be no more as the error details should be moved into option.s
+			// TODO this test case should be no more as the error details should be moved into option.s
 			fullLine := line
 			if testName == "parse error" && len(testLine) > 1 {
 				fullLine = "parse error: " + testLine[1]
@@ -163,6 +163,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testParseError(t, fullLine, parts, options)
 		case testName == "rcs":
 			testRCS(t, parts, options)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
 		case testName == "ci":
 			testCI(t, parts, options)
 		case testName == "co":
@@ -175,6 +177,10 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 
 func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("rcs test type not implemented yet")
+}
+
+func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs merge test type not implemented yet")
 }
 
 func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
