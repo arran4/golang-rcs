@@ -1,0 +1,62 @@
+-- description.txt --
+rcs -c"" changes comment leader to empty
+
+-- options.conf --
+{"args": ["-c", "input.txt"] }
+
+-- input.txt --
+content
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@content
+@
+
+-- tests.txt --
+rcs
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@content
+@
