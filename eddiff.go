@@ -3,7 +3,6 @@ package rcs
 import (
 	"bufio"
 	"fmt"
-	"hash/fnv"
 	"io"
 	"strings"
 )
@@ -116,16 +115,6 @@ func (ed EdDiff) Apply(onto LineReader, into LineWriter) error {
 	}
 
 	return nil
-}
-
-func hashBytes(b []byte) uint64 {
-	h := fnv.New64a()
-	var err error
-	_, err = h.Write(b)
-	if err != nil {
-		panic(err)
-	}
-	return h.Sum64()
 }
 
 func GenerateEdDiffFromLines(from []string, to []string) (EdDiff, error) {
