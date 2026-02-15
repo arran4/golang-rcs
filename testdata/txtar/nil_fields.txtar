@@ -1,3 +1,11 @@
+-- description.txt --
+Test nil/empty fields parsing
+
+-- options.conf --
+* unix line endings
+* force unix line endings
+
+-- input,v --
 head 1.1;
 comment @c@;
 
@@ -17,6 +25,11 @@ log
 @@
 text
 @@
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
 -- expected.json --
 {
   "Head": "1.1",
@@ -70,5 +83,3 @@ log
 @@
 text
 @@
-* unix line endings
-* force unix line endings

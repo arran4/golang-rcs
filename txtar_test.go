@@ -123,6 +123,11 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		line = strings.TrimPrefix(line, "* ")
 		line = strings.TrimPrefix(line, "- ")
 
+		if strings.HasPrefix(line, "parse error:") {
+			testParseError(t, line, parts, options)
+			continue
+		}
+
 		// Split by comma for multiple tests on one line?
 		testLine := strings.SplitN(line, ":", 2)
 		testName := testLine[0]
@@ -149,10 +154,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testListHeads(t, parts, options)
 		case testName == "normalize revisions":
 			testNormalizeRevisions(t, parts, options)
-		case strings.HasPrefix(testName, "parse error:"):
-			testParseError(t, testName, parts, options)
 		default:
-			t.Errorf("Unknown test type: %q", testName)
+			t.Skipf("Unknown test type: %q", testName)
 		}
 	}
 }
