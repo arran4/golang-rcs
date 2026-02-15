@@ -66,23 +66,19 @@ func (f *File) Grammar(g *GrammarGenerator) string {
 	var fields []string
 	fields = append(fields, "Head: string")
 	fields = append(fields, "Branch: string")
-	fields = append(fields, "Description: string")
-	fields = append(fields, "Comment: string")
 	fields = append(fields, "Access: bool")
+	fields = append(fields, "AccessUsers: {string}*")
 
 	fields = append(fields, fmt.Sprintf("Symbols: {%s}*", (&Symbol{}).Grammar(g)))
-	fields = append(fields, "AccessUsers: {string}*")
 	fields = append(fields, fmt.Sprintf("Locks: {%s}*", (&Lock{}).Grammar(g)))
 
 	fields = append(fields, "Strict: bool")
-	fields = append(fields, "StrictOnOwnLine: bool?")
-	fields = append(fields, "DateYearPrefixTruncated: bool?")
 	fields = append(fields, "Integrity: string")
+	fields = append(fields, "Comment: string")
 	fields = append(fields, "Expand: string")
-	fields = append(fields, "NewLine: string")
-	fields = append(fields, "EndOfFileNewLineOffset: int?")
 
 	fields = append(fields, fmt.Sprintf("RevisionHeads: {%s}*", (&RevisionHead{}).Grammar(g)))
+	fields = append(fields, "Description: string")
 	fields = append(fields, fmt.Sprintf("RevisionContents: {%s}*", (&RevisionContent{}).Grammar(g)))
 
 	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
@@ -125,8 +121,6 @@ func (r *RevisionHead) Grammar(g *GrammarGenerator) string {
 	var fields []string
 	fields = append(fields, fmt.Sprintf("Revision: %s", Num("").Grammar(g)))
 	fields = append(fields, fmt.Sprintf("Date: %s", DateTime("").Grammar(g)))
-
-	fields = append(fields, "YearTruncated: bool?")
 	fields = append(fields, fmt.Sprintf("Author: %s", ID("").Grammar(g)))
 	fields = append(fields, fmt.Sprintf("State: %s", ID("").Grammar(g)))
 
@@ -161,7 +155,6 @@ func (r *RevisionContent) Grammar(g *GrammarGenerator) string {
 	fields = append(fields, "Revision: string")
 	fields = append(fields, "Log: string")
 	fields = append(fields, "Text: string")
-	fields = append(fields, "PrecedingNewLinesOffset: int?")
 	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
 	return name
 }
