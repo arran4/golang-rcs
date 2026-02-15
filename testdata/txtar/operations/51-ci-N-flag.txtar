@@ -1,0 +1,81 @@
+-- description.txt --
+ci with -N flag (overwrite symbolic name)
+
+-- options.conf --
+{"args": ["-q","-u","-m","r2","-NTAG","-wtester","-d","2021-01-02 00:00:00Z","input.txt"] }
+
+-- input.txt --
+Initial content.
+Modified content.
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols
+	TAG:1.1;
+locks;
+comment	@# @;
+
+
+1.1
+date	2021.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@Initial content.
+@
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.2;
+access;
+symbols
+	TAG:1.2;
+locks;
+comment	@# @;
+
+
+1.2
+date	2021.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2021.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r2
+@
+text
+@Initial content.
+Modified content.
+@
+
+
+1.1
+log
+@r1
+@
+text
+@d2 1
+@

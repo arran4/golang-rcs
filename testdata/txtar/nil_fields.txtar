@@ -5,6 +5,10 @@ Test nil fields handling.
 * unix line endings
 * force unix line endings
 
+-- tests.txt --
+rcs to json
+rcs to rcs
+
 -- input,v --
 head 1.1;
 comment @c@;
@@ -25,10 +29,6 @@ log
 @@
 text
 @@
-
--- tests.txt --
-rcs to json
-rcs to rcs
 
 -- expected.json --
 {
