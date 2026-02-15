@@ -3,7 +3,7 @@ set -euo pipefail
 export TZ=UTC LOGNAME=tester USER=tester
 unset RCSINIT
 
-OUT="3878-rcsdiff-one-rev.txtar"
+OUT="5830-rcsdiff-one-rev.txtar"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 cd "$tmp"
@@ -17,14 +17,14 @@ echo 'Line 2' >> file.txt
 ci -q -m'r2' -d'2020-01-02 00:00:00Z' file.txt
 co -q -l file.txt
 echo 'Line 3' >> file.txt
-# At this point: 1.1 has Line 1; 1.2 has Line 1+Line 2; Working has Line 1+Line 2+Line 3
 
-# Run the command and capture output (allowing exit code 1 for diffs)
+# Run the command and capture output
+# 1 revision: compares working file with 1.1
 rcsdiff -r1.1 file.txt > output.txt 2>&1 || true
 
-cat > "$OLDPWD/3878-rcsdiff-one-rev.txtar" <<EOF
+cat > "$OLDPWD/5830-rcsdiff-one-rev.txtar" <<EOF
 -- description.txt --
-rcsdiff -rREV (compare working file with revision)
+rcsdiff -r1.1 (compare working file with 1.1)
 
 -- options.conf --
 {"args": ["-r1.1", "file.txt"] }
@@ -33,7 +33,7 @@ rcsdiff -rREV (compare working file with revision)
 $(cat file.txt)
 
 -- tests.txt --
-rcs diff
+rcsdiff
 
 -- input.txt,v --
 $(cat file.txt,v)

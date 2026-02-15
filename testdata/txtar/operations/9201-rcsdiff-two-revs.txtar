@@ -1,16 +1,16 @@
 -- description.txt --
-rcsdiff no args (compare working file with head)
+rcsdiff -r1.1 -r1.2 (compare 1.1 with 1.2)
 
 -- options.conf --
-{"args": ["file.txt"] }
+{"args": ["-r1.1", "-r1.2", "file.txt"] }
 
 -- input.txt --
-Line 1
-Line 2
-Line 3
+Line A
+Line B
+Line C
 
 -- tests.txt --
-rcs diff
+rcsdiff
 
 -- input.txt,v --
 head	1.2;
@@ -42,8 +42,8 @@ log
 @r2
 @
 text
-@Line 1
-Line 2
+@Line A
+Line B
 @
 
 
@@ -58,7 +58,8 @@ text
 -- expected.out --
 ===================================================================
 RCS file: file.txt,v
+retrieving revision 1.1
 retrieving revision 1.2
-diff -r1.2 file.txt
-2a3
-> Line 3
+diff -r1.1 -r1.2
+1a2
+> Line B
