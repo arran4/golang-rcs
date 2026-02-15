@@ -1,0 +1,62 @@
+-- description.txt --
+rcs -t-TEXT replaces description
+
+-- options.conf --
+{"args": ["-t-new description","input.txt"] }
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks;	strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@initial
+@
+
+
+1.1
+log
+@r1
+@
+text
+@content
+@
+
+-- tests.txt --
+rcs
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks;	strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@new description
+@
+
+
+1.1
+log
+@r1
+@
+text
+@content
+@
