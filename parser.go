@@ -218,7 +218,7 @@ type File struct {
 	Indent                  string `json:",omitempty"`
 	SymbolSep               string `json:",omitempty"`
 	ValAlignCol             int    `json:",omitempty"`
-	EndOfFileNewLineOffset  int `json:",omitempty"`
+	EndOfFileNewLineOffset  int    `json:",omitempty"`
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
 }
