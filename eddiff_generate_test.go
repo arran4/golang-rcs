@@ -1,8 +1,12 @@
-package rcs
+package rcs_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/arran4/golang-rcs"
+	rcstesting "github.com/arran4/golang-rcs/internal/testing"
+	_ "github.com/arran4/golang-rcs/diff/lcs"
 )
 
 func TestGenerateEdDiffFromLines(t *testing.T) {
@@ -10,22 +14,22 @@ func TestGenerateEdDiffFromLines(t *testing.T) {
 		name string
 		from []string
 		to   []string
-		want EdDiff
+		want rcs.EdDiff
 	}{
 		{
 			name: "Simple Add",
 			from: []string{"A"},
 			to:   []string{"A", "B"},
-			want: EdDiff{
-				Add{LineStart: 1, Lines: []string{"B"}},
+			want: rcs.EdDiff{
+				rcs.Add{LineStart: 1, Lines: []string{"B"}},
 			},
 		},
 		{
 			name: "Simple Delete",
 			from: []string{"A", "B"},
 			to:   []string{"A"},
-			want: EdDiff{
-				Delete{2, 1},
+			want: rcs.EdDiff{
+				rcs.Delete{2, 1},
 			},
 		},
 		{
@@ -39,9 +43,9 @@ func TestGenerateEdDiffFromLines(t *testing.T) {
 			// Forward process:
 			// Add B -> a0 1.
 			// Delete A -> d1 1.
-			want: EdDiff{
-				Add{LineStart: 0, Lines: []string{"B"}},
-				Delete{1, 1},
+			want: rcs.EdDiff{
+				rcs.Add{LineStart: 0, Lines: []string{"B"}},
+				rcs.Delete{1, 1},
 			},
 		},
 		{
@@ -57,41 +61,41 @@ func TestGenerateEdDiffFromLines(t *testing.T) {
 			// Reverse: Add X, Delete B.
 			// Add X -> a1 1.
 			// Delete B -> d2 1.
-			want: EdDiff{
-				Add{LineStart: 1, Lines: []string{"X"}},
-				Delete{2, 1},
+			want: rcs.EdDiff{
+				rcs.Add{LineStart: 1, Lines: []string{"X"}},
+				rcs.Delete{2, 1},
 			},
 		},
 		{
 			name: "Group Adds",
 			from: []string{"A"},
 			to:   []string{"A", "B", "C"},
-			want: EdDiff{
-				Add{LineStart: 1, Lines: []string{"B", "C"}},
+			want: rcs.EdDiff{
+				rcs.Add{LineStart: 1, Lines: []string{"B", "C"}},
 			},
 		},
 		{
 			name: "Group Deletes",
 			from: []string{"A", "B", "C"},
 			to:   []string{"A"},
-			want: EdDiff{
-				Delete{2, 2},
+			want: rcs.EdDiff{
+				rcs.Delete{2, 2},
 			},
 		},
 		{
 			name: "Empty From",
 			from: []string{},
 			to:   []string{"A", "B"},
-			want: EdDiff{
-				Add{LineStart: 0, Lines: []string{"A", "B"}},
+			want: rcs.EdDiff{
+				rcs.Add{LineStart: 0, Lines: []string{"A", "B"}},
 			},
 		},
 		{
 			name: "Empty To",
 			from: []string{"A", "B"},
 			to:   []string{},
-			want: EdDiff{
-				Delete{1, 2},
+			want: rcs.EdDiff{
+				rcs.Delete{1, 2},
 			},
 		},
 		{
@@ -104,7 +108,7 @@ func TestGenerateEdDiffFromLines(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateEdDiffFromLines(tt.from, tt.to)
+			got, err := rcs.GenerateEdDiffFromLines(tt.from, tt.to)
 			if err != nil {
 				t.Fatalf("GenerateEdDiffFromLines() error = %v", err)
 			}
@@ -115,14 +119,14 @@ func TestGenerateEdDiffFromLines(t *testing.T) {
 			}
 
 			// Verify Round Trip by applying the diff
-			r := &StringLineReader{lines: tt.from} // Reusing struct from eddiff_test.go
-			w := &StringLineWriter{}               // Reusing struct from eddiff_test.go
+			r := rcstesting.NewStringLineReader(tt.from)
+			w := &rcstesting.StringLineWriter{}
 
 			if err := got.Apply(r, w); err != nil {
 				t.Errorf("Apply() error = %v", err)
 			}
 
-			gotLines := w.lines
+			gotLines := w.Lines()
 			if len(gotLines) != len(tt.to) {
 				// Handle nil/empty slice difference for DeepEqual or explicit check
 				if len(gotLines) == 0 && len(tt.to) == 0 {

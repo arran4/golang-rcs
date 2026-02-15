@@ -117,120 +117,48 @@ func (ed EdDiff) Apply(onto LineReader, into LineWriter) error {
 	return nil
 }
 
+// GenerateEdDiffFromLines delegates to the default registered algorithm.
+// The actual implementation is now pluggable.
 func GenerateEdDiffFromLines(from []string, to []string) (EdDiff, error) {
-	m := len(from)
-	n := len(to)
-	lcs := make([][]int, m+1)
-	for i := range lcs {
-		lcs[i] = make([]int, n+1)
+	// Circular dependency avoidance: eddiff.go (rcs) imports diff, diff imports rcs.
+	// But we need to call into diff package.
+	// The implementation of LCS is in diff/lcs package which imports rcs.
+	// We need a way to call the registered algorithm.
+	// We can't import "github.com/arran4/golang-rcs/diff" here if "diff" imports "rcs".
+	// WAIT. rcs package is the base. diff package can import rcs.
+	// lcs package imports rcs and diff.
+	// But we need to call diff.DefaultAlgorithm() here.
+	// If diff imports rcs, and rcs imports diff, we have a cycle.
+	// The plan needs to be adjusted.
+	// We can't have rcs -> diff -> rcs.
+	// We should move EdDiff definitions to a common package or keep them in rcs, and diff package should import rcs.
+	// Then rcs CANNOT import diff.
+	// So GenerateEdDiffFromLines in rcs package cannot call diff.DefaultAlgorithm().
+	//
+	// SOLUTION:
+	// Use a variable in rcs package that can be set by the diff package or main.
+	// var DefaultDiffAlgorithm func([]string, []string) (EdDiff, error)
+	//
+	// OR:
+	// Move EdDiff types to a subpackage or independent package.
+	// But EdDiff is core to RCS.
+	//
+	// Alternative:
+	// The `diff` package defines the interface and registry. It imports `rcs` to return `EdDiff`.
+	// `rcs` does NOT import `diff`.
+	// `rcs.GenerateEdDiffFromLines` becomes a variable or a function that panics if not set, or we implement a default simple one here.
+	// Or we simply remove `GenerateEdDiffFromLines` from `rcs` package and force users to use `diff.Generate`.
+	// But existing code might use `rcs.GenerateEdDiffFromLines`.
+	// The user asked to "allow me to switch algorithm by name using a registry... diff/register.go".
+	//
+	// Let's use a variable injection for now to break the cycle if we want to keep the function signature in `rcs`.
+	if DiffAlgorithm != nil {
+		return DiffAlgorithm(from, to)
 	}
-
-	for i := 1; i <= m; i++ {
-		for j := 1; j <= n; j++ {
-			if from[i-1] == to[j-1] {
-				lcs[i][j] = lcs[i-1][j-1] + 1
-			} else {
-				if lcs[i-1][j] >= lcs[i][j-1] {
-					lcs[i][j] = lcs[i-1][j]
-				} else {
-					lcs[i][j] = lcs[i][j-1]
-				}
-			}
-		}
-	}
-
-	type actionType int
-	const (
-		actMatch actionType = iota
-		actAdd
-		actDelete
-	)
-
-	type action struct {
-		kind actionType
-		text string // for add
-		// for delete, we don't strictly need text but useful for debug
-		// for match, we don't need anything
-	}
-
-	var actions []action
-	i, j := m, n
-	for i > 0 || j > 0 {
-		if i > 0 && j > 0 && from[i-1] == to[j-1] {
-			actions = append(actions, action{kind: actMatch})
-			i--
-			j--
-		} else if i > 0 && (j == 0 || lcs[i-1][j] >= lcs[i][j-1]) {
-			// Prefer Delete (move i)
-			actions = append(actions, action{kind: actDelete})
-			i--
-		} else {
-			// Prefer Add (move j)
-			actions = append(actions, action{kind: actAdd, text: to[j-1]})
-			j--
-		}
-	}
-
-	// Reverse actions to get forward order
-	for k := 0; k < len(actions)/2; k++ {
-		actions[k], actions[len(actions)-1-k] = actions[len(actions)-1-k], actions[k]
-	}
-
-	var result EdDiff
-	currentLine := 0 // 0-based index of original file processed
-
-	for k := 0; k < len(actions); k++ {
-		a := actions[k]
-		switch a.kind {
-		case actMatch:
-			currentLine++
-		case actDelete:
-			// Check if we can extend previous delete
-			if len(result) > 0 {
-				if del, ok := result[len(result)-1].(Delete); ok {
-					// Check if this delete is contiguous
-					// del[0] is start line (1-based), del[1] is count
-					// The range deleted is [del[0], del[0] + del[1] - 1]
-					// Next line to be deleted would be del[0] + del[1]
-					// currentLine is 0-based index of line being processed.
-					// Since we are at `actDelete`, we are about to delete `currentLine` (0-based) => `currentLine+1` (1-based).
-					// So if `del[0] + del[1] == currentLine + 1`, it's contiguous.
-
-					if del[0]+del[1] == currentLine+1 {
-						// Extend
-						result[len(result)-1] = Delete{del[0], del[1] + 1}
-						currentLine++
-						continue
-					}
-				}
-			}
-
-			result = append(result, Delete{currentLine + 1, 1})
-			currentLine++
-
-		case actAdd:
-			// Check if we can extend previous add
-			if len(result) > 0 {
-				if add, ok := result[len(result)-1].(Add); ok {
-					// Check if this add is at same position
-					// add.LineStart is the line number *after* which we insert.
-					// If we are still at the same insertion point (currentLine), extend.
-					if add.LineStart == currentLine {
-						// Extend
-						add.Lines = append(add.Lines, a.text)
-						result[len(result)-1] = add
-						continue
-					}
-				}
-			}
-
-			result = append(result, Add{LineStart: currentLine, Lines: []string{a.text}})
-			// Do not increment currentLine
-		}
-	}
-
-	return result, nil
+	return nil, fmt.Errorf("no diff algorithm registered")
 }
+
+var DiffAlgorithm func(from []string, to []string) (EdDiff, error)
 
 type EdDiffCommand interface {
 	fmt.Stringer
