@@ -1,0 +1,37 @@
+-- description.txt --
+ci checkin with state Rel (1.1)
+
+-- options.conf --
+{"args": ["-q","-i","-u","-m","r1","-sRel","-wtester","-d","2020-01-01 00:00:00Z","input.txt"] }
+
+-- input.txt --
+This is a test file for state Rel.
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Rel;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@This is a test file for state Rel.
+@
