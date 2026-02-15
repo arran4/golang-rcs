@@ -161,14 +161,28 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 				fullLine = "parse error: " + testLine[1]
 			}
 			testParseError(t, fullLine, parts, options)
+		case testName == "rcs":
+			testRCS(t, parts, options)
 		case testName == "ci":
-			t.Skip("ci tests not yet implemented")
+			testCI(t, parts, options)
 		case testName == "co":
-			t.Skip("co tests not yet implemented")
+			testCO(t, parts, options)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs test type not implemented yet")
+}
+
+func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("ci test type not implemented yet")
+}
+
+func testCO(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("co test type not implemented yet")
 }
 
 func testJSONToRCS(t *testing.T, parts map[string]string, options map[string]bool) {
