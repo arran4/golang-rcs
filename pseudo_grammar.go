@@ -28,6 +28,7 @@ func (g *GrammarGenerator) String() string {
 	var sb strings.Builder
 	sb.WriteString("Legend:\n")
 	sb.WriteString("  Type := { ... }  : Sequential structure (all fields required unless marked)\n")
+	sb.WriteString("  Type := Unordered { ... } : Fields can appear in any order\n")
 	sb.WriteString("  Type := { A; B; }: Choice/Interface implementation (A or B)\n")
 	sb.WriteString("  {Type}*          : Sequence of zero or more Type\n")
 	sb.WriteString("  Type?            : Optional field\n")
@@ -63,22 +64,25 @@ func (f *File) Grammar(g *GrammarGenerator) string {
 	}
 	g.visited[name] = true
 
+	var unorderedFields []string
+	unorderedFields = append(unorderedFields, "Head: Num?") // Head is optional token Num
+	unorderedFields = append(unorderedFields, "Branch: Num?")
+	unorderedFields = append(unorderedFields, "Access: bool?") // keyword
+	unorderedFields = append(unorderedFields, "AccessUsers: {ID}*")
+
+	unorderedFields = append(unorderedFields, fmt.Sprintf("Symbols: {%s}*", (&Symbol{}).Grammar(g)))
+	unorderedFields = append(unorderedFields, fmt.Sprintf("Locks: {%s}*", (&Lock{}).Grammar(g)))
+
+	unorderedFields = append(unorderedFields, "Strict: bool?")
+	unorderedFields = append(unorderedFields, "Integrity: @String@?") // Integrity string
+	unorderedFields = append(unorderedFields, "Comment: @String@?")
+	unorderedFields = append(unorderedFields, "Expand: @String@?") // Expand word/string
+
 	var fields []string
-	fields = append(fields, "Head: string")
-	fields = append(fields, "Branch: string")
-	fields = append(fields, "Access: bool")
-	fields = append(fields, "AccessUsers: {string}*")
-
-	fields = append(fields, fmt.Sprintf("Symbols: {%s}*", (&Symbol{}).Grammar(g)))
-	fields = append(fields, fmt.Sprintf("Locks: {%s}*", (&Lock{}).Grammar(g)))
-
-	fields = append(fields, "Strict: bool")
-	fields = append(fields, "Integrity: string")
-	fields = append(fields, "Comment: string")
-	fields = append(fields, "Expand: string")
+	fields = append(fields, "Admin: Unordered {\n\t\t"+strings.Join(unorderedFields, ";\n\t\t")+";\n\t}")
 
 	fields = append(fields, fmt.Sprintf("RevisionHeads: {%s}*", (&RevisionHead{}).Grammar(g)))
-	fields = append(fields, "Description: string")
+	fields = append(fields, "Description: @String@")
 	fields = append(fields, fmt.Sprintf("RevisionContents: {%s}*", (&RevisionContent{}).Grammar(g)))
 
 	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
@@ -92,8 +96,10 @@ func (s *Symbol) Grammar(g *GrammarGenerator) string {
 	}
 	g.visited[name] = true
 	var fields []string
-	fields = append(fields, "Name: string")
-	fields = append(fields, "Revision: string")
+	fields = append(fields, "Name: Sym")
+	Sym("").Grammar(g)
+	fields = append(fields, "Revision: Num")
+	Num("").Grammar(g)
 	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
 	return name
 }
@@ -105,8 +111,10 @@ func (l *Lock) Grammar(g *GrammarGenerator) string {
 	}
 	g.visited[name] = true
 	var fields []string
-	fields = append(fields, "User: string")
-	fields = append(fields, "Revision: string")
+	fields = append(fields, "User: ID")
+	ID("").Grammar(g)
+	fields = append(fields, "Revision: Num")
+	Num("").Grammar(g)
 	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
 	return name
 }
@@ -118,30 +126,38 @@ func (r *RevisionHead) Grammar(g *GrammarGenerator) string {
 	}
 	g.visited[name] = true
 
-	var fields []string
-	fields = append(fields, fmt.Sprintf("Revision: %s", Num("").Grammar(g)))
-	fields = append(fields, fmt.Sprintf("Date: %s", DateTime("").Grammar(g)))
-	fields = append(fields, fmt.Sprintf("Author: %s", ID("").Grammar(g)))
-	fields = append(fields, fmt.Sprintf("State: %s", ID("").Grammar(g)))
+	// RevisionHead fields are mostly sequential/specific order in grammar?
+	// ParseRevisionHeader scans Strings "branches", "date", etc. in loop. So Unordered.
+	// But Revision number is first.
 
-	fields = append(fields, fmt.Sprintf("Branches: {%s}*", Num("").Grammar(g)))
-	fields = append(fields, fmt.Sprintf("NextRevision: %s", Num("").Grammar(g)))
-	fields = append(fields, fmt.Sprintf("CommitID: %s", Sym("").Grammar(g)))
+	var parts []string
+	parts = append(parts, fmt.Sprintf("Revision: %s", Num("").Grammar(g)))
+
+	var unordered []string
+	unordered = append(unordered, fmt.Sprintf("Date: %s", DateTime("").Grammar(g)))
+	unordered = append(unordered, fmt.Sprintf("Author: %s", ID("").Grammar(g)))
+	unordered = append(unordered, fmt.Sprintf("State: %s", ID("").Grammar(g)))
+	unordered = append(unordered, fmt.Sprintf("Branches: {%s}*", Num("").Grammar(g)))
+	unordered = append(unordered, fmt.Sprintf("NextRevision: %s", Num("").Grammar(g)))
+	unordered = append(unordered, fmt.Sprintf("CommitID: %s", Sym("").Grammar(g)))
 
 	pvName := definePhraseValue(g)
-	fields = append(fields, fmt.Sprintf("Owner: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Group: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Permissions: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Hardlinks: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Deltatype: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Kopt: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Mergepoint: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Filename: {%s}*?", pvName))
-	fields = append(fields, fmt.Sprintf("Username: {%s}*?", pvName))
+	// CVS fields
+	unordered = append(unordered, fmt.Sprintf("Owner: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Group: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Permissions: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Hardlinks: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Deltatype: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Kopt: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Mergepoint: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Filename: {%s}*?", pvName))
+	unordered = append(unordered, fmt.Sprintf("Username: {%s}*?", pvName))
 
-	fields = append(fields, fmt.Sprintf("NewPhrases: {%s}*?", (&NewPhrase{}).Grammar(g)))
+	unordered = append(unordered, fmt.Sprintf("NewPhrases: {%s}*?", (&NewPhrase{}).Grammar(g)))
 
-	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+	parts = append(parts, "Meta: Unordered {\n\t\t"+strings.Join(unordered, ";\n\t\t")+";\n\t}")
+
+	g.AddDefinition(name, "{\n\t"+strings.Join(parts, ";\n\t")+";\n}")
 	return name
 }
 
@@ -151,11 +167,20 @@ func (r *RevisionContent) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	var fields []string
-	fields = append(fields, "Revision: string")
-	fields = append(fields, "Log: string")
-	fields = append(fields, "Text: string")
-	g.AddDefinition(name, "{\n\t"+strings.Join(fields, ";\n\t")+";\n}")
+
+	// RevisionContent: Revision (Num) then Unordered { Log, Text }
+	// ParseRevisionContent scans "log", "text".
+
+	var parts []string
+	parts = append(parts, fmt.Sprintf("Revision: %s", Num("").Grammar(g)))
+
+	var unordered []string
+	unordered = append(unordered, "Log: @String@")
+	unordered = append(unordered, "Text: @String@")
+
+	parts = append(parts, "Data: Unordered {\n\t\t"+strings.Join(unordered, ";\n\t\t")+";\n\t}")
+
+	g.AddDefinition(name, "{\n\t"+strings.Join(parts, ";\n\t")+";\n}")
 	return name
 }
 
@@ -194,7 +219,7 @@ func (n Num) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "string")
+	g.AddDefinition(name, "{digit|.} +")
 	return name
 }
 
@@ -204,7 +229,7 @@ func (id ID) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "string")
+	g.AddDefinition(name, "idchar+")
 	return name
 }
 
@@ -214,7 +239,7 @@ func (s Sym) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "string")
+	g.AddDefinition(name, "idchar+ (no dots)")
 	return name
 }
 
@@ -224,7 +249,7 @@ func (d DateTime) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "string")
+	g.AddDefinition(name, "num")
 	return name
 }
 
@@ -234,7 +259,7 @@ func (s SimpleString) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "string")
+	g.AddDefinition(name, "idchar+")
 	return name
 }
 
@@ -244,6 +269,6 @@ func (s QuotedString) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "string")
+	g.AddDefinition(name, "\"@\" {any_char}* \"@\" (doubled @)")
 	return name
 }

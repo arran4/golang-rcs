@@ -1,67 +1,74 @@
 Legend:
   Type := { ... }  : Sequential structure (all fields required unless marked)
+  Type := Unordered { ... } : Fields can appear in any order
   Type := { A; B; }: Choice/Interface implementation (A or B)
   {Type}*          : Sequence of zero or more Type
   Type?            : Optional field
 
-DateTime := string;
+DateTime := num;
 File := {
-	Head: string;
-	Branch: string;
-	Access: bool;
-	AccessUsers: {string}*;
-	Symbols: {Symbol}*;
-	Locks: {Lock}*;
-	Strict: bool;
-	Integrity: string;
-	Comment: string;
-	Expand: string;
+	Admin: Unordered {
+		Head: Num?;
+		Branch: Num?;
+		Access: bool?;
+		AccessUsers: {ID}*;
+		Symbols: {Symbol}*;
+		Locks: {Lock}*;
+		Strict: bool?;
+		Integrity: @String@?;
+		Comment: @String@?;
+		Expand: @String@?;
+	};
 	RevisionHeads: {RevisionHead}*;
-	Description: string;
+	Description: @String@;
 	RevisionContents: {RevisionContent}*;
 };
-ID := string;
+ID := idchar+;
 Lock := {
-	User: string;
-	Revision: string;
+	User: ID;
+	Revision: Num;
 };
 NewPhrase := {
 	Key: ID;
 	Value: {PhraseValue}*;
 };
-Num := string;
+Num := {digit|.} +;
 PhraseValue := {
 	SimpleString;
 	QuotedString;
 };
-QuotedString := string;
+QuotedString := "@" {any_char}* "@" (doubled @);
 RevisionContent := {
-	Revision: string;
-	Log: string;
-	Text: string;
+	Revision: Num;
+	Data: Unordered {
+		Log: @String@;
+		Text: @String@;
+	};
 };
 RevisionHead := {
 	Revision: Num;
-	Date: DateTime;
-	Author: ID;
-	State: ID;
-	Branches: {Num}*;
-	NextRevision: Num;
-	CommitID: Sym;
-	Owner: {PhraseValue}*?;
-	Group: {PhraseValue}*?;
-	Permissions: {PhraseValue}*?;
-	Hardlinks: {PhraseValue}*?;
-	Deltatype: {PhraseValue}*?;
-	Kopt: {PhraseValue}*?;
-	Mergepoint: {PhraseValue}*?;
-	Filename: {PhraseValue}*?;
-	Username: {PhraseValue}*?;
-	NewPhrases: {NewPhrase}*?;
+	Meta: Unordered {
+		Date: DateTime;
+		Author: ID;
+		State: ID;
+		Branches: {Num}*;
+		NextRevision: Num;
+		CommitID: Sym;
+		Owner: {PhraseValue}*?;
+		Group: {PhraseValue}*?;
+		Permissions: {PhraseValue}*?;
+		Hardlinks: {PhraseValue}*?;
+		Deltatype: {PhraseValue}*?;
+		Kopt: {PhraseValue}*?;
+		Mergepoint: {PhraseValue}*?;
+		Filename: {PhraseValue}*?;
+		Username: {PhraseValue}*?;
+		NewPhrases: {NewPhrase}*?;
+	};
 };
-SimpleString := string;
-Sym := string;
+SimpleString := idchar+;
+Sym := idchar+ (no dots);
 Symbol := {
-	Name: string;
-	Revision: string;
+	Name: Sym;
+	Revision: Num;
 };
