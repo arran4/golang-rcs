@@ -215,9 +215,9 @@ type File struct {
 	Integrity               string
 	Expand                  string
 	NewLine                 string
-	Indent                  string
-	SymbolSep               string
-	ValAlignCol             int `json:",omitempty"`
+	Indent                  string `json:",omitempty"`
+	SymbolSep               string `json:",omitempty"`
+	ValAlignCol             int    `json:",omitempty"`
 	EndOfFileNewLineOffset  int `json:",omitempty"`
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
@@ -641,8 +641,6 @@ func ParseHeader(s *Scanner, f *File) error {
 	if strings.IndexByte(sep, '\t') == -1 {
 		f.Indent = " "
 		f.ValAlignCol = 4 + len(sep)
-	} else {
-		f.Indent = "\t"
 	}
 
 	if err := ScanStrings(s, ";"); err == nil {
@@ -697,7 +695,17 @@ func ParseHeader(s *Scanner, f *File) error {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Symbols = sym
-				f.SymbolSep = sep
+				indent := f.Indent
+				if indent == "" {
+					indent = "\t"
+				}
+				nl := f.NewLine
+				if nl == "" {
+					nl = "\n"
+				}
+				if sep != nl+indent {
+					f.SymbolSep = sep
+				}
 			}
 		case "locks":
 			var err error

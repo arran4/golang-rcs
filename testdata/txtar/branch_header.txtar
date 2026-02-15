@@ -1,42 +1,5 @@
--- expected.json --
-{
-  "Head": "1.1",
-  "Branch": "1.1.1",
-  "Description": "test features\n",
-  "Comment": "# ",
-  "Access": true,
-  "Symbols": [],
-  "AccessUsers": null,
-  "Locks": [],
-  "Strict": true,
-  "StrictOnOwnLine": true,
-  "Integrity": "",
-  "Expand": "kv",
-  "NewLine": "\n",
-  "Indent": "\t",
-  "SymbolSep": "",
-  "RevisionHeads": [
-    {
-      "Revision": "1.1",
-      "Date": "2022.01.01.00.00.00",
-      "Author": "user",
-      "State": "Exp",
-      "Branches": [],
-      "NextRevision": "",
-      "CommitID": ""
-    }
-  ],
-  "RevisionContents": [
-    {
-      "Revision": "1.1",
-      "Log": "Initial revision\n",
-      "Text": "content\n"
-    }
-  ]
-}
-
--- expected,v --
-head	1.1;
+-- expected.json --{"Head":"1.1","Branch":"1.1.1","Description":"test features\n","Comment":"# ","Access":true,"Symbols":[],"AccessUsers":null,"Locks":[],"Strict":true,"StrictOnOwnLine":true,"Integrity":"","Expand":"kv","NewLine":"\n","RevisionHeads":[{"Revision":"1.1","Date":"2022.01.01.00.00.00","Author":"user","State":"Exp","Branches":[],"NextRevision":"","CommitID":""}],"RevisionContents":[{"Revision":"1.1","Log":"Initial revision\n","Text":"content\n"}]}
+-- expected,v --head	1.1;
 branch	1.1.1;
 access;
 symbols;
@@ -65,8 +28,7 @@ text
 @content
 @
 
--- input,v --
-head	1.1;
+-- input,v --head	1.1;
 branch	1.1.1;
 access;
 symbols;
@@ -95,13 +57,10 @@ text
 @content
 @
 
--- tests.txt --
-rcs to json
+-- tests.txt --rcs to json
 rcs to rcs
 
--- description.txt --
-Test case converted from branch_header.txtar
+-- description.txt --Test case converted from branch_header.txtar
 
--- options.conf --
-* unix line endings
+-- options.conf --* unix line endings
 * force unix line endings

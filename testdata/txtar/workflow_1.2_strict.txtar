@@ -1,56 +1,5 @@
--- expected.json --
-{
-  "Head": "1.2",
-  "Branch": "",
-  "Description": "asdkjfa\nsadfsaa\nmessage!\n",
-  "Comment": "# ",
-  "Access": true,
-  "Symbols": [],
-  "AccessUsers": null,
-  "Locks": [],
-  "Strict": true,
-  "Integrity": "",
-  "Expand": "",
-  "NewLine": "\n",
-  "Indent": " ",
-  "SymbolSep": "",
-  "ValAlignCol": 8,
-  "RevisionHeads": [
-    {
-      "Revision": "1.2",
-      "Date": "2026.02.10.10.39.46",
-      "Author": "arran",
-      "State": "Exp",
-      "Branches": [],
-      "NextRevision": "1.1",
-      "CommitID": ""
-    },
-    {
-      "Revision": "1.1",
-      "Date": "2026.02.10.10.35.45",
-      "Author": "arran",
-      "State": "Exp",
-      "Branches": [],
-      "NextRevision": "",
-      "CommitID": ""
-    }
-  ],
-  "RevisionContents": [
-    {
-      "Revision": "1.2",
-      "Log": "next commit.\n",
-      "Text": "1asdf\n2asdf\n3asdf\n"
-    },
-    {
-      "Revision": "1.1",
-      "Log": "Initial revision\n",
-      "Text": "d1 3\na3 3\nasdf\nasdf\nasdf\n"
-    }
-  ]
-}
-
--- expected,v --
-head    1.2;
+-- expected.json --{"Head":"1.2","Branch":"","Description":"asdkjfa\nsadfsaa\nmessage!\n","Comment":"# ","Access":true,"Symbols":[],"AccessUsers":null,"Locks":[],"Strict":true,"Integrity":"","Expand":"","NewLine":"\n","Indent":" ","ValAlignCol":8,"RevisionHeads":[{"Revision":"1.2","Date":"2026.02.10.10.39.46","Author":"arran","State":"Exp","Branches":[],"NextRevision":"1.1","CommitID":""},{"Revision":"1.1","Date":"2026.02.10.10.35.45","Author":"arran","State":"Exp","Branches":[],"NextRevision":"","CommitID":""}],"RevisionContents":[{"Revision":"1.2","Log":"next commit.\n","Text":"1asdf\n2asdf\n3asdf\n"},{"Revision":"1.1","Log":"Initial revision\n","Text":"d1 3\na3 3\nasdf\nasdf\nasdf\n"}]}
+-- expected,v --head    1.2;
 access  ;
 symbols ;
 locks   ; strict;
@@ -98,8 +47,7 @@ asdf
 asdf
 @
 
--- input,v --
-head    1.2;
+-- input,v --head    1.2;
 access;
 symbols;
 locks; strict;
@@ -147,13 +95,10 @@ asdf
 asdf
 @
 
--- tests.txt --
-rcs to json
+-- tests.txt --rcs to json
 rcs to rcs
 
--- description.txt --
-Test case converted from workflow_1.2_strict.txtar
+-- description.txt --Test case converted from workflow_1.2_strict.txtar
 
--- options.conf --
-* unix line endings
+-- options.conf --* unix line endings
 * force unix line endings

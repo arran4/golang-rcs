@@ -1,56 +1,5 @@
--- expected.json --
-{
-  "Head": "1.2",
-  "Branch": "",
-  "Description": "",
-  "Comment": " * ",
-  "Access": true,
-  "Symbols": [],
-  "AccessUsers": null,
-  "Locks": [],
-  "Strict": true,
-  "Integrity": "",
-  "Expand": "",
-  "NewLine": "\n",
-  "Indent": " ",
-  "SymbolSep": "",
-  "ValAlignCol": 8,
-  "RevisionHeads": [
-    {
-      "Revision": "1.2",
-      "Date": "2024.07.31.07.11.33",
-      "Author": "esr",
-      "State": "Exp",
-      "Branches": [],
-      "NextRevision": "1.1",
-      "CommitID": "10066A9E3A53CD229C8"
-    },
-    {
-      "Revision": "1.1",
-      "Date": "2024.07.31.07.11.27",
-      "Author": "esr",
-      "State": "Exp",
-      "Branches": [],
-      "NextRevision": "",
-      "CommitID": "10066A9E39F3CCDA47B"
-    }
-  ],
-  "RevisionContents": [
-    {
-      "Revision": "1.2",
-      "Log": "Third commit\n",
-      "Text": "And now for something completely different.\n"
-    },
-    {
-      "Revision": "1.1",
-      "Log": "First commit\n",
-      "Text": "d1 1\na1 1\nThe quick brown fox jumped over the lazy dog.\n"
-    }
-  ]
-}
-
--- expected,v --
-head    1.2;
+-- expected.json --{"Head":"1.2","Branch":"","Description":"","Comment":" * ","Access":true,"Symbols":[],"AccessUsers":null,"Locks":[],"Strict":true,"Integrity":"","Expand":"","NewLine":"\n","Indent":" ","ValAlignCol":8,"RevisionHeads":[{"Revision":"1.2","Date":"2024.07.31.07.11.33","Author":"esr","State":"Exp","Branches":[],"NextRevision":"1.1","CommitID":"10066A9E3A53CD229C8"},{"Revision":"1.1","Date":"2024.07.31.07.11.27","Author":"esr","State":"Exp","Branches":[],"NextRevision":"","CommitID":"10066A9E39F3CCDA47B"}],"RevisionContents":[{"Revision":"1.2","Log":"Third commit\n","Text":"And now for something completely different.\n"},{"Revision":"1.1","Log":"First commit\n","Text":"d1 1\na1 1\nThe quick brown fox jumped over the lazy dog.\n"}]}
+-- expected,v --head    1.2;
 access  ;
 symbols ;
 locks   ; strict;
@@ -93,8 +42,7 @@ a1 1
 The quick brown fox jumped over the lazy dog.
 @
 
--- input,v --
-head    1.2;
+-- input,v --head    1.2;
 access;
 symbols;
 locks; strict;
@@ -137,13 +85,10 @@ a1 1
 The quick brown fox jumped over the lazy dog.
 @
 
--- tests.txt --
-rcs to json
+-- tests.txt --rcs to json
 rcs to rcs
 
--- description.txt --
-Test case converted from commitid.txtar
+-- description.txt --Test case converted from commitid.txtar
 
--- options.conf --
-* unix line endings
+-- options.conf --* unix line endings
 * force unix line endings

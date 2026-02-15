@@ -1,5 +1,4 @@
--- input,v --
-head	1.1;
+-- input,v --head	1.1;
 symbols;
 locks; strict;
 comment	@c@;
@@ -10,29 +9,8 @@ desc
 @d@
 
 
--- expected.json --
-{
-  "Head": "1.1",
-  "Branch": "",
-  "Description": "d",
-  "Comment": "c",
-  "Access": false,
-  "Symbols": [],
-  "AccessUsers": null,
-  "Locks": [],
-  "Strict": true,
-  "Integrity": "",
-  "Expand": "",
-  "NewLine": "\n",
-  "Indent": "\t",
-  "SymbolSep": "",
-  "EndOfFileNewLineOffset": 1,
-  "RevisionHeads": null,
-  "RevisionContents": null
-}
-
--- expected,v --
-head	1.1;
+-- expected.json --{"Head":"1.1","Branch":"","Description":"d","Comment":"c","Access":false,"Symbols":[],"AccessUsers":null,"Locks":[],"Strict":true,"Integrity":"","Expand":"","NewLine":"\n","EndOfFileNewLineOffset":1,"RevisionHeads":null,"RevisionContents":null}
+-- expected,v --head	1.1;
 symbols;
 locks; strict;
 comment	@c@;
@@ -43,13 +21,10 @@ desc
 @d@
 
 
--- tests.txt --
-rcs to json
+-- tests.txt --rcs to json
 rcs to rcs
 
--- description.txt --
-Test case split from new_file_defaults.txtar
+-- description.txt --Test case split from new_file_defaults.txtar
 
--- options.conf --
-* unix line endings
+-- options.conf --* unix line endings
 * force unix line endings

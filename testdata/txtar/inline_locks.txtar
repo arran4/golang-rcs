@@ -1,5 +1,4 @@
--- input,v --
-head     1.1;
+-- input,v --head     1.1;
 locks    payne:4.4.2.1;
 comment  @# Reduced version of an old repo with an empty branch label.@;
 
@@ -14,45 +13,8 @@ desc
 @@
 
 
--- expected.json --
-{
-  "Head": "1.1",
-  "Branch": "",
-  "Description": "",
-  "Comment": "# Reduced version of an old repo with an empty branch label.",
-  "Access": false,
-  "Symbols": null,
-  "AccessUsers": null,
-  "Locks": [
-    {
-      "User": "payne",
-      "Revision": "4.4.2.1"
-    }
-  ],
-  "Strict": false,
-  "Integrity": "",
-  "Expand": "",
-  "NewLine": "\n",
-  "Indent": " ",
-  "SymbolSep": "",
-  "ValAlignCol": 9,
-  "EndOfFileNewLineOffset": 1,
-  "RevisionHeads": [
-    {
-      "Revision": "1.1",
-      "Date": "2021.01.01.00.00.00",
-      "Author": "payne",
-      "State": "Exp",
-      "Branches": [],
-      "NextRevision": "",
-      "CommitID": ""
-    }
-  ],
-  "RevisionContents": null
-}
-
--- expected,v --
-head     1.1;
+-- expected.json --{"Head":"1.1","Branch":"","Description":"","Comment":"# Reduced version of an old repo with an empty branch label.","Access":false,"Symbols":null,"AccessUsers":null,"Locks":[{"User":"payne","Revision":"4.4.2.1"}],"Strict":false,"Integrity":"","Expand":"","NewLine":"\n","Indent":" ","ValAlignCol":9,"EndOfFileNewLineOffset":1,"RevisionHeads":[{"Revision":"1.1","Date":"2021.01.01.00.00.00","Author":"payne","State":"Exp","Branches":[],"NextRevision":"","CommitID":""}],"RevisionContents":null}
+-- expected,v --head     1.1;
 locks    payne:4.4.2.1;
 comment  @# Reduced version of an old repo with an empty branch label.@;
 
@@ -67,13 +29,10 @@ desc
 @@
 
 
--- tests.txt --
-rcs to json
+-- tests.txt --rcs to json
 rcs to rcs
 
--- description.txt --
-Test parsing of inline locks field (single line).
+-- description.txt --Test parsing of inline locks field (single line).
 
--- options.conf --
-* unix line endings
+-- options.conf --* unix line endings
 * force unix line endings
