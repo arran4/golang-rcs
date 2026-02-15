@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"io/fs"
 	"strings"
 	"testing"
 
@@ -42,23 +43,28 @@ var ErrorTestProvider = map[string]func(b []byte) (error, error){
 }
 
 func TestTxtarFiles(t *testing.T) {
-	files, err := txtarTests.ReadDir("testdata/txtar")
-	if err != nil {
-		t.Fatalf("ReadDir error: %v", err)
-	}
-
-	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), ".txtar") {
-			continue
+	err := fs.WalkDir(txtarTests, "testdata/txtar", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
-		t.Run(f.Name(), func(t *testing.T) {
-			runTest(t, f.Name())
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(d.Name(), ".txtar") {
+			return nil
+		}
+		t.Run(d.Name(), func(t *testing.T) {
+			runTest(t, txtarTests, path)
 		})
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("WalkDir error: %v", err)
 	}
 }
 
-func runTest(t *testing.T, filename string) {
-	content, err := txtarTests.ReadFile("testdata/txtar/" + filename)
+func runTest(t *testing.T, fsys fs.FS, filename string) {
+	content, err := fs.ReadFile(fsys, filename)
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
