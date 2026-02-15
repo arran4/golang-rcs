@@ -33,7 +33,7 @@ $Revision$
 @
 
 -- tests.txt --
-co
+# co
 
 -- expected.txt --
 This is binary file

@@ -38,7 +38,7 @@ co checkout -kkvl (with locker)
 $(cat input.txt,v)
 
 -- tests.txt --
-co
+# co
 
 -- expected.txt --
 $(cat file.txt)

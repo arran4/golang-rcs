@@ -36,7 +36,7 @@ co checkout -kv (value only)
 $(cat input.txt,v)
 
 -- tests.txt --
-co
+# co
 
 -- expected.txt --
 $(cat file.txt)

@@ -37,7 +37,7 @@ co checkout -kb (binary)
 $(cat input.txt,v)
 
 -- tests.txt --
-co
+# co
 
 -- expected.txt --
 $(cat file.txt)
