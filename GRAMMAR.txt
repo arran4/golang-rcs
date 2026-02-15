@@ -1,3 +1,9 @@
+Legend:
+  Type := { ... }  : Sequential structure (all fields required unless marked)
+  Type := { A; B; }: Choice/Interface implementation (A or B)
+  {Type}*          : Sequence of zero or more Type
+  Type?            : Optional field
+
 DateTime := string;
 File := {
 	Head: string;

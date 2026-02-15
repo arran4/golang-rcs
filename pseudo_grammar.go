@@ -20,8 +20,6 @@ func GeneratePseudoGrammar(t reflect.Type) string {
 	rootPkgPath := t.Elem().PkgPath()
 
 	// Seed interfaces implementations
-	// This is manual because we can't find implementations dynamically easily
-	// If you add more interface implementations, please add them here.
 	interfaceImplementations := map[reflect.Type][]reflect.Type{
 		reflect.TypeOf((*PhraseValue)(nil)).Elem(): {
 			reflect.TypeOf(SimpleString("")),
@@ -80,8 +78,6 @@ func GeneratePseudoGrammar(t reflect.Type) string {
 				definitions[base.Name()] = fmt.Sprintf("%s := interface;", base.Name())
 			}
 		} else if base.Name() != "" && (base.PkgPath() == rootPkgPath) {
-			// Named basic types (e.g. ID, Num, SimpleString)
-			// Only if defined in this package
 			if base.Kind() != reflect.Struct && base.Kind() != reflect.Interface {
 				definitions[base.Name()] = fmt.Sprintf("%s := %s;", base.Name(), base.Kind().String())
 			}
@@ -95,6 +91,15 @@ func GeneratePseudoGrammar(t reflect.Type) string {
 	sort.Strings(keys)
 
 	var sb strings.Builder
+
+	// Add Legend
+	sb.WriteString("Legend:\n")
+	sb.WriteString("  Type := { ... }  : Sequential structure (all fields required unless marked)\n")
+	sb.WriteString("  Type := { A; B; }: Choice/Interface implementation (A or B)\n")
+	sb.WriteString("  {Type}*          : Sequence of zero or more Type\n")
+	sb.WriteString("  Type?            : Optional field\n")
+	sb.WriteString("\n")
+
 	for i, k := range keys {
 		sb.WriteString(definitions[k])
 		if i < len(keys)-1 {
@@ -120,7 +125,6 @@ func collectDependencies(t reflect.Type, queue *[]reflect.Type, rootPkgPath stri
 		base = base.Elem()
 	}
 
-	// Add implementation dependencies if it's an interface
 	if base.Kind() == reflect.Interface {
 		if implementations, ok := impls[base]; ok {
 			*queue = append(*queue, implementations...)

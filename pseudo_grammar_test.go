@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-//go:embed testdata/pseudo_grammar.txt
+//go:embed GRAMMAR.txt
 var expectedGrammar string
 
 func TestPseudoGrammar(t *testing.T) {
