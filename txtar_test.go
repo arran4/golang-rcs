@@ -2,7 +2,6 @@ package rcs
 
 import (
 	"bufio"
-	"bytes"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -69,7 +68,6 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
-	content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
 	archive := txtar.Parse(content)
 	parts := make(map[string]string)
 	for _, f := range archive.Files {
@@ -125,11 +123,6 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		line = strings.TrimPrefix(line, "* ")
 		line = strings.TrimPrefix(line, "- ")
 
-		if strings.HasPrefix(line, "parse error:") {
-			testParseError(t, line, parts, options)
-			continue
-		}
-
 		// Split by comma for multiple tests on one line?
 		testLine := strings.SplitN(line, ":", 2)
 		testName := testLine[0]
@@ -139,25 +132,27 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			continue
 		}
 
-		switch testName {
-		case "json to rcs":
+		switch {
+		case testName == "json to rcs":
 			testJSONToRCS(t, parts, options)
-		case "rcs to json":
+		case testName == "rcs to json":
 			testRCSToJSON(t, parts, options)
-		case "rcs to rcs":
+		case testName == "rcs to rcs":
 			testCircular(t, parts, options)
-		case "format rcs":
+		case testName == "format rcs":
 			testFormatRCS(t, parts, options)
-		case "validate rcs":
+		case testName == "validate rcs":
 			testValidateRCS(t, parts, options)
-		case "new rcs":
+		case testName == "new rcs":
 			testNewRCS(t, parts, options)
-		case "list heads":
+		case testName == "list heads":
 			testListHeads(t, parts, options)
-		case "normalize revisions":
+		case testName == "normalize revisions":
 			testNormalizeRevisions(t, parts, options)
+		case strings.HasPrefix(testName, "parse error:"):
+			testParseError(t, testName, parts, options)
 		default:
-			t.Skipf("Unknown test type: %q", testName)
+			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }

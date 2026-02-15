@@ -1,11 +1,3 @@
--- description.txt --
-Test newline offset calculation
-
--- options.conf --
-* unix line endings
-* force unix line endings
-
--- input,v --
 head     1.1;
 branch   1.1.1;
 access   ;
@@ -51,11 +43,6 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
-
--- tests.txt --
-rcs to json
-rcs to rcs
-
 -- expected.json --
 {
   "Head": "1.1",
@@ -93,7 +80,7 @@ rcs to rcs
     },
     {
       "Revision": "1.1.1.1",
-      "Date": "2004.09.07.08.24.09",
+      "Date": "2004-09-07T08:24:09Z",
       "Author": "cisers",
       "State": "Exp",
       "Branches": [],
@@ -165,3 +152,5 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
+* unix line endings
+* force unix line endings
