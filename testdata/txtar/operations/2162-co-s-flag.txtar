@@ -1,0 +1,53 @@
+-- description.txt --
+co -s flag (checkout by state)
+
+-- options.conf --
+{"args": ["-sRel", "input.txt"]}
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Prod;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Rel;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@new
+@
+text
+@New content
+@
+
+
+1.1
+log
+@initial
+@
+text
+@d1 1
+a1 1
+Initial content
+@
+
+-- tests.txt --
+# co
+
+-- expected.txt --
+Initial content

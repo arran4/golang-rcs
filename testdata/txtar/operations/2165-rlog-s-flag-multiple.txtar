@@ -1,0 +1,88 @@
+-- description.txt --
+rlog -s flag (filter by multiple states)
+
+-- options.conf --
+{"args": ["-sRel,Exp", "input.txt"]}
+
+-- input.txt,v --
+head	1.3;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.3
+date	2020.01.03.00.00.00;	author tester;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Prod;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Rel;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.3
+log
+@new2
+@
+text
+@New content 2
+@
+
+
+1.2
+log
+@new
+@
+text
+@d1 1
+a1 1
+New content
+@
+
+
+1.1
+log
+@initial
+@
+text
+@d1 1
+a1 1
+Initial content
+@
+
+-- tests.txt --
+# rlog
+
+-- expected.stdout --
+
+RCS file: input.txt,v
+Working file: input.txt
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 3;	selected revisions: 2
+description:
+----------------------------
+revision 1.3
+date: 2020/01/03 00:00:00;  author: tester;  state: Exp;  lines: +1 -1
+new2
+----------------------------
+revision 1.1
+date: 2020/01/01 00:00:00;  author: tester;  state: Rel;
+initial
+=============================================================================
