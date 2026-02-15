@@ -1,7 +1,3 @@
--- description.txt --
-Tests round trip with nil fields.
-
--- input.rcs --
 head 1.1;
 comment @c@;
 
@@ -74,9 +70,5 @@ log
 @@
 text
 @@
--- options.conf --
 * unix line endings
 * force unix line endings
-
--- tests.txt --
-rcs to rcs

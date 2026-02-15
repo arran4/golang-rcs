@@ -50,7 +50,7 @@ Initial content
 @
 
 -- tests.txt --
-rcs
+# rcs
 
 -- expected.txt,v --
 head	1.1;

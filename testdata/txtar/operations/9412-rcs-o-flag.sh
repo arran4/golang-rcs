@@ -38,7 +38,7 @@ $(cat input.txt)
 $(cat input.txt,v)
 
 -- tests.txt --
-rcs
+# rcs
 
 -- expected.txt,v --
 $(cat file.txt,v)
