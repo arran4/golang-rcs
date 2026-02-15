@@ -1,3 +1,10 @@
+-- description.txt --
+nil fields
+
+-- tests.txt --
+rcs to json
+
+-- input,v --
 head 1.1;
 comment @c@;
 
@@ -17,6 +24,7 @@ log
 @@
 text
 @@
+
 -- expected.json --
 {
   "Head": "1.1",
