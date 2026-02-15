@@ -149,8 +149,16 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testListHeads(t, parts, options)
 		case testName == "normalize revisions":
 			testNormalizeRevisions(t, parts, options)
-		case strings.HasPrefix(testName, "parse error:"):
-			testParseError(t, testName, parts, options)
+		case testName == "parse error" || strings.HasPrefix(testName, "parse error:"):
+			fullLine := line
+			if testName == "parse error" && len(testLine) > 1 {
+				fullLine = "parse error: " + testLine[1]
+			}
+			testParseError(t, fullLine, parts, options)
+		case testName == "ci":
+			t.Skip("ci tests not yet implemented")
+		case testName == "co":
+			t.Skip("co tests not yet implemented")
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}

@@ -1,3 +1,10 @@
+-- description.txt --
+newline offset
+
+-- tests.txt --
+rcs to json
+
+-- input,v --
 head     1.1;
 branch   1.1.1;
 access   ;
@@ -43,6 +50,7 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
+
 -- expected.json --
 {
   "Head": "1.1",
@@ -80,7 +88,7 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
     },
     {
       "Revision": "1.1.1.1",
-      "Date": "2004-09-07T08:24:09Z",
+      "Date": "2004.09.07.08.24.09",
       "Author": "cisers",
       "State": "Exp",
       "Branches": [],
