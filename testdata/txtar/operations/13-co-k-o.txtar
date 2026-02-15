@@ -1,0 +1,39 @@
+-- description.txt --
+co checkout -ko (old value)
+
+-- options.conf --
+{"args": ["-q", "-ko", "input.txt"] }
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author new_owner;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@This is revision 1.1
+$Author: old_author $
+@
+
+-- tests.txt --
+# co
+
+-- expected.txt --
+This is revision 1.1
+$Author: old_author $
