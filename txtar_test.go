@@ -99,7 +99,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 
 	// Fallback for migration: if tests.txt is missing, try to guess based on old logic
 	if !ok {
-		t.Skip("Missing tests.txt or tests.md")
+		t.Fatalf("Missing tests.txt or tests.md")
 		//if _, ok := parts["input,v"]; ok {
 		//	testRCSToJSON(t, parts, options)
 		//	testCircular(t, parts, options) // rcs to rcs
@@ -149,17 +149,10 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testListHeads(t, parts, options)
 		case testName == "normalize revisions":
 			testNormalizeRevisions(t, parts, options)
-		case testName == "parse error":
-			testParseError(t, line, parts, options)
 		case strings.HasPrefix(testName, "parse error:"):
-			// TODO this test case should be no more as the error details should be moved into option.s
-			fullLine := line
-			if testName == "parse error" && len(testLine) > 1 {
-				fullLine = "parse error: " + testLine[1]
-			}
-			testParseError(t, fullLine, parts, options)
+			testParseError(t, testName, parts, options)
 		default:
-			t.Skipf("Unknown test type: %q", testName)
+			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }

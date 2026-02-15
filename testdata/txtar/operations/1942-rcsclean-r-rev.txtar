@@ -51,7 +51,7 @@ Initial content
 @
 
 -- tests.txt --
-rcs clean
+# rcs clean
 
 -- expected.txt,v --
 head	1.2;

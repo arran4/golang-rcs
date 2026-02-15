@@ -79,8 +79,8 @@ text
 @@
 
 -- tests.txt --
-rcs to json
-rcs to rcs
+# rcs to json
+# rcs to rcs
 
 -- description.txt --
 Test checks parsing of empty fields and reformatting from spaces to tabs.

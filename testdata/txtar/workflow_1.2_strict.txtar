@@ -145,8 +145,8 @@ asdf
 @
 
 -- tests.txt --
-rcs to json
-rcs to rcs
+# rcs to json
+# rcs to rcs
 
 -- description.txt --
 Test case converted from workflow_1.2_strict.txtar

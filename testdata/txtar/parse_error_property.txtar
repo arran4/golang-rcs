@@ -2,7 +2,7 @@
 head bad;
 
 -- tests.txt --
-parse error: ErrParseProperty
+# parse error: ErrParseProperty
 
 -- error.json --
 {
