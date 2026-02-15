@@ -149,12 +149,30 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testListHeads(t, parts, options)
 		case testName == "normalize revisions":
 			testNormalizeRevisions(t, parts, options)
-		case strings.HasPrefix(testName, "parse error:"):
-			testParseError(t, testName, parts, options)
+		case strings.HasPrefix(line, "parse error:"):
+			testParseError(t, line, parts, options)
+		case testName == "rcs":
+			testRCS(t, parts, options)
+		case testName == "ci":
+			testCI(t, parts, options)
+		case testName == "co":
+			testCO(t, parts, options)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs test type not implemented yet")
+}
+
+func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("ci test type not implemented yet")
+}
+
+func testCO(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("co test type not implemented yet")
 }
 
 func testJSONToRCS(t *testing.T, parts map[string]string, options map[string]bool) {
