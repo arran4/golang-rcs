@@ -13,6 +13,8 @@
   "Integrity": "",
   "Expand": "kv",
   "NewLine": "\n",
+  "Indent": "\t",
+  "SymbolSep": "",
   "RevisionHeads": [
     {
       "Revision": "1.1",

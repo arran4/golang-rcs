@@ -23,6 +23,8 @@ desc
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "Indent": "\t",
+  "SymbolSep": "",
   "EndOfFileNewLineOffset": 1,
   "RevisionHeads": null,
   "RevisionContents": null

@@ -12,6 +12,9 @@
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "Indent": " ",
+  "SymbolSep": "",
+  "ValAlignCol": 8,
   "RevisionHeads": [
     {
       "Revision": "1.2",
@@ -47,24 +50,24 @@
 }
 
 -- expected,v --
-head	1.2;
-access;
-symbols;
-locks; strict;
-comment	@ * @;
+head    1.2;
+access  ;
+symbols ;
+locks   ; strict;
+comment @ * @;
 
 
 1.2
-date	2024.07.31.07.11.33;	author esr;	state Exp;
-branches;
-next	1.1;
-commitid	10066A9E3A53CD229C8;
+date    2024.07.31.07.11.33; author esr; state Exp;
+branches ;
+next    1.1;
+commitid 10066A9E3A53CD229C8;
 
 1.1
-date	2024.07.31.07.11.27;	author esr;	state Exp;
-branches;
-next	;
-commitid	10066A9E39F3CCDA47B;
+date    2024.07.31.07.11.27; author esr; state Exp;
+branches ;
+next    ;
+commitid 10066A9E39F3CCDA47B;
 
 
 desc

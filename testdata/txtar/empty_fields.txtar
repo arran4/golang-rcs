@@ -12,6 +12,9 @@
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "Indent": " ",
+  "SymbolSep": "",
+  "ValAlignCol": 5,
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -33,16 +36,16 @@
 }
 
 -- expected,v --
-head	1.1;
-symbols;
-locks;
-comment	@c@;
+head 1.1;
+symbols ;
+locks ;
+comment @c@;
 
 
 1.1
-date	2022.01.01.00.00.00;	author a;	state s;
-branches;
-next	;
+date 2022.01.01.00.00.00; author a; state s;
+branches ;
+next ;
 
 
 desc
