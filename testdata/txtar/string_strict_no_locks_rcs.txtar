@@ -1,4 +1,5 @@
--- input,v --head	1.7;
+-- input,v --
+head	1.7;
 locks; strict;
 comment	@@;
 
@@ -7,9 +8,26 @@ comment	@@;
 desc
 @@
 
+-- expected.json --
+{
+  "Head": "1.7",
+  "Branch": "",
+  "Description": "",
+  "Comment": "",
+  "Access": false,
+  "Symbols": null,
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "RevisionHeads": null,
+  "RevisionContents": null
+}
 
--- expected.json --{"Head":"1.7","Branch":"","Description":"","Comment":"","Access":false,"Symbols":null,"AccessUsers":null,"Locks":[],"Strict":true,"Integrity":"","Expand":"","NewLine":"\n","EndOfFileNewLineOffset":1,"RevisionHeads":null,"RevisionContents":null}
--- expected,v --head	1.7;
+-- expected,v --
+head	1.7;
 locks; strict;
 comment	@@;
 
@@ -18,11 +36,13 @@ comment	@@;
 desc
 @@
 
-
--- tests.txt --rcs to json
+-- tests.txt --
+rcs to json
 rcs to rcs
 
--- description.txt --Test case split from string_strict_no_locks.txtar
+-- description.txt --
+Test case split from string_strict_no_locks.txtar
 
--- options.conf --* unix line endings
+-- options.conf --
+* unix line endings
 * force unix line endings

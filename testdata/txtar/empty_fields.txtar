@@ -1,14 +1,48 @@
--- expected.json --{"Head":"1.1","Branch":"","Description":"","Comment":"c","Access":false,"Symbols":[],"AccessUsers":null,"Locks":[],"Strict":false,"Integrity":"","Expand":"","NewLine":"\n","Indent":" ","ValAlignCol":5,"RevisionHeads":[{"Revision":"1.1","Date":"2022.01.01.00.00.00","Author":"a","State":"s","Branches":[],"NextRevision":"","CommitID":""}],"RevisionContents":[{"Revision":"1.1","Log":"","Text":""}]}
--- expected,v --head 1.1;
-symbols ;
-locks ;
-comment @c@;
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "",
+  "Comment": "c",
+  "Access": false,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": false,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2022.01.01.00.00.00",
+      "Author": "a",
+      "State": "s",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "",
+      "Text": ""
+    }
+  ]
+}
+
+-- expected,v --
+head	1.1;
+symbols;
+locks;
+comment	@c@;
 
 
 1.1
-date 2022.01.01.00.00.00; author a; state s;
-branches ;
-next ;
+date	2022.01.01.00.00.00;	author a;	state s;
+branches;
+next	;
 
 
 desc
@@ -21,7 +55,8 @@ log
 text
 @@
 
--- input,v --head 1.1;
+-- input,v --
+head 1.1;
 symbols;
 locks;
 comment @c@;
@@ -43,10 +78,13 @@ log
 text
 @@
 
--- tests.txt --rcs to json
+-- tests.txt --
+rcs to json
 rcs to rcs
 
--- description.txt --Test checks parsing of empty fields and reformatting from spaces to tabs.
+-- description.txt --
+Test checks parsing of empty fields and reformatting from spaces to tabs.
 
--- options.conf --* unix line endings
+-- options.conf --
+* unix line endings
 * force unix line endings

@@ -379,7 +379,6 @@ func TestParseHeader(t *testing.T) {
 				Strict:          true,
 				StrictOnOwnLine: false,
 				NewLine:         "\n",
-				Indent:          "",
 			},
 			wantErr: false,
 		},

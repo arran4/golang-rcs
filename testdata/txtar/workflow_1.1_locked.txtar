@@ -1,15 +1,55 @@
--- expected.json --{"Head":"1.1","Branch":"","Description":"asdkjfa\nsadfsaa\nmessage!\n","Comment":"# ","Access":true,"Symbols":[],"AccessUsers":null,"Locks":[{"User":"arran","Revision":"1.1"}],"Strict":true,"Integrity":"","Expand":"","NewLine":"\n","Indent":" ","ValAlignCol":8,"RevisionHeads":[{"Revision":"1.1","Date":"2026.02.10.10.35.45","Author":"arran","State":"Exp","Branches":[],"NextRevision":"","CommitID":""}],"RevisionContents":[{"Revision":"1.1","Log":"Initial revision\n","Text":"asdf\nasdf\nasdf\n"}]}
--- expected,v --head    1.1;
-access  ;
-symbols ;
-locks   arran:1.1; strict;
-comment @# @;
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "asdkjfa\nsadfsaa\nmessage!\n",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [
+    {
+      "User": "arran",
+      "Revision": "1.1"
+    }
+  ],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2026.02.10.10.35.45",
+      "Author": "arran",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "asdf\nasdf\nasdf\n"
+    }
+  ]
+}
+
+-- expected,v --
+head	1.1;
+access;
+symbols;
+locks
+	arran:1.1; strict;
+comment	@# @;
 
 
 1.1
-date    2026.02.10.10.35.45; author arran; state Exp;
-branches ;
-next    ;
+date	2026.02.10.10.35.45;	author arran;	state Exp;
+branches;
+next	;
 
 
 desc
@@ -29,7 +69,8 @@ asdf
 asdf
 @
 
--- input,v --head    1.1;
+-- input,v --
+head    1.1;
 access;
 symbols;
 locks
@@ -60,10 +101,13 @@ asdf
 asdf
 @
 
--- tests.txt --rcs to json
+-- tests.txt --
+rcs to json
 rcs to rcs
 
--- description.txt --Test case converted from workflow_1.1_locked.txtar
+-- description.txt --
+Test case converted from workflow_1.1_locked.txtar
 
--- options.conf --* unix line endings
+-- options.conf --
+* unix line endings
 * force unix line endings

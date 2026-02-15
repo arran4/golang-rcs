@@ -54,105 +54,45 @@ type RevisionHead struct {
 }
 
 func (h *RevisionHead) String() string {
-	return h.StringWithConfig("\n", "\t", 0)
+	return h.StringWithNewLine("\n")
 }
 
 func (h *RevisionHead) StringWithNewLine(nl string) string {
-	return h.StringWithConfig(nl, "\t", 0)
-}
-
-func (h *RevisionHead) StringWithConfig(nl string, indent string, valAlignCol int) string {
 	sb := strings.Builder{}
 	sb.WriteString(h.Revision.String())
 	sb.WriteString(nl)
-
-	fmtField := func(key string, val string) string {
-		if valAlignCol > 0 {
-			padding := valAlignCol - len(key)
-			if padding > 0 {
-				return fmt.Sprintf("%s%s%s", key, strings.Repeat(" ", padding), val)
-			}
-			return fmt.Sprintf("%s %s", key, val)
-		}
-		return fmt.Sprintf("%s%s%s", key, indent, val)
-	}
-
-	// date line
-	sb.WriteString(fmtField("date", h.Date.String()))
-	sb.WriteString(";")
-	sb.WriteString(indent)
-	sb.WriteString("author ")
-	sb.WriteString(h.Author.String())
-	sb.WriteString(";")
-	sb.WriteString(indent)
-	sb.WriteString("state ")
-	sb.WriteString(h.State.String())
-	sb.WriteString(";")
-	sb.WriteString(nl)
-
+	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date, h.Author, h.State, nl)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
-		if valAlignCol > 0 {
-			padding := valAlignCol - len("branches")
-			if padding > 0 {
-				sb.WriteString(strings.Repeat(" ", padding))
-			} else {
-				sb.WriteString(" ")
+		sb.WriteString(nl + "\t")
+		for i, b := range h.Branches {
+			if i > 0 {
+				sb.WriteString(nl + "\t")
 			}
-			for i, b := range h.Branches {
-				if i > 0 {
-					sb.WriteString(" ")
-				}
-				sb.WriteString(b.String())
-			}
-			sb.WriteString(";")
-		} else {
-			sb.WriteString(nl + indent)
-			for i, b := range h.Branches {
-				if i > 0 {
-					sb.WriteString(nl + indent)
-				}
-				sb.WriteString(b.String())
-			}
-			sb.WriteString(";")
+			sb.WriteString(b.String())
 		}
+		sb.WriteString(";")
 	} else {
-		if valAlignCol > 0 {
-			padding := valAlignCol - len("branches")
-			if padding > 0 {
-				sb.WriteString(strings.Repeat(" ", padding))
-			} else {
-				sb.WriteString(" ")
-			}
-			sb.WriteString(";")
-		} else {
-			sb.WriteString(";")
-		}
+		sb.WriteString(";")
 	}
 	sb.WriteString(nl)
-
-	sb.WriteString(fmtField("next", h.NextRevision.String()))
-	sb.WriteString(";")
-	sb.WriteString(nl)
-
+	fmt.Fprintf(&sb, "next\t%s;%s", h.NextRevision, nl)
 	if h.CommitID != "" {
-		sb.WriteString(fmtField("commitid", h.CommitID.String()))
-		sb.WriteString(";")
-		sb.WriteString(nl)
+		fmt.Fprintf(&sb, "commitid\t%s;%s", h.CommitID, nl)
 	}
 
 	writePhrase := func(key string, values PhraseValues) {
 		if len(values) == 0 {
 			return
 		}
-		valSb := strings.Builder{}
+		sb.WriteString(key)
+		sb.WriteString("\t")
 		for i, v := range values {
 			if i > 0 {
-				valSb.WriteString(" ")
+				sb.WriteString(" ")
 			}
-			valSb.WriteString(v.String())
+			sb.WriteString(v.String())
 		}
-		sb.WriteString(fmtField(key, valSb.String()))
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
@@ -215,10 +155,7 @@ type File struct {
 	Integrity               string
 	Expand                  string
 	NewLine                 string
-	Indent                  string `json:",omitempty"`
-	SymbolSep               string `json:",omitempty"`
-	ValAlignCol             int    `json:",omitempty"`
-	EndOfFileNewLineOffset  int    `json:",omitempty"`
+	EndOfFileNewLineOffset  int `json:",omitempty"`
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
 }
@@ -326,73 +263,26 @@ func (f *File) String() string {
 	if nl == "" {
 		nl = "\n"
 	}
-	indent := f.Indent
-	if indent == "" {
-		indent = "\t"
-	}
 	sb := strings.Builder{}
-
-	fmtField := func(key string, val string) string {
-		if f.ValAlignCol > 0 {
-			padding := f.ValAlignCol - len(key)
-			if padding > 0 {
-				return fmt.Sprintf("%s%s%s;%s", key, strings.Repeat(" ", padding), val, nl)
-			}
-			return fmt.Sprintf("%s %s;%s", key, val, nl)
-		}
-		return fmt.Sprintf("%s%s%s;%s", key, indent, val, nl)
-	}
-
-	sb.WriteString(fmtField("head", f.Head))
+	sb.WriteString(fmt.Sprintf("head\t%s;%s", f.Head, nl))
 	if f.Branch != "" {
-		sb.WriteString(fmtField("branch", f.Branch))
+		sb.WriteString(fmt.Sprintf("branch\t%s;%s", f.Branch, nl))
 	}
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
-			if f.ValAlignCol > 0 {
-				list := strings.Join(f.AccessUsers, " ")
-				sb.WriteString(fmt.Sprintf("access%s%s;", strings.Repeat(" ", f.ValAlignCol-len("access")), list))
-				sb.WriteString(nl)
-			} else {
-				sb.WriteString("access ")
-				sb.WriteString(strings.Join(f.AccessUsers, " "))
-				sb.WriteString(";")
-				sb.WriteString(nl)
-			}
+			sb.WriteString("access ")
+			sb.WriteString(strings.Join(f.AccessUsers, " "))
+			sb.WriteString(";")
+			sb.WriteString(nl)
 		} else {
-			if f.ValAlignCol > 0 {
-				sb.WriteString(fmt.Sprintf("access%s;", strings.Repeat(" ", f.ValAlignCol-len("access"))))
-				sb.WriteString(nl)
-			} else {
-				sb.WriteString("access;")
-				sb.WriteString(nl)
-			}
+			sb.WriteString("access;")
+			sb.WriteString(nl)
 		}
 	}
 	if f.Symbols != nil {
 		sb.WriteString("symbols")
-		if f.ValAlignCol > 0 {
-			padding := f.ValAlignCol - len("symbols")
-			if padding > 0 {
-				sb.WriteString(strings.Repeat(" ", padding))
-			} else {
-				sb.WriteString(" ")
-			}
-		}
-
-		sep := f.SymbolSep
-		if sep == "" {
-			sep = nl + indent
-		}
-
-		for i, sym := range f.Symbols {
-			if i > 0 {
-				sb.WriteString(sep)
-			} else {
-				if f.ValAlignCol == 0 {
-					sb.WriteString(sep)
-				}
-			}
+		for _, sym := range f.Symbols {
+			sb.WriteString(nl + "\t")
 			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
 		}
 		sb.WriteString(";")
@@ -401,28 +291,8 @@ func (f *File) String() string {
 
 	if f.Locks != nil {
 		sb.WriteString("locks")
-		if f.ValAlignCol > 0 {
-			padding := f.ValAlignCol - len("locks")
-			if padding > 0 {
-				sb.WriteString(strings.Repeat(" ", padding))
-			} else {
-				sb.WriteString(" ")
-			}
-		}
-
-		sep := f.SymbolSep
-		if sep == "" {
-			sep = nl + indent
-		}
-
-		for i, lock := range f.Locks {
-			if i > 0 {
-				sb.WriteString(sep)
-			} else {
-				if f.ValAlignCol == 0 {
-					sb.WriteString(sep)
-				}
-			}
+		for _, lock := range f.Locks {
+			sb.WriteString(nl + "\t")
 			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
 		}
 		sb.WriteString(";")
@@ -437,47 +307,17 @@ func (f *File) String() string {
 		sb.WriteString(nl)
 	}
 	if f.Integrity != "" {
-		sb.WriteString("integrity")
-		if f.ValAlignCol > 0 {
-			padding := f.ValAlignCol - len("integrity")
-			if padding > 0 {
-				sb.WriteString(strings.Repeat(" ", padding))
-			} else {
-				sb.WriteString(" ")
-			}
-		} else {
-			sb.WriteString(indent)
-		}
+		sb.WriteString("integrity\t")
 		_, _ = WriteAtQuote(&sb, f.Integrity)
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
-	sb.WriteString("comment")
-	if f.ValAlignCol > 0 {
-		padding := f.ValAlignCol - len("comment")
-		if padding > 0 {
-			sb.WriteString(strings.Repeat(" ", padding))
-		} else {
-			sb.WriteString(" ")
-		}
-	} else {
-		sb.WriteString(indent)
-	}
+	sb.WriteString("comment\t")
 	_, _ = WriteAtQuote(&sb, f.Comment)
 	sb.WriteString(";")
 	sb.WriteString(nl)
 	if f.Expand != "" {
-		sb.WriteString("expand")
-		if f.ValAlignCol > 0 {
-			padding := f.ValAlignCol - len("expand")
-			if padding > 0 {
-				sb.WriteString(strings.Repeat(" ", padding))
-			} else {
-				sb.WriteString(" ")
-			}
-		} else {
-			sb.WriteString(indent)
-		}
+		sb.WriteString("expand\t")
 		_, _ = WriteAtQuote(&sb, f.Expand)
 		sb.WriteString(";")
 		sb.WriteString(nl)
@@ -485,7 +325,7 @@ func (f *File) String() string {
 	sb.WriteString(nl)
 	sb.WriteString(nl)
 	for _, head := range f.RevisionHeads {
-		sb.WriteString(head.StringWithConfig(nl, indent, f.ValAlignCol))
+		sb.WriteString(head.StringWithNewLine(nl))
 		sb.WriteString(nl)
 	}
 	sb.WriteString(nl)
@@ -631,31 +471,11 @@ func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, 
 }
 
 func ParseHeader(s *Scanner, f *File) error {
-	if err := ScanStrings(s, "head"); err != nil {
+	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine(true)); err != nil {
 		return err
-	}
-	if err := ScanWhiteSpace(s, 1); err != nil {
-		return err
-	}
-	sep := s.Text()
-	if strings.IndexByte(sep, '\t') == -1 {
-		f.Indent = " "
-		f.ValAlignCol = 4 + len(sep)
-	}
-
-	if err := ScanStrings(s, ";"); err == nil {
-		f.Head = ""
 	} else {
-		val, err := ScanTokenNum(s)
-		if err != nil {
-			return ErrParseProperty{Property: "head", Err: err}
-		}
-		f.Head = val
-		if err := ParseTerminatorFieldLine(s); err != nil {
-			return err
-		}
+		f.Head = head
 	}
-
 	var nextToken string
 	for {
 		var nt string
@@ -691,21 +511,10 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.AccessUsers = users
 			}
 		case "symbols":
-			if sym, sep, err := ParseHeaderSymbols(s, true); err != nil {
+			if sym, err := ParseHeaderSymbols(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Symbols = sym
-				indent := f.Indent
-				if indent == "" {
-					indent = "\t"
-				}
-				nl := f.NewLine
-				if nl == "" {
-					nl = "\n"
-				}
-				if sep != nl+indent {
-					f.SymbolSep = sep
-				}
 			}
 		case "locks":
 			var err error
@@ -1089,40 +898,37 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	return ids, nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, string, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "symbols"); err != nil {
-			return nil, "", err
+			return nil, err
 		}
 	}
 	m := make([]*Symbol, 0)
-	sep := ""
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
-			return nil, "", err
+			return nil, err
 		}
-		ws := s.Text()
 		if err := ScanStrings(s, ";"); err == nil {
 			break
 		}
-		sep = ws
 
 		sym, err := ScanTokenSym(s)
 		if err != nil {
-			return nil, "", fmt.Errorf("expected sym in symbols: %w", err)
+			return nil, fmt.Errorf("expected sym in symbols: %w", err)
 		}
 
 		if err := ScanStrings(s, ":"); err != nil {
-			return nil, "", fmt.Errorf("expected : after sym %q: %w", sym, err)
+			return nil, fmt.Errorf("expected : after sym %q: %w", sym, err)
 		}
 
 		num, err := ScanTokenNum(s)
 		if err != nil {
-			return nil, "", fmt.Errorf("expected num for sym %q: %w", sym, err)
+			return nil, fmt.Errorf("expected num for sym %q: %w", sym, err)
 		}
 		m = append(m, &Symbol{Name: sym, Revision: num})
 	}
-	return m, sep, nil
+	return m, nil
 }
 
 func ParseAtQuotedString(s *Scanner) (string, error) {
