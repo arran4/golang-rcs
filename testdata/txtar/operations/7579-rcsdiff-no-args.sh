@@ -33,7 +33,7 @@ rcsdiff no args (compare working file with head)
 $(cat file.txt)
 
 -- tests.txt --
-rcsdiff
+rcs diff
 
 -- input.txt,v --
 $(cat file.txt,v)

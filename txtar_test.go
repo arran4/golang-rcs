@@ -165,6 +165,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCS(t, parts, options)
 		case testName == "rcs merge":
 			testRCSMerge(t, parts, options)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
 		case testName == "ci":
 			testCI(t, parts, options)
 		case testName == "co":
@@ -199,10 +201,6 @@ func testCO(t *testing.T, parts map[string]string, options map[string]bool) {
 
 func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("rcsdiff test type not implemented yet")
-}
-
-func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool) {
-	t.Skip("rcs merge test type not implemented yet")
 }
 
 func testJSONToRCS(t *testing.T, parts map[string]string, options map[string]bool) {

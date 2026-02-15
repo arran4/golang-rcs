@@ -33,7 +33,7 @@ rcsdiff -rREV1 -rREV2 (compare two revisions)
 $(cat file.txt)
 
 -- tests.txt --
-rcsdiff
+rcs diff
 
 -- input.txt,v --
 $(cat file.txt,v)
