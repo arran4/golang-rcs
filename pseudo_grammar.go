@@ -49,8 +49,15 @@ type Grammerer interface {
 
 func (f *File) PseudoGrammar() string {
 	g := NewGrammarGenerator()
+	addLexerDefinitions(g)
 	f.Grammar(g)
 	return g.String()
+}
+
+func addLexerDefinitions(g *GrammarGenerator) {
+	g.AddDefinition("digit", "\"0\"..\"9\"")
+	g.AddDefinition("idchar", "any visible graphic character except special")
+	g.AddDefinition("special", "\"$\" | \",\" | \".\" | \":\" | \";\" | \"@\"")
 }
 
 func (g *GrammarGenerator) AddDefinition(name string, body string) {
@@ -65,18 +72,18 @@ func (f *File) Grammar(g *GrammarGenerator) string {
 	g.visited[name] = true
 
 	var unorderedFields []string
-	unorderedFields = append(unorderedFields, "Head: Num?") // Head is optional token Num
+	unorderedFields = append(unorderedFields, "Head: Num?")
 	unorderedFields = append(unorderedFields, "Branch: Num?")
-	unorderedFields = append(unorderedFields, "Access: bool?") // keyword
+	unorderedFields = append(unorderedFields, "Access: bool?")
 	unorderedFields = append(unorderedFields, "AccessUsers: {ID}*")
 
 	unorderedFields = append(unorderedFields, fmt.Sprintf("Symbols: {%s}*", (&Symbol{}).Grammar(g)))
 	unorderedFields = append(unorderedFields, fmt.Sprintf("Locks: {%s}*", (&Lock{}).Grammar(g)))
 
 	unorderedFields = append(unorderedFields, "Strict: bool?")
-	unorderedFields = append(unorderedFields, "Integrity: @String@?") // Integrity string
+	unorderedFields = append(unorderedFields, "Integrity: @String@?")
 	unorderedFields = append(unorderedFields, "Comment: @String@?")
-	unorderedFields = append(unorderedFields, "Expand: @String@?") // Expand word/string
+	unorderedFields = append(unorderedFields, "Expand: @String@?")
 
 	var fields []string
 	fields = append(fields, "Admin: Unordered {\n\t\t"+strings.Join(unorderedFields, ";\n\t\t")+";\n\t}")
@@ -126,10 +133,6 @@ func (r *RevisionHead) Grammar(g *GrammarGenerator) string {
 	}
 	g.visited[name] = true
 
-	// RevisionHead fields are mostly sequential/specific order in grammar?
-	// ParseRevisionHeader scans Strings "branches", "date", etc. in loop. So Unordered.
-	// But Revision number is first.
-
 	var parts []string
 	parts = append(parts, fmt.Sprintf("Revision: %s", Num("").Grammar(g)))
 
@@ -142,7 +145,6 @@ func (r *RevisionHead) Grammar(g *GrammarGenerator) string {
 	unordered = append(unordered, fmt.Sprintf("CommitID: %s", Sym("").Grammar(g)))
 
 	pvName := definePhraseValue(g)
-	// CVS fields
 	unordered = append(unordered, fmt.Sprintf("Owner: {%s}*?", pvName))
 	unordered = append(unordered, fmt.Sprintf("Group: {%s}*?", pvName))
 	unordered = append(unordered, fmt.Sprintf("Permissions: {%s}*?", pvName))
@@ -167,9 +169,6 @@ func (r *RevisionContent) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-
-	// RevisionContent: Revision (Num) then Unordered { Log, Text }
-	// ParseRevisionContent scans "log", "text".
 
 	var parts []string
 	parts = append(parts, fmt.Sprintf("Revision: %s", Num("").Grammar(g)))
@@ -219,7 +218,7 @@ func (n Num) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "{digit|.} +")
+	g.AddDefinition(name, "{digit | .}+")
 	return name
 }
 
@@ -229,7 +228,7 @@ func (id ID) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "idchar+")
+	g.AddDefinition(name, "{idchar | .}+")
 	return name
 }
 
@@ -239,7 +238,7 @@ func (s Sym) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "idchar+ (no dots)")
+	g.AddDefinition(name, "{idchar}+")
 	return name
 }
 
@@ -249,7 +248,7 @@ func (d DateTime) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "num")
+	g.AddDefinition(name, "{digit | .}+")
 	return name
 }
 
@@ -259,7 +258,7 @@ func (s SimpleString) Grammar(g *GrammarGenerator) string {
 		return name
 	}
 	g.visited[name] = true
-	g.AddDefinition(name, "idchar+")
+	g.AddDefinition(name, "{idchar | .}+")
 	return name
 }
 

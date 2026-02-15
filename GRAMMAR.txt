@@ -5,7 +5,7 @@ Legend:
   {Type}*          : Sequence of zero or more Type
   Type?            : Optional field
 
-DateTime := num;
+DateTime := {digit | .}+;
 File := {
 	Admin: Unordered {
 		Head: Num?;
@@ -23,7 +23,7 @@ File := {
 	Description: @String@;
 	RevisionContents: {RevisionContent}*;
 };
-ID := idchar+;
+ID := {idchar | .}+;
 Lock := {
 	User: ID;
 	Revision: Num;
@@ -32,7 +32,7 @@ NewPhrase := {
 	Key: ID;
 	Value: {PhraseValue}*;
 };
-Num := {digit|.} +;
+Num := {digit | .}+;
 PhraseValue := {
 	SimpleString;
 	QuotedString;
@@ -66,9 +66,12 @@ RevisionHead := {
 		NewPhrases: {NewPhrase}*?;
 	};
 };
-SimpleString := idchar+;
-Sym := idchar+ (no dots);
+SimpleString := {idchar | .}+;
+Sym := {idchar}+;
 Symbol := {
 	Name: Sym;
 	Revision: Num;
 };
+digit := "0".."9";
+idchar := any visible graphic character except special;
+special := "$" | "," | "." | ":" | ";" | "@";
