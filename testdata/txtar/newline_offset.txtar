@@ -1,11 +1,15 @@
 -- description.txt --
-newline offset test
+Test newline offset handling.
 
 -- options.conf --
 * unix line endings
 * force unix line endings
 
--- input.rcs --
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input,v --
 head     1.1;
 branch   1.1.1;
 access   ;
@@ -161,7 +165,3 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
-
--- tests.txt --
-rcs to json
-rcs to rcs

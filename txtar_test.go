@@ -69,6 +69,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
+	// Normalize CRLF to LF for txtar parsing
 	content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
 	archive := txtar.Parse(content)
 	parts := make(map[string]string)
@@ -151,8 +152,15 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testListHeads(t, parts, options)
 		case testName == "normalize revisions":
 			testNormalizeRevisions(t, parts, options)
-		case strings.HasPrefix(line, "parse error:"):
+		case testName == "parse error":
 			testParseError(t, line, parts, options)
+		case strings.HasPrefix(testName, "parse error:"):
+      // TODO this test case should be no more as the error details should be moved into option.s
+			fullLine := line
+			if testName == "parse error" && len(testLine) > 1 {
+				fullLine = "parse error: " + testLine[1]
+			}
+			testParseError(t, fullLine, parts, options)
 		case testName == "rcs":
 			testRCS(t, parts, options)
 		case testName == "ci":

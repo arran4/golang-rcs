@@ -1,0 +1,82 @@
+-- description.txt --
+ci checkin revision 1.5
+
+-- options.conf --
+{"args": ["-q", "-r1.5", "-mjump to 1.5", "-wtester", "-d2020-01-02 00:00:00Z", "input.txt"]}
+
+-- input.txt --
+Modified content
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks
+	tester:1.1; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.1
+log
+@initial
+@
+text
+@Initial content
+@
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.5;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.5
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.5
+log
+@jump to 1.5
+@
+text
+@Modified content
+@
+
+
+1.1
+log
+@initial
+@
+text
+@d1 1
+a1 1
+Initial content
+@
