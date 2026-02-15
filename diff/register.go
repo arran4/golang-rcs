@@ -9,7 +9,7 @@ import (
 type DiffAlgorithm func(from []string, to []string) (rcs.EdDiff, error)
 
 var (
-	registry = make(map[string]DiffAlgorithm)
+	registry    = make(map[string]DiffAlgorithm)
 	defaultAlgo string
 )
 

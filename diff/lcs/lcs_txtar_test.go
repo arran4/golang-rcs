@@ -24,9 +24,10 @@ func TestLCSWithTxtar(t *testing.T) {
 
 			var input1, input2 []string
 			for _, f := range a.Files {
-				if f.Name == "input1.txt" {
+				switch f.Name {
+				case "input1.txt":
 					input1 = splitLines(string(f.Data))
-				} else if f.Name == "input2.txt" {
+				case "input2.txt":
 					input2 = splitLines(string(f.Data))
 				}
 			}

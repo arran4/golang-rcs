@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/arran4/golang-rcs"
-	rcstesting "github.com/arran4/golang-rcs/internal/testing"
 	_ "github.com/arran4/golang-rcs/diff/lcs"
+	rcstesting "github.com/arran4/golang-rcs/internal/testing"
 )
 
 func TestGenerateEdDiffFromLines(t *testing.T) {
