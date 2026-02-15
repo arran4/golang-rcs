@@ -1,0 +1,14 @@
+.PP
+The full documentation for \*r is maintained as a Texinfo manual.
+If the
+.BR info (1)
+and \*r programs are properly installed at your site, the command
+.IP
+.B info rcs
+.PP
+should give you access to the complete manual.
+Additionally, the \*r homepage:
+.IP
+.B http://www.gnu.org/software/rcs/
+.PP
+has news and links to the latest release, development site, etc.

@@ -1,0 +1,45 @@
+.SH ENVIRONMENT
+.TP
+.B \s-1RCSINIT\s0
+Options prepended to the argument list, separated by spaces.
+A backslash escapes spaces within an option.
+The
+.B \s-1RCSINIT\s0
+options are prepended to the argument lists of most \*r commands.
+Useful
+.B \s-1RCSINIT\s0
+options include
+.BR \-q ,
+.BR \-V ,
+.BR \-x ,
+and
+.BR \-z .
+.TP
+.B \s-1RCS_MEM_LIMIT\s0
+Normally, for speed, commands either memory map or copy into memory
+the \*o if its size is less than the
+.IR memory-limit ,
+currently defaulting to ``unlimited''.
+Otherwise (or if the initially-tried speedy ways fail),
+the commands fall back to using
+standard i/o routines.
+You can adjust the memory limit by setting
+.B \s-1RCS_MEM_LIMIT\s0
+to a numeric value
+.IR lim
+(measured in kilobytes).
+An empty value is silently ignored.
+As a side effect, specifying
+.B \s-1RCS_MEM_LIMIT\s0
+inhibits fall-back to slower routines.
+.TP
+.B \s-1TMPDIR\s0
+Name of the temporary directory.
+If not set, the environment variables
+.B \s-1TMP\s0
+and
+.B \s-1TEMP\s0
+are inspected instead and the first value found is taken;
+if none of them are set,
+a host-dependent default is used, typically
+.BR /tmp .

@@ -1,0 +1,136 @@
+.ds Rv 5.10.0
+.ds Dt 2020-10-20
+.ds i \&\s-1ISO\s0
+.ds r \&\s-1RCS\s0
+.ds u \&\s-1UTC\s0
+.ds o \*r file
+.TH RCSFREEZE 1 "\*(Dt" "GNU RCS \*(Rv"
+.SH NAME
+rcsfreeze \- freeze a configuration of sources checked in under RCS
+.SH SYNOPSIS
+.B rcsfreeze
+.RI [ "name" ]
+.SH DESCRIPTION
+.B rcsfreeze
+assigns a symbolic revision
+number to a set of \*os that form a valid configuration.
+.PP
+The idea is to run
+.B rcsfreeze
+each time a new version is checked
+in.  A unique symbolic name (\c
+.BI C_ number,
+where
+.I number
+is increased each time
+.B rcsfreeze
+is run) is then assigned to the most
+recent revision of each \*o of the main trunk.
+.PP
+An optional
+.I name
+argument to
+.B rcsfreeze
+gives a symbolic name to the configuration.
+The unique identifier is still generated
+and is listed in the log file but it will not appear as
+part of the symbolic revision name in the actual \*os.
+.PP
+A log message is requested from the user for future reference.
+.PP
+The shell script works only on all \*os at one time.
+All changed files must be checked in already.
+Run
+.IR rcsclean (1)
+first and see whether any sources remain in the current directory.
+.SH FILES
+.TP
+.B RCS/.rcsfreeze.ver
+version number
+.TP
+.B RCS/.rcsfreeze.log
+log messages, most recent first
+.SH ENVIRONMENT
+.TP
+.B \s-1RCSINIT\s0
+Options prepended to the argument list, separated by spaces.
+A backslash escapes spaces within an option.
+The
+.B \s-1RCSINIT\s0
+options are prepended to the argument lists of most \*r commands.
+Useful
+.B \s-1RCSINIT\s0
+options include
+.BR \-q ,
+.BR \-V ,
+.BR \-x ,
+and
+.BR \-z .
+.TP
+.B \s-1RCS_MEM_LIMIT\s0
+Normally, for speed, commands either memory map or copy into memory
+the \*o if its size is less than the
+.IR memory-limit ,
+currently defaulting to ``unlimited''.
+Otherwise (or if the initially-tried speedy ways fail),
+the commands fall back to using
+standard i/o routines.
+You can adjust the memory limit by setting
+.B \s-1RCS_MEM_LIMIT\s0
+to a numeric value
+.IR lim
+(measured in kilobytes).
+An empty value is silently ignored.
+As a side effect, specifying
+.B \s-1RCS_MEM_LIMIT\s0
+inhibits fall-back to slower routines.
+.TP
+.B \s-1TMPDIR\s0
+Name of the temporary directory.
+If not set, the environment variables
+.B \s-1TMP\s0
+and
+.B \s-1TEMP\s0
+are inspected instead and the first value found is taken;
+if none of them are set,
+a host-dependent default is used, typically
+.BR /tmp .
+.SH AUTHOR
+Stephan v. Bechtolsheim
+.SH "SEE ALSO"
+.BR co (1),
+.BR rcs (1),
+.BR rcsclean (1),
+.BR rlog (1).
+.PP
+Walter F. Tichy,
+\*r\*-A System for Version Control,
+.I "Software\*-Practice & Experience"
+.BR 15 ,
+7 (July 1985), 637-654.
+.PP
+The full documentation for \*r is maintained as a Texinfo manual.
+If the
+.BR info (1)
+and \*r programs are properly installed at your site, the command
+.IP
+.B info rcs
+.PP
+should give you access to the complete manual.
+Additionally, the \*r homepage:
+.IP
+.B http://www.gnu.org/software/rcs/
+.PP
+has news and links to the latest release, development site, etc.
+.SH BUGS
+.B rcsfreeze
+does not check whether any sources are checked out and modified.
+.PP
+Although both working and \*r file names are accepted,
+they are not paired as usual with RCS commands.
+.PP
+Error checking is rudimentary.
+.PP
+.B rcsfreeze
+is just an optional example shell script, and should not be taken too seriously.
+See \s-1CVS\s0 for a more complete solution.

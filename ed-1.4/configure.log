@@ -1,0 +1,19 @@
+
+creating config.status
+creating Makefile
+VPATH = .
+prefix = /home/jules/ed_install
+exec_prefix = $(prefix)
+bindir = $(exec_prefix)/bin
+datadir = $(prefix)/share
+infodir = $(datadir)/info
+mandir = $(datadir)/man
+sysconfdir = $(prefix)/etc
+program_prefix =
+CC = gcc
+CXX = g++
+CPPFLAGS =
+CFLAGS = -Wall -W -O2
+CXXFLAGS = -Wall -W -O2
+LDFLAGS =
+OK. Now you can run make.

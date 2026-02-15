@@ -1,0 +1,42 @@
+gcc  -Wall -W -O2 -c -o buffer.o buffer.c
+gcc  -Wall -W -O2 -c -o carg_parser.o carg_parser.c
+gcc  -Wall -W -O2 -c -o global.o global.c
+gcc  -Wall -W -O2 -c -o io.o io.c
+io.c: In function ‘get_tty_line’:
+io.c:147:9: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  147 |         if( i ) buf[i] = 0; if( lenp ) *lenp = i;
+      |         ^~
+io.c:147:29: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  147 |         if( i ) buf[i] = 0; if( lenp ) *lenp = i;
+      |                             ^~
+gcc  -Wall -W -O2 -DPROGVERSION=\"1.4\" -c -o main.o main.c
+gcc  -Wall -W -O2 -c -o main_loop.o main_loop.c
+main_loop.c: In function ‘exec_command’:
+main_loop.c:594:15: warning: this ‘while’ clause does not guard... [-Wmisleading-indentation]
+  594 |     case '#': while( *ibufp++ != '\n' ) ;
+      |               ^~~~~
+main_loop.c:595:15: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘while’
+  595 |               break;
+      |               ^~~~~
+main_loop.c:585:15: warning: ignoring return value of ‘system’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  585 |               system( shcmd + 1 );
+      |               ^~~~~~~~~~~~~~~~~~~
+gcc  -Wall -W -O2 -c -o regex.o regex.c
+regex.c: In function ‘build_active_list’:
+regex.c:170:37: warning: logical not is only applied to the left hand side of comparison [-Wlogical-not-parentheses]
+  170 |     if( !regexec( pat, s, 0, 0, 0 ) == match && !set_active_node( lp ) )
+      |                                     ^~
+regex.c:170:9: note: add parentheses around left hand side expression to silence this warning
+  170 |     if( !regexec( pat, s, 0, 0, 0 ) == match && !set_active_node( lp ) )
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |         (                          )
+gcc  -Wall -W -O2 -c -o signal.o signal.c
+signal.c: In function ‘sighup_handler’:
+signal.c:40:33: warning: parameter ‘signum’ set but not used [-Wunused-but-set-parameter]
+   40 | static void sighup_handler( int signum )
+      |                             ~~~~^~~~~~
+signal.c: In function ‘sigwinch_handler’:
+signal.c:85:35: warning: parameter ‘signum’ set but not used [-Wunused-but-set-parameter]
+   85 | static void sigwinch_handler( int signum )
+      |                               ~~~~^~~~~~
+gcc  -o ed buffer.o carg_parser.o global.o io.o main.o main_loop.o regex.o signal.o

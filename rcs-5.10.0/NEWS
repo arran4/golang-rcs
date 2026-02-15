@@ -1,0 +1,1197 @@
+NEWS for GNU RCS (Revision Control System)
+See the end for copying conditions.
+
+
+- 5.10.0 | 2020-10-20
+
+  - bug fixes
+
+    - RCS file search skipped RCS/FILENAME by default
+
+      The default set of candidate filenames for the RCS file is:
+
+       RCS/FILENAME,v
+       RCS/FILENAME
+       FILENAME,v
+
+      RCS 5.8 (released 2011-08-30) introduced a bug which caused the
+      default RCS file search to skip RCS/FILENAME.  Regression fixed.
+
+    - ‘rlog -w’ behaved like ‘rlog’ (sans ‘-w’)
+
+      RCS 5.8 (released 2011-08-30) introduced a bug which caused
+      ‘rlog -w’ (without any logins specified) to fail to default to
+      the user login.  Instead it behaved as if option ‘-w’ were
+      omitted entirely.
+
+      The cases where logins are specified (e.g., ‘rlog -wjrhacker’)
+      were not affected.
+
+    - missing string in comma-v detected, diagnosed
+
+      Previously, if foo,v contained fragment:
+
+       1.1
+       log
+       text
+       @@
+
+      i.e., there was no string value following the ‘log’ keyword,
+      then rlog (et al) would interpret that as an "empty log message"
+      instead of as a violation of the RCS file format grammar, which
+      stipulates that a string value must follow the keywords ‘desc’,
+      ‘log’ and ‘text’ -- (info "(rcs) comma-v grammar").
+
+      Now, such a situation causes rlog (et al) to abort w/ message
+      "missing string after KEYWORD" (KEYWORD ∈ {desc, log, text}).
+
+    - subsecond resolution maintained for ‘-d’, ‘-T’
+
+      An RCS ‘delta’ includes a ‘date’ component w/ second (whole
+      number) resolution.  Previously, on filesystems that support
+      subsecond (fractional) resolution for the file modification time
+      (aka "mtime"), RCS commands given the ‘-d’ and/or ‘-T’ options
+      would disregard, on read, and specify 0 (zero), on write, the
+      fractional mtime.
+
+      Now, RCS preserves subsecond mtime in those cases.  More details
+      in new manual section -- (info "(rcs) Stamp resolution").
+
+  - portability fixes
+
+    - now buildable under ‘gcc -std=c11’ (default for GCC 5)
+
+      RCS previously failed to build under ‘-std=c11’, which happens
+      to be the default mode of GCC 5.  In particular, ‘-std=c11’ is
+      more strict about function attributes syntax than ‘-std=c99’.
+
+      Now, the offending code has been rectified.  (Specifically,
+      attribute ‘_Noreturn’ now is at the start of a func decl.)
+
+    - threads support
+
+      RCS itself is clueless about threads, but it uses gnulib, which
+      may or may not require threads support.  This manifests as the
+      configure script options ‘--enable-threads=MODEL’ as well as
+      ‘--disable-threads’.
+
+      Previously, "make" would ignore MODEL (even implicitly), acting
+      as if ‘--disable-threads’ were specified.  Now, it takes into
+      account MODEL by propagating makefile var ‘LIBTHREAD’.
+
+    - consult ‘USER’ first if ‘LOGNAME’ read-only
+
+      To determine the user (login) name in the absence of a specific
+      command-line option, RCS normally checks first the env var
+      ‘LOGNAME’ and second, ‘USER’.  Alas, this is unworkable under
+      AIX, where ‘LOGNAME’ is read-only.  So now, if the configure
+      script finds ‘LOGNAME’ to be read-only, it arranges to build RCS
+      to check ‘USER’ first and then ‘LOGNAME’.  See README.
+
+    - configure script avoids ‘date -r’
+
+      Unfortunately ‘date -r’ is not POSIX.  This made AIX unhappy.
+
+    - other AIX accomodation
+
+      The AIX compiler complains about the implicit casting that
+      occurs when returning a pointer from a function whose return
+      type is ‘bool’.  So, we are now explicit.
+
+  - documentation improvements
+
+    - docfix: add "Log message option" to Detailed Node Listing
+
+      Probably Emacs by now has some automagic way to sync the
+      ‘@detailmenu’ section w/ the text body... hmmm.
+
+    - style change due to ‘-zZONE’ option
+
+      Specifying option ‘-zZONE’ to ‘rcs log’ changes the date output
+      style to use hyphens (ISO) instead of slashes (YYYY/MM/DD).
+
+    - rlog, use with CVS
+
+      Since RCS 5.8 (released 2011-08-30), there have been sporadic
+      reports of rlog (aka "rcs log") failing with CVS files.  The
+      manual now addresses this -- (info "(rcs) comma-v particulars").
+
+    - delim-separated list
+
+      GNU RCS has always supported comma to separate items in a list
+      (e.g., ‘rcs frob -o1.1,2.2’ to remove (or "outdate") revisions
+      1.1 and 2.2).  But did you know that most places a comma is
+      welcome and you can use other delimiter characters as well?
+      Read all about it -- (info "(rcs) Delim-separated list").
+
+    - (style) pargraphs no longer indented
+
+      This looks nicer (IMHO) for Info and Text output formats.
+
+  - testing improvements
+
+    Many new tests and test cases for existing tests were added, to
+    catch regressions and exercise infrequent code paths.  For "make
+    check" (locally), function coverage is 97.3% (considered "high")
+    and line coverage is 84.9% (considered "medium"), per lcov.
+
+  - bootstrap/maintenance tools
+
+    upgraded:
+
+     GNU gnulib 2020-10-19 23:37:09
+     GNU texinfo 6.7
+     GNU Automake 1.16.2
+     GNU Autoconf 2.69c
+
+    as before:
+
+     (none)
+
+
+- 5.9.4 | 2015-01-22
+
+  - portability fix in "make check" for OSX
+
+    We now avoid ‘head -N’, where N is a number, since that
+    construct is not portable.  See:
+    http://lists.gnu.org/archive/html/bug-rcs/2014-11/msg00000.html
+
+  - doc improvements
+
+    - index ‘rcs -o’ better
+
+      It seems the term "outdate" is itself outdated, nowadays (sigh).
+      This command is now indexed under "deleting" and "removing", as
+      well as "outdating".
+
+    - move ‘@cindex’ before ‘@item’ in tables
+
+      The tables of substitution mode options and common options are
+      now indexed such that selecting the indexed item in Emacs leaves
+      point on the item's line and not the one after.
+
+    - new index entries
+
+      For concepts (locking, implicit checkout, branching-related
+      stuff) and keywords.
+
+    - introspective stuff moved into chapter "Hacking"
+
+      These former chapters have been moved into chapter "Hacking":
+      "File format", "Still missing", "Reporting bugs".  As a nice
+      side-effect, the table of contents of the PDF now is one page.
+
+    - ‘RCS_MEM_LIMIT’ on manpages updated
+
+      RCS 5.9.2 (released 2013-11-28) changed how ‘RCS_MEM_LIMIT’
+      works.  The Texinfo docs were updated but not the manpages.
+
+  - maintenance tools
+
+    upgraded:
+
+     GNU Automake 1.15
+     GNU gnulib 2015-01-20 09:09:03
+     GNU texinfo 5.2
+
+    as before:
+
+     GNU Autoconf 2.69
+
+
+- 5.9.3 | 2014-09-17
+
+  - compatibility w/ RCS 2.x file format dropped
+
+    This was presaged w/ RCS 5.9.0 (released 2013-05-06), below.
+    Effectively, the configure script no longer supports option
+    ‘--enable-compat2’, and RCS programs will fail, reporting a
+    syntax error, if given a comma-v file in 2.x format.
+
+  - bug fixes
+
+    - crash on co/ci without changes on a branch
+
+      RCS 5.8 (released 2011-08-30) introduced a bug whereby a ci
+      without changes (i.e., reversion) on a branch would crash,
+      leaving a temporary files and corrupted comma-v file as well.
+      This regression is now fixed.  See tests/t804, and also:
+      http://lists.gnu.org/archive/html/bug-rcs/2014-01/msg00000.html
+
+    - file corruption using stdio under Cygwin, Darwin
+
+      RCS 5.8 (released 2011-08-30) introduced a bug when using stdio
+      (e.g., with env var ‘RCS_MEM_LIMIT’ set to "0") under Cygwin
+      whereby ci with a sufficiently large working file would silently
+      write a truncated comma-v file.  See tests/t805, and also:
+      http://lists.gnu.org/archive/html/bug-rcs/2014-06/msg00000.html
+
+      (Although the bug was initially discovered under Cygwin, the
+      Hydra project reported the same problem for Darwin.)
+
+  - portability fixes
+
+    - don't recurse on ‘main’
+
+      This is for the sake of Cygwin "make check".  See:
+      http://lists.gnu.org/archive/html/bug-rcs/2014-08/msg00015.html
+
+    - avoid C99 VLA elems in func decl, sometimes
+
+      This is for the sake of Solaris 10 + GCC 3.4.3.  See:
+      http://lists.gnu.org/archive/html/bug-rcs/2014-08/msg00002.html
+
+  - new diff/diff3 cross-compilation support
+
+    The configure script now assigns "optimistic defaults" to some
+    diff/diff3-related vars when cross-compiling and invoked with
+    vars ‘DIFF’ and ‘DIFF3’.  See README.
+
+  - maintenance tools updated
+    - automake (GNU automake) 1.14.1
+    - gnulib-tool (GNU gnulib 2014-09-16 19:26:48) 0.1.222-aa0c2
+
+
+- 5.9.2 | 2013-11-28
+
+  - bugfixes
+
+    - avoid possibly failing command in backticks
+
+      Some versions of Solaris /bin/sh would cause the extract-help
+      build script to exit failurefully when the grep command in the
+      backticks failed (in the presence of "set -e").  Sigh.
+
+    - handle low-memory situations like RCS 5.7 (mostly)
+
+      For reading comma-v files, RCS 5.7 tries mmap(2), in-core
+      snarfing, and stdio access, falling back to slower methods
+      on failure of the faster method.  RCS 5.8 maintained the order,
+      but did not fall back; on failure, it gave up immediately.
+      This change was originally viewed as a feature, but lately it
+      seemed more like a bug.
+
+      Now, RCS 5.7 behavior is for the most part restored.  The
+      exception is when env var ‘RCS_MEM_LIMIT’ is set; in that case,
+      failure of a fast method does not fall back to the slower one.
+
+  - default for env var ‘RCS_MEM_LIMIT’ relaxed
+
+    This used to be 256 kilobytes, a reasonable value a long time
+    ago, but ridiculously low nowadays.  Now, it is "unlimited",
+    which is more in line w/ the GNU philosophy, anyway:
+
+     (info "(standards) Semantics")
+
+    Since the env var is mostly intended for testing RCS, you can
+    normally leave it unset.  (Probably it will be removed in a
+    future release.)
+
+  - maintenance tools updated
+    - automake (GNU automake) 1.14
+    - gnulib-tool (GNU gnulib 2013-11-28 08:46:06) 0.1.21-37f8a
+
+
+- 5.9.1 | 2013-10-04
+
+  - bugfixes
+
+    - specify ‘diff --binary’ consistently for non-POSIX systems
+
+      On non-POSIX systems, in some cases, ‘rcs frob’ used to omit
+      ‘--binary’ from the command-line to the underlying diff(1).
+      Now, that is done in all cases.
+
+    - portability fixes
+
+      - avoid ‘grep -q’
+
+        GNU grep understands ‘grep -q’ but some others do not.
+
+         (info "(autoconf) Limitations of Usual Tools")
+
+      - avoid ‘$<’ in makefile
+
+        GNU make understands ‘$<’ but some others do not.
+
+         (info "(autoconf) $< in Ordinary Make Rules")
+
+      - avoid backslash in backticks
+
+        The /bin/sh scripts used in "make" and "make check" now avoid
+        using a backslash in backticks, which can cause problems for
+        Solaris 9 /bin/sh (and maybe other /bin/sh implementations).
+
+  - ‘PROGRAM --help’ shows home page / "gethelp" info
+
+    This is for compliance w/ the GNU coding standards.
+
+     (info "(standards) --help")
+
+  - maintenance tools updated
+    - automake (GNU automake) 1.13.4
+    - gnulib-tool (GNU gnulib 2013-10-03 04:59:38) 0.0.8036-28df8
+
+
+- 5.9.0 | 2013-05-06
+
+  - distribution now .tar.lz and .tar.xz
+
+    If you have GNU tar, you can use "tar xf" and it will DTRT.
+    If not, you can use "lzip -dc TARBALL | tar xf -" to unpack
+    the .tar.lz, or "xz -dc TARBALL | tar xf -" for the .tar.xz.
+
+  - planned retirement
+
+    - configure option ‘--enable-compat2’
+
+      This option enables reading of files written by RCS 2.x (before
+      RCS was GNU, even), but the file format became obsolete in 1982.
+      Support for it WILL BE REMOVED in a near future GNU RCS release.
+
+    - common option ‘-V’
+
+      This option is obsoleted by ‘--version’ (since 5.8, 2011-08-30).
+      Support for it WILL BE REMOVED in some future GNU RCS release.
+      Its use now produces a warning to stderr.
+
+      Please note that ‘-VN’ (N ∈ {3,4,5}) is a separate issue.
+
+  - bugs fixed
+
+    - ‘rcsmerge --help’ mentions ‘-A’, ‘-E’, ‘-e’
+
+      These options are accepted and internally passed to diff3(1).
+
+    - ‘ident -VN’ and ‘merge -VN’ now signal error
+
+      For these commands, the argument to ‘-V’ has no meaning.
+      Previously, such invocations would display version info,
+      ignoring the arg.  Now they signal a "bad option" error.
+
+  - new features
+
+    - ident(1) recognizes Subversion "fixed-width keyword syntax"
+
+      In addition to the normal keyword pattern, for Subversion 1.2
+      (and later) compatibility, ident(1) also recognizes patterns
+      having one of the forms:
+
+      $KEYWORD:: TEXT $
+      ;; two colons and space after keyword
+      ;; space before ending $
+
+      $KEYWORD:: TEXT#$
+      ;; two colons and space after keyword
+      ;; hash before ending $
+
+    - new co(1) option ‘-S’ for "self-same" mode
+
+      In this mode, the owner of a lock is unimportant, just that it
+      exists.  Effectively, this prevents you from checking out the
+      same revision twice.
+
+      $ whoami
+        ttn
+
+      $ co -l -f z
+        RCS/z,v  -->  z
+        revision 1.1 (locked)
+        done
+
+      $ co -S -l -f z
+        RCS/z,v  -->  z
+        co: RCS/z,v: Revision 1.1 is already locked by ttn.
+
+    - several RCS commands "internalized" into rcs(1)
+
+      As part of an ongoing effort to modernize the command-line
+      interface of GNU RCS, the previously standalone programs:
+
+        ci, co, rcs, rcsclean, rcsdiff, rcsmerge, rlog
+
+      can now be invoked as "rcs PROGRAM".  In this case, we call
+      PROGRAM a "command", and also provide some aliases.  E.g., you
+      can type "rcs diff" in addition to "rcs rcsdiff" (and "rcsdiff",
+      of course).  We plan to support standalone (w/o "rcs" prefix)
+      invocation from the shell at least through the 5.x series of
+      releases -- not indefinitely, but for a good while, yet.
+
+      The rcs(1) program itself now supports ‘--commands’ to list all
+      the commands, ‘--aliases’ to list their aliases, as well as
+      ‘--help COMAMND’ to show the help for COMMAND.
+
+      Note that programs ident(1) and merge(1) remain standalone.
+
+      Lastly, in the manual, section "Invoking rcs" now describes both
+      "modern" and "legacy" usages.  Also, the internalized commands
+      invocations mentions both "rcs COMMAND" and "PROGRAM" styles.
+
+    - ‘--help’ output includes a one-line description
+
+      E.g., "merge --help" says: "Three-way file merge".
+
+    - most long options can be recognized if partially specified
+
+      With the exception of "rcs --help COMMAND", where "--help" must
+      be spelled out in full, all long options can now be recognized
+      even if partially specified.  For example, "rcs --al" is
+      recognized as "rcs --aliases".
+
+    - updated portability
+
+      Several more Gnulib (http://www.gnu.org/software/gnulib) modules
+      are now in use.
+
+    - new cross-compilation support
+
+      The configure script now assigns "pessimistic defaults" when
+      cross-compiling.  See new section "cross-compilation" in README.
+
+    - effects of ‘-VN’ (N ∈ {3,4,5}) documented
+
+      See (info "(rcs) Misc common options").
+
+  - maintenance tools updated
+    - gnulib-tool (GNU gnulib 2013-05-01 06:14:19) 0.0.7913-5191
+
+
+- 5.8.2 | 2013-04-04
+
+  - Bugs fixed
+
+    - Wrong symbolic name dereference
+
+      RCS 5.8 introduced a bug whereby commands would incorrectly
+      dereference a symbolic name (into a numerical revision number)
+      in the presence of multiple symbolic names that share a common
+      prefix.  See tests/t803.
+
+    - ‘integrity’ value syntax better specified
+
+      The ‘integrity’ value (if present) is a string composed of a
+      system part followed by an optional user part, with formfeed
+      (^L, U+0C) separating the two.  Unlike other string values, the
+      ‘integrity’ string (either part) must NOT contain '@' (U+40).
+      If it does, RCS displays a "spurious '@' in `integrity' value"
+      error message and exits failurefully.
+
+      This change restores interop play-space for third-party tools
+      that was stricken w/ the RCS 5.8 top-level grammar freeze.  Left
+      unspecified is how such tools should divvy up the user part.
+
+  - New manual chapter: RCS file format
+
+    This documents the RCS file format grammar and particulars,
+    adapted from rcsfile(5).
+
+  - Manpages refer to info documentation
+
+    They now recommend using "info rcs" for full documentation.
+
+  - Script to trim "junk at end of file" posted
+
+    The "junk at end of file" error occurs for some files due to RCS
+    5.8 being more strict about the syntax it accepts.  You can use
+    ‘trimrcs’ by Warren Jones:
+
+    http://lists.gnu.org/archive/html/help-rcs/2013-01/msg00006.html
+
+    to remedy such files while we figure out how best to move such
+    functionality into RCS proper.
+
+  - Maintenance tools updated
+    - automake (GNU Automake) 1.13.1
+    - gnulib-tool (GNU gnulib 2013-03-19 16:08:47) 0.0.7899-34f84
+    - makeinfo (GNU Texinfo) 5.1
+
+
+- 5.8.1 | 2012-06-05
+
+  - Bugs fixed
+
+    - Debug output removed
+
+      Due to an oversight, release 5.8 rlog included code to write
+      debugging output to stderr for invocations using the ‘-d’ option
+      and a date range (e.g., ‘rlog -d 2010<2012’).
+
+    - Criteria for avoiding read-only checks refined
+
+      For "make check", some test cases are inhibited if the user
+      running the test is not effectively blocked from writing a
+      purportedly read-only file, such as when "make check" is run by
+      the super user, or for certain (weird) NFS situations.
+
+      Previously, to determine this condition, we considered only the
+      operating system type, a very crude (and incomplete) proxy.
+      Now, we explicitly check with a shell sequence comprising the
+      umask(1) and test(1) commands, plus output-redirection.
+
+    - Regression in ‘-zLT’ handling
+
+      On a 64-bit x86 system, RCS 5.8 introduced a regression whereby:
+
+       rlog -zLT -d>2011-05-04
+
+      would select the correct entry but display its date always with
+      default (01) month and day, i.e., YYYY-01-01.  This is now fixed
+      (see also tests/t320).
+
+    - Regression in ‘ci -d -T’ handling
+
+      RCS 5.8 introduced a regression whereby:
+
+        ci -l -d -T FILE
+
+      would set the mtime of RCS/FILE,v (the comma-v file) to the
+      epoch.  This is now fixed (see also tests/t810).
+
+  - Use ‘diff --label’ instead of ‘diff -L’
+
+    Previously, RCS used GNU diff's ‘-L’ option.  According to Paul
+    Eggert (a GNU diffutils maintainer):
+
+      That option has been undocumented since diffutils 2.8
+      (released in March 2002) and the option is intended to
+      be replaced sometime soon with a different meaning.
+
+    Now, RCS uses ‘diff --label’, thus immune to the planned change.
+
+  - Miscellaneous changes
+    - Make help extraction noisy (on failure)
+    - Silence some compiler warnings
+    - Increase coverage of "make check"
+
+  - Documentation improvements
+
+    - Manpage rcsintro(1) dropped
+
+      This manpage is redundant, and (arguably) should not have been
+      in section 1 in the first place.
+
+    - Use "Invoking COMMAND" instead of "COMMAND" as node names
+
+      This makes it easier for ‘info --usage COMMAND’ to DTRT, and
+      makes GNU (info "(standards) Manual Structure Details") happy.
+
+    - explicitly UTF-8
+
+      This is to prepare for a (future) GNU Texinfo release that
+      renders @code in a more pretty way when the encoding is UTF-8.
+      If you're reading this (from the future) with such a Texinfo at
+      hand, feel free to regenerate the docs in doc/ prior to install.
+
+    - CVS is not GNU
+
+      Previously, we incorrectly said "GNU CVS", succumbing to a
+      common misunderstanding.  Now we know better.
+
+  - TAGS file no longer distributed
+
+    To create, configure normally and do "make TAGS".
+
+  - New configure script option ‘--enable-coverage’
+
+    Specifying ‘--enable-coverage’ causes ‘_Exit’ to be an alias for
+    ‘exit’ and CFLAGS to append ‘--coverage’ if the compiler is GCC.
+    This is needed because the coverage machinery writes the .gcda
+    files only on ‘exit’.
+
+    This option is for maintainers; most people can ignore it.
+
+  - Portability improvements
+    - Use more gnulib modules
+    - Use portable Makefile subst-ref variable syntax
+    - Use portable shell command-output interpolation syntax
+  - Maintenance tools upgraded
+    - GNU Automake 1.12
+    - GNU Autoconf 2.69
+    - gnulib-tool (GNU gnulib 2012-06-03 16:29:00) 0.0.7432-f6c24-modified
+
+
+- 5.8 | 2011-08-30
+
+  - License now GPLv3+ (see COPYING)
+
+  - Change in terminology: from "path" to "file name" (or "file-name")
+
+    However, if "path" intends "search path", we say so explicitly.
+
+  - Changes to the RCS package
+
+    - New documentation in Info format
+
+      On "make install", rcs.info is installed in $(infodir), with
+      title "GNU RCS <VERSION>" in dircategory "Version control".
+      The doc source is texinfo (released under GNU FDL 1.3), so you
+      can easily create output in HTML, PDF, etc.
+
+    - Dropped configure option: --with-diffutils
+
+      To specify non-GNU diffutils programs diff(1) and diff3(1), name
+      them using variables on the configure command-line.  See README.
+
+    - Configuration more strict in some ways, more lax in others.
+
+      Before, part of the configuration was done at compile time.
+      Now, all of it is done by the configure script.  Here are the
+      set of conditions which will cause the configure script to fail
+      (with a "could not find..." message):
+
+       - for --enable-mailer=PROG, ‘PROG’ not absolute;
+       - for diff(1), value of env var ‘DIFF’ not absolute;
+       - diff(1) not GNU diffutils compatible;
+       - for diff3(1), value of env var ‘DIFF3’ not absolute;
+       - for ed(1), value of env var ‘ED’ not absolute;
+       - no C99-capable compiler.
+
+      Here, "absolute" means "specified as an absolute filename".
+      On the flip side, configuration no longer checks for some
+      situations such as ‘sigaction’ yes, but ‘SA_SIGINFO’ no.
+
+      Most of the portability duties are now handled by gnulib.
+
+    - New configure option: --enable-suid[=setreuid]
+
+      This builds RCS with setuid support (the default).  Optional
+      arg ‘setreuid’ means use setreuid(2) instead of seteuid(2).
+
+    - New configure option: --disable-mmap
+
+      This builds RCS without mmap(2), even if available.  See README.
+
+    - New configure option: --enable-mailer=PROG
+
+      The feature whereby ci(1) sends mail when breaking a lock is now
+      disabled by default.  To enable, specify ‘--enable-mailer=PROG’
+      to the configure script.  See README.
+
+    - New configure option: --enable-compat2
+
+      This preponderantly unlikely to be used option allows RCS
+      commands to read RCS files written by RCS 2.  See README.
+
+    - You can "make check" prior to "make install".
+
+      Doing "make check" automatically prepends to the ‘PATH’ env var
+      the value of ‘$(abs_top_builddir)/src’, so that the programs
+      co, rcsdiff, and rcsmerge can find their peers (co and merge).
+
+      Likewise, "make installcheck" prepends ‘$(DESTDIR)$(bindir)’.
+
+      Previously, you had to "make install" first and then arrange
+      for ‘$(DESTDIR)$(bindir)’ to be on ‘PATH’ "manually".
+
+      See tests/README for more info on the test suite.
+
+  - Bug fixes
+
+    - Remove all edit info when removing all revisions.
+
+      Previously, "rcs -o" (outdating) all revisions failed to
+      leave the RCS file in a consistent state; edit info (i.e.,
+      log message + diff(1) output) remained for the deleted revisions.
+
+      For example, this sequence of commands:
+        echo foo > foo
+        ci -q -i -t-desc -mHELLO foo
+        rcs -q -o1.1: foo
+        grep '@H' foo,v
+      used to display "@HELLO" to stdout.
+
+      Now, all revisions are completely removed.
+
+    - Code no longer uses mktemp(3).
+
+      Using mktemp(3) is a security risk.  We use mkstemp(3) now.
+      Likewise, rcsfreeze.sh now uses mktemp(1).
+
+    - Misc manpage tweaks / fixes.
+
+      Document ‘rlog -q’; fix small merge.1 omission; add branch
+      labels in rcsfile.5; say "GNU RCS <VERSION>" in footer.
+
+  - Other changes
+
+    - All commands accept ‘--help’ and ‘--version’.
+
+      The help output includes an email address for bug reports.
+      For continuity, option ‘-V’ is now a synonym for ‘--version’.
+
+      Relatedly, commands no longer display usage info if given
+      a bad or malformed option.  You can use ‘--help’ for that.
+
+    - A string of all digits is now valid for author, state.
+
+      This means you can set the author or state to, for example,
+      "000000" or "42".  Previously, these would have caused a
+      "invalid identifier" or "invalid symbol" error.
+
+    - Env var RCS_MEM_LIMIT controls stdio threshold.
+
+      For speed, RCS uses memory-based routines for files up to
+      256 kilobytes, and stream-based (stdio) routines otherwise.
+      You can change this threshold value by setting the environment
+      variable ‘RCS_MEM_LIMIT’ to a non-negative integer, measured in
+      kilobytes.  An empty ‘RCS_MEM_LIMIT’ value is silently ignored.
+
+    - RCS can now work with files larger than 2 gigabytes.
+
+      RCS now uses large file offsets (#define _FILE_OFFSET_BITS 64).
+
+    - Pass-through for RCS file ‘commitid SYMBOL’ now builtin.
+
+      Due to GNU CVS (Concurrent Versions System) using a compatible
+      file format as RCS for the RCS file, you can use RCS commands
+      to view and manipulate its contents.  (Note, however, the next
+      NEWS item.)
+
+      This works well enough except for a small annoyance: CVS adds a
+      per-revision field called the "commitid" with an opaque (to RCS)
+      symbolic value.  Previously, RCS commands would emit a warning
+      "unrecognized phrases" (unless given ‘-q’ on the command-line).
+
+      RCS commands now automatically support pass-through handling of
+      ‘commitid SYMBOL’ (so ‘-q’ is no longer necessary).
+
+    - RCS file top-level grammar frozen.
+
+      The RCS file top-level grammar is now frozen; RCS no longer
+      supports pass-through operation of unrecognized key/data pairs
+      (called "newphrases" in the RCS 5.7 rcsfile(5) manpage).
+
+      To avoid painting ourselves into a corner, the grammar now
+      includes a new key ‘integrity’ with @-string value, whose
+      sub-grammar is not yet specified.  (We intend to keep checksums
+      and other compacted redundancies in this field, for manipulation
+      by the commands in a future RCS 5.x release.)  For upward
+      compatibility, the commands in this release do not change this
+      field, although they silently read and write it (pass-through),
+      if present.
+
+    - RCS file syntax-validated earlier, completely.
+
+      Previously, RCS file syntax was validated lazily, and trailing
+      garbage was not detected (see bugfix above).  Now, a top-level
+      validation is done on each access.
+
+    - Possible to specify an empty log message with ci -m, rcs -m.
+
+      The commands "ci -m" and "rcs -m" no longer error on an
+      empty log message.  Their non-interactive behavior is now
+      consistent with the interactive invocation.
+
+      was: ci -m file < /dev/null   # use stdin to avoid error
+      now: ci -m file               # works fine, like so
+
+      Note that these commands actually store as the log message
+      the string: "*** empty log message ***".
+
+    - Date option accepts some more date-only formats
+
+      Date format ‘YYYY-DDD’ specifies a year and a day (1-366),
+      while format ‘YYYY-wWW-D’ specifies a year, an ISO week number
+      (0-53, 0 is a GNU RCS extension), and a day number (1-7, for
+      Monday through Sunday).
+
+    - Changes to rcsdiff
+
+      - New handling for option: -U N
+
+        This arranges to output N lines of unified-diff context.
+        Relatedly, the list of possible options passed to the underlying
+        diff(1) appears in both "rcsdiff --help" and in the manual.
+
+      - Refined "same-revision don't call diff" optimization
+
+        Normally, if the two revisions specified are the same, we avoid
+        calling the underlying diff(1) on the theory that it will
+        produce no output.  This does not hold generally for ‘-y’
+        (--side-by-side) and ‘-D’ (--ifdef), such as when the revision
+        specified is by different symbolic names, so for those options
+        the optimization is disabled.
+
+
+
+- 5.7 | 1995-06-16
+
+  Here is a brief summary of user-visible changes since 5.6.
+
+    New options:
+      ‘-kb’ supports binary files.
+      ‘-T’ preserves the modification time of RCS files.
+      ‘-V’ prints the version number.
+      ‘-zLT’ causes RCS to use local time in working files and logs.
+      ‘rcsclean -n’ outputs what rcsclean would do, without actually doing it.
+      ‘rlog -N’ omits symbolic names.
+    There is a new keyword ‘Name’.
+    Inserted log lines now have the same prefix as the preceding ‘$Log’ line.
+
+  Most changes for RCS version 5.7 are to fix bugs and improve portability.
+  RCS now conforms to GNU configuration standards and to Posix 1003.1b-1993.
+
+  Features new to RCS version 5.7, and possibly incompatible
+  in minor ways with previous practice, include:
+
+  - Inserted log lines now have the same prefix as the preceding ‘$Log’
+    line.  E.g. if a $Log line starts with ‘// $Log’, log lines are
+    prefixed with ‘// ’.  RCS still records the (now obsolescent)
+    comment leader inside RCS files, but it ignores the comment leader
+    unless it is emulating older RCS versions.  If you plan to access a
+    file with both old and new versions of RCS, make sure its comment
+    leader matches its ‘$Log’ line prefix.  For backwards compatibility
+    with older versions of RCS, if the log prefix is ‘/*’ or ‘(*’
+    surrounded by optional white space, inserted log lines contain ‘ *’
+    instead of ‘/*’ or ‘(*’; however, this usage is obsolescent and
+    should not be relied on.
+
+  - $Log string ‘Revision’ times now use the same format as other times.
+
+  - Log lines are now inserted even if -kk is specified; this simplifies
+    merging.
+
+  - ci's -rR option (with a nonempty R) now just specifies a revision
+    number R.  In some beta versions, it also reestablished the default
+    behavior of releasing a lock and removing the working file.  Now,
+    only the bare -r option does this.
+
+  - With an empty extension, any appearance of a directory named ‘RCS’
+    in a pathname identifies the pathname as being that of an RCS file.
+    For example, ‘a/RCS/b/c’ is now an RCS file with an empty extension.
+    Formerly, ‘RCS’ had to be the last directory in the pathname.
+
+  - rlog's -d option by default now uses exclusive time ranges.
+    E.g. ‘rlog -d"<T"’ now excludes revisions whose times equal T
+    exactly.  Use ‘rlog -d"<=T"’ to get the old behavior.
+
+  - merge now takes up to three -L options, one for each input file.
+    Formerly, it took at most two -L options, for the 1st and 3rd input
+    files.
+
+  - ‘rcs’ now requires at least one option; this is for future expansion.
+
+  Other features new to RCS version 5.7 include:
+
+  - merge and rcsmerge now pass -A, -E, and -e options to the subsidiary
+    diff3.
+
+  - rcs -kb acts like rcs -ko, except it uses binary I/O on working
+    files.  This makes no difference under Posix or Unix, but it does
+    matter elsewhere.  With -kb in effect, rcsmerge refuses to merge;
+    this avoids common problems with CVS merging.
+
+  - The following is for future use by GNU Emacs 19's version control
+    package:
+
+    - rcs's new -M option causes it to not send mail when you break
+      somebody else's lock.  This is not meant for casual use; see
+      rcs(1).
+
+    - ci's new -i option causes an error if the RCS file already exists.
+      Similarly, -j causes an error if the RCS file does not already
+      exist.
+
+  - The new keyword ‘Name’ is supported; its value is the name, if any,
+    used to check out the revision.  E.g. ‘co -rN foo’ causes foo's
+    $Name...$ keyword strings to end in ‘: N $’.
+
+  - The new -zZONE option causes RCS to output dates and times using ISO
+    8601 format with ZONE as the time zone, and to use ZONE as the
+    default time zone for input.  Its most common use is the -zLT
+    option, which causes RCS to use local time externally.  You can also
+    specify foreign time zones; e.g. -z+05:30 causes RCS to use India
+    time (5 hours 30 minutes east of UTC).  This option does not affect
+    RCS files themselves, which always use UTC; it affects only output
+    (e.g. rlog output, keyword expansion, diff -c times) and
+    interpretation of options (e.g. the -d option of ci, co, and rlog).
+    Bare -z restores the default behavior of UTC with no time zone
+    indication, and the traditional RCS date separator ‘/’ instead of
+    the ISO 8601 ‘-’.  RCSINIT may contain a -z option.  ci -k parses
+    UTC offsets.
+
+  - The new -T option of ci, co, rcs, and rcsclean preserves the
+    modification time of the RCS file unless a revision is added or
+    removed.  ci -T sets the RCS file's modification time to the new
+    revision's time if the former precedes the latter and there is a new
+    revision; otherwise, it preserves the RCS file's modification time.
+    Use this option with care, as it can confuse ‘make’; see ci(1).
+
+  - The new -N option of rlog omits symbolic names from the output.
+
+  - A revision number that starts with ‘.’ is considered to be relative
+    to the default branch (normally the trunk).  A branch number
+    followed by ‘.’  stands for the last revision on that branch.
+
+  - If someone else already holds the lock, rcs -l now asks whether you
+    want to break it, instead of immediately reporting an error.
+
+  - ci now always unlocks a revision like 3.5 if you check in a revision
+    like 3.5.2.1 that is the first of a new branch of that revision.
+    Formerly it was inconsistent.
+
+  - File names may now contain tab, newline, space, and '$'.  They are
+    represented in keyword strings with \t, \n, \040, and \044.  \ in a
+    file name is now represented by \\ in a keyword string.
+
+  - Identifiers may now start with a digit and (unless they are symbolic
+    names) may contain ‘.’.  This permits author names like ‘john.doe’
+    and ‘4tran’.
+
+  - A bare -V option now prints the current version number.
+
+  - rcsdiff outputs more readable context diff headers if diff -L works.
+
+  - rcsdiff -rN -rN now suppresses needless checkout and comparison
+    of identical revisions.
+
+  - Error messages now contain the names of files to which they apply.
+
+  - Mach style memory mapping is now supported.
+
+  - The installation procedure now conforms to the GNU coding standards.
+
+  - When properly configured, RCS now strictly conforms to Posix 1003.1b-1993.
+
+
+- 5.6 | 1993-03-25
+
+  Features new to RCS version 5.6 include:
+
+  - Security holes have been plugged; setgid use is no longer supported.
+
+  - co can retrieve old revisions much more efficiently.  To generate
+    the Nth youngest revision on the trunk, the old method used up to N
+    passes through copies of the working file; the new method uses a
+    piece table to generate the working file in one pass.
+
+  - When ci finds no changes in the working file, it automatically
+    reverts to the previous revision unless -f is given.
+
+  - RCS follows symbolic links to RCS files instead of breaking them,
+    and warns when it breaks hard links to RCS files.
+
+  - ‘$’ stands for the revision number taken from working file keyword
+    strings.  E.g. if F contains an Id keyword string, ‘rcsdiff -r$ F’
+    compares F to its checked-in revision, and ‘rcs -nL:$ F’ gives the
+    symbolic name L to F's revision.
+
+  - co and ci's new -M option sets the modification time of the working
+    file to be that of the revision.  Without -M, ci now tries to avoid
+    changing the working file's modification time if its contents are
+    unchanged.
+
+  - rcs's new -m option changes the log message of an old revision.
+
+  - RCS is portable to hosts that do not permit ‘,’ in filenames.
+    (‘,’ is not part of the Posix portable filename character set.)
+    A new -x option specifies extensions other than ‘,v’ for RCS files.
+    The Unix default is ‘-x,v/’, so that the working file ‘w’ corresponds
+    to the first file in the list ‘RCS/w,v’, ‘w,v’, ‘RCS/w’ that works.
+    The non-Unix default is ‘-x’, so that only ‘RCS/w’ is tried.
+    Eventually, the Unix default should change to ‘-x/,v’ to encourage
+    interoperability among all Posix hosts.
+
+  - A new RCSINIT environment variable specifies defaults for options
+    like -x.
+
+  - The separator for revision ranges has been changed from ‘-’ to ‘:’,
+    because the range ‘A-B’ is ambiguous if ‘A’, ‘B’ and ‘A-B’ are all
+    symbolic names.  E.g. the old ‘rlog -r1.5-1.7’ is now ‘rlog
+    -r1.5:1.7’; ditto for ‘rcs -o’.  For a while RCS will still support
+    (but warn about) the old ‘-’ separator.
+
+  - RCS manipulates its lock files using a method that is more reliable
+    under NFS.
+
+
+- 5.5 | 1991-01-04
+
+  Features new to RCS version 5 include:
+
+  - RCS can check in arbitrary files, not just text files, if diff -a
+    works.  RCS can merge lines containing just a single ‘.’ if diff3 -m
+    works.  GNU diff supports the -a and -m options.
+
+  - RCS can now be used as a setuid program.  See ci(1) for how users
+    can employ setuid copies of ci, co, and rcsclean.  Setuid privileges
+    yield extra security if the effective user owns RCS files and
+    directories, and if only the effective user can write RCS
+    directories.  RCS uses the real user for all accesses other than
+    writing RCS directories.  As described in ci(1), there are three
+    levels of setuid support.
+
+    1. Setuid works fully if the seteuid() system call lets any process
+       switch back and forth between real and effective users, as
+       specified in Posix 1003.1a Draft 5.
+
+    2. On hosts with saved setuids (a Posix 1003.1-1990 option) and
+       without a modern seteuid(), setuid works unless the real or
+       effective user is root.
+
+    3. On hosts that lack both modern seteuid() and saved setuids,
+       setuid does not work, and RCS uses the effective user for all
+       accesses; formerly it was inconsistent.
+
+  - New options to co, rcsdiff, and rcsmerge give more flexibility to
+    keyword substitution.
+
+    - -kkv substitutes the default ‘$Keyword: value $’ for keyword
+      strings.  However, a locker's name is inserted only as a file is
+      being locked, i.e. by ‘ci -l’ and ‘co -l’.  This is normally the
+      default.
+
+    - -kkvl acts like -kkv, except that a locker's name is always
+      inserted if the given revision is currently locked.  This was the
+      default in version 4.  It is now the default only with when using
+      rcsdiff to compare a revision to a working file whose mode is that
+      of a file checked out for changes.
+
+    - -kk substitutes just ‘$Keyword$’, which helps to ignore keyword
+      values when comparing revisions.
+
+    - -ko retrieves the old revision's keyword string, thus bypassing
+      keyword substitution.
+
+    - -kv retrieves just ‘value’.  This can ease the use of keyword
+      values, but it is dangerous because it causes RCS to lose track of
+      where the keywords are, so for safety the owner write permission
+      of the working file is turned off when -kv is used; to edit the
+      file later, check it out again without -kv.
+
+  - rcs -ko sets the default keyword substitution to be in the style of
+    co -ko, and similarly for the other -k options.  This can be useful
+    with file formats that cannot tolerate changing the lengths of
+    keyword strings.  However it also renders a RCS file readable only
+    by RCS version 5 or later.  Use rcs -kkv to restore the usual
+    default substitution.
+
+  - RCS can now be used by development groups that span time zone
+    boundaries.  All times are now displayed in UTC, and UTC is the
+    default time zone.  To use local time with co -d, append ‘ LT’ to
+    the time.  When interchanging RCS files with sites running older
+    versions of RCS, time stamp discrepancies may prevent checkins; to
+    work around this, use ‘ci -d’ with a time slightly in the future.
+
+  - Dates are now displayed using four-digit years, not two-digit years.
+    Years given in -d options must now have four digits.  This change is
+    required for RCS to continue to work after 1999/12/31.  The form of
+    dates in version 5 RCS files will not change until 2000/01/01, so in
+    the meantime RCS files can still be interchanged with sites running
+    older versions of RCS.  To make room for the longer dates, rlog now
+    outputs ‘lines: +A -D’ instead of ‘lines added/del: A/D’.
+
+  - To help prevent diff programs that are broken or have run out of
+    memory from trashing an RCS file, ci now checks diff output more
+    carefully.
+
+  - ci -k now handles the Log keyword, so that checking in a file with
+    -k does not normally alter the file's contents.
+
+  - RCS no longer outputs white space at the ends of lines unless the
+    original working file had it.  For consistency with other keywords,
+    a space, not a tab, is now output after ‘$Log:’.  Rlog now puts
+    lockers and symbolic names on separate lines in the output to avoid
+    generating lines that are too long.  A similar fix has been made to
+    lists in the RCS files themselves.
+
+  - RCS no longer outputs the string ‘Locker: ’ when expanding Header or
+    Id keywords.  This saves space and reverts back to version 3
+    behavior.
+
+  - The default branch is not put into the RCS file unless it is
+    nonempty.  Therefore, files generated by RCS version 5 can be read
+    by RCS version 3 unless they use the default branch feature
+    introduced in version 4.  This fixes a compatibility problem
+    introduced by version 4.
+
+  - RCS can now emulate older versions of RCS; see ‘co -V’.  This may be
+    useful to overcome compatibility problems due to the above changes.
+
+  - Programs like Emacs can now interact with RCS commands via a pipe:
+    the new -I option causes ci, co, and rcs to run interactively, even
+    if standard input is not a terminal.  These commands now accept
+    multiple inputs from stdin separated by ‘.’ lines.
+
+  - ci now silently ignores the -t option if the RCS file already
+    exists.  This simplifies some shell scripts and improves security in
+    setuid sites.
+
+  - Descriptive text may be given directly in an argument of the form
+    -t-string.
+
+  - The character set for symbolic names has been upgraded from ASCII to
+    ISO 8859.
+
+  - rcsdiff now passes through all options used by GNU diff; this is a
+    longer list than 4.3BSD diff.
+
+  - merge's new -L option gives tags for merge's overlap report lines.
+    This ability used to be present in a different, undocumented form;
+    the new form is chosen for compatibility with GNU diff3's -L option.
+
+  - rcsmerge and merge now have a -q option, just like their siblings.
+
+  - rcsclean's new -n option outputs what rcsclean would do, without
+    actually doing it.
+
+  - RCS now attempts to ignore parts of an RCS file that look like they
+    come from a future version of RCS.
+
+  - When properly configured, RCS now strictly conforms with Posix
+    1003.1-1990.  RCS can still be compiled in non-Posix traditional
+    Unix environments, and can use common BSD and USG extensions to
+    Posix.  RCS is a conforming Standard C program, and also compiles
+    under traditional C.
+
+  - Arbitrary limits on internal table sizes have been removed.  The
+    only limit now is the amount of memory available via malloc().
+
+  - File temporaries, lock files, signals, and system call return codes
+    are now handled more cleanly, portably, and quickly.  Some race
+    conditions have been removed.
+
+  - A new compile-time option RCSPREFIX lets administrators avoid
+    absolute path names for subsidiary programs, trading speed for
+    flexibility.
+
+  - The configuration procedure is now more automatic.
+
+  - Snooping has been removed.
+
+
+- 4.3 | 1989-11-18
+
+  Version 4 was the first version distributed by FSF.
+  Beside bug fixes, features new to RCS version 4 include:
+
+    The notion of default branch has been added; see rcs -b.
+
+
+- 3.x | ????-??-??
+
+  Version 3 was included in the 4.3BSD distribution.
+
+
+
+Copyright information:
+
+   Copyright (C) 2010-2020 Thien-Thi Nguyen
+   Copyright (C) 1991, 1992, 1993, 1994, 1995 Paul Eggert
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
+
+______________________________________________
+	Local Variables:
+	mode: outline
+	outline-regexp: "\\([ ][ ]\\)*- "
+	End:

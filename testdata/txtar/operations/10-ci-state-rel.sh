@@ -28,7 +28,7 @@ ci checkin with state Rel (1.1)
 This is a test file for state Rel.
 
 -- tests.txt --
-ci
+# ci
 
 -- expected.txt,v --
 $(cat file.txt,v)

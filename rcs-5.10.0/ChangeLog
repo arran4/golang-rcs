@@ -1,0 +1,2546 @@
+2020-10-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Release: 5.10.0
+
+2020-10-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Put ‘AC_INIT’ args all on one line.
+
+	* configure.ac (AC_INIT): ...here.
+	Suggested by autoupdate (GNU Autoconf) 2.69c.
+
+2020-10-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Replace ‘AC_PROG_CC_C99’ w/ ‘AC_PROG_CC’.
+
+	* configure.ac: ...here.
+	Suggested by autoupdate (GNU Autoconf) 2.69c.
+	(ac_cv_prog_cc_c99): Delete variable value check.
+
+2019-11-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Index concept of "trunk".
+
+	* doc/rcs.texi (Concepts): ...here.
+
+2019-10-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Index the special revision ‘$’.
+
+	* doc/rcs.texi (Revision options): ...here, w/ two @cindex entries.
+
+2018-06-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Use ‘strftime’ format strings in date format explanation.
+
+	* doc/rcs.texi (comma-v particulars): ...here.
+	Suggested by Tim Chase.
+
+2018-06-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Fix typo: Spell "commands" correctly.
+
+	* doc/rcs.texi (Environment): ...here.
+	Reported by Tim Chase.
+
+2018-06-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Use ‘AC_CONFIG_MACRO_DIR’.
+
+	We don't use aclocal(1) directly,
+	so it's okay to delete ‘ACLOCAL_AMFLAGS’.
+	* configure.ac (AC_CONFIG_MACRO_DIR): ...here.
+	* Makefile.am (ACLOCAL_AMFLAGS): Delete var.
+
+2018-05-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Mention file HACKING.
+
+	* doc/rcs.texi (Reporting bugs):
+	...here, in the context of coding standards.
+
+2018-04-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘strtok_r’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘strtok_r’.
+
+2018-04-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Document "delim-separated list"; tabulate delims.
+
+	* doc/rcs.texi (Top) [detailmenu]: Add
+	"Delim-separated list" to "Common elements" section.
+	(Common elements): Add "Delim-separated list" to menu.
+	(State option): Add xref to "Delim-separated list".
+	(Delim-separated list): New node/subsection.
+	(rcs, rlog): Add pxref to "Delim-separated list".
+
+2018-04-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Drop gnulib module ‘opendir’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Delete ‘opendir’.
+
+2018-04-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘scandir’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘scandir’.
+
+2018-04-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘xalloc-die’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘xalloc-die’.
+
+2018-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Sprinkle w/ cindex entries.
+
+	* doc/rcs.texi (Date option, Description option)
+	(Substitution mode option, Misc common options)
+	(ci, co, rcs, rcsmerge): ...here, mostly for options.
+
+2018-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Add some xrefs.
+
+	* doc/rcs.texi (ci, co): ...here, all to ‘Misc common opotions’.
+
+2018-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Centralize and expand ‘-sSTATE’ description.
+
+	* doc/rcs.texi (Top) [detailmenu]: Add "State option"
+	to "Common elements" section.
+	(Common elements): Add "State option" to menu.
+	(State option): New node/subsection.
+	(Misc common options): Remove ‘-s’ from intro blurb, list.
+	(ci, co, rcs, rlog): Update ‘-s’ descriptions, xref.
+
+2018-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Rewrite description of date-only time formats.
+
+	* doc/rcs.texi (Date option): Convert table to multitable;
+	add column for example; factor year description into intro
+	blurb; use more descriptive metavar names; mention ‘w’.
+
+2018-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Improve RCS file particulars.
+
+	* doc/rcs.texi (comma-v particulars): Say "@code{string} value";
+	add cindex for string particulars; rewrite string description;
+	add table of string examples; move example node numbers into
+	@example blocks; add a paragraph break.
+
+2018-04-19  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Use @t for @table items.
+
+	This saves two columns over @code in Info format output.
+
+	* doc/rcs.texi (Concepts, Revision options, Date option)
+	(Substitution mode option, Misc common options, ci, co, ident)
+	(merge, rcs, rcsclean, rcsdiff, rcsmerge, rlog): ...here.
+
+2018-04-19  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Mention ‘ci -k’ is not like other commands' ‘-k’.
+
+	* doc/rcs.texi (ci): Mention ‘-k’ as "do not confuse".
+
+2018-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Centralize and expand ‘-M[REV]’ description.
+
+	* doc/rcs.texi (Top) [detailmenu]: Add
+	"Working file mtime option" to "Common elements" section.
+	(Common elements): Add "Working file mtime option" to menu.
+	(minus-M): New node.
+	(ci, co): Convert ‘-M’ description to xref to ‘minus-M’.
+	(rcs): Mention ‘minus-M’ as "do not confuse".
+
+2018-04-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Add @group around example section.
+
+	* doc/rcs.texi (Concepts) [RCS file]: ...here,
+	for 2nd bunch of three lines in @example block.
+
+2018-04-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Reduce height of delta diagram.
+
+	* doc/rcs.texi (comma-v particulars):
+	Remove one row from between each "level" of entity,
+	reducing its overall height from 34 to 30 lines.
+
+2018-04-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Fix bug: Sync detailmenu.
+
+	Omission from 2010-11-14, "Factor ‘-m’ description".
+
+	* doc/rcs.texi (detailmenu):
+	Add "Log message option"
+	to "Common elements" section.
+
+2018-04-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Add warning about using ‘rcs log’ w/ CVS.
+
+	* doc/rcs.texi (comma-v particulars): ...here,
+	along w/ a command to determine ‘cvs log’ requirement.
+
+2018-04-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘gettime’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘gettime’.
+
+2018-04-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Fix bug 52288: Make ‘-T’ support subsecond resolution.
+
+	Thanks to both sergio and Xose Vazquez Perez
+	for reporting this problem.  See also:
+	- 2018-04-05, [v] Avoid "test FILE1 -nt FILE2".
+	- 2018-04-05, [v] Add support for "btdt mtimecmp FILE1 FILE2".
+	- <https://savannah.gnu.org/bugs/index.php?52288>
+	- <http://lists.gnu.org/archive/html/bug-rcs/2017-10/msg00002.html>
+	- <http://lists.gnu.org/archive/html/bug-rcs/2016-07/msg00000.html>
+
+	* doc/rcs.texi (Top): Add "Stamp resolution" to menu.
+	(Misc common options): Add xref to "Stamp resolution".
+	(Hacking): Pluralize "aspect";
+	add "Stamp resolution" to menu.
+	(Stamp resolution): New node.
+
+2018-04-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Add cindex entry and xrefs for ‘-T’.
+
+	* doc/rcs.texi (Misc common options): For ‘-T’, add
+	@cindex and @pxref commands to ci, co, rcs, rcsclean.
+
+2018-04-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘timespec’.
+
+	This addresses the omission from 2018-03-31,
+	"Add abstraction: unspecified_timespec".
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘timespec’.
+
+2017-10-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘utimens’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘utimens’.
+
+2017-10-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘stat-time’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘stat-time’.
+
+2016-11-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[boot int] Precisely delete files backed-up by ‘gnulib-tool --copy-file’.
+
+	* autogen.sh (actually): Do ‘rm -f’ here...
+	<top-level>: ...instead of here.
+
+2016-10-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Mention hyphens w/ ‘rlog -zZONE’.
+
+	* doc/rcs.texi (rlog): ...as opposed
+	to slashes, here, in the options table.
+
+2016-10-16  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Use gnulib module ‘memchr’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘memchr’.
+
+2016-10-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Fix typo: Spell "responsible" correctly.
+
+	* doc/rcs.texi (Credits): ...here.
+
+2016-10-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Say "standard output" instead of "stdout".
+
+	* doc/rcs.texi (co, merge, rcsmerge): ...here.
+
+2016-10-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Fix bug: Add space between merge option ‘-L’ and its arg.
+
+	* doc/rcs.texi (merge): ...here.
+
+2015-02-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[slog] Consult USER before LOGNAME if latter is configure-time readonly.
+
+	* configure.ac (rcs_cv_LOGNAME_ro): New AC_CACHE_CHECK.
+	(USER_OVER_LOGNAME): New RCS_CBOOL.
+	* doc/rcs.texi (Environment): Mention possible order
+	inversion of env var checks in footnote; remove paren pair.
+
+2015-01-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build slog] Avoid "date -r".
+
+	Apparently, "date -r" is not POSIX.  Reported by Michael Felt:
+	<http://lists.gnu.org/archive/html/bug-rcs/2015-01/msg00006.html>.
+
+	* configure.ac (rcs_cv_sane_mmap) [AIX]: Don't compare
+	file timestamp before and after the mmap operation; instead,
+	create two files in determined temporal order and check that
+	the mmap operation does not change that order.
+
+2015-01-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Release: 5.9.4
+
+2015-01-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Index some more branch-related concepts.
+
+	* doc/rcs.texi (Concepts, Revision options, rcs):
+	Add @cindex entries re default branch, tip, and the like.
+
+2015-01-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Reorganize introspective stuff into new chapter.
+
+	* doc/rcs.texi (Top): Remove "File format", "Still missing"
+	and "Reporting bugs" from menu; add "Hacking" in their place;
+	Add appropriate entries to the detailmenu.
+	(Hacking): New node/chapter.
+	(File format): Demote to section of "Hacking"; update footnote.
+	(comma-v grammar, comma-v particulars): Demote to subsection.
+	(Still missing, Reporting bugs): Demote to section of "Hacking".
+
+2015-01-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Index implicit checkout.
+
+	* doc/rcs.texi (Quick tour): Add two @cindex.
+	(ci): Likewise, one for ‘ci -l’, one for ‘ci -u’.
+
+2015-01-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Index keywords.
+
+	* doc/rcs.texi (Substitution mode option):
+	...here, in the keywords table, via @vindex.
+
+2015-01-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Move @cindex before @item.
+
+	* doc/rcs.texi (Substitution mode option, Misc common options):
+	...here, in table of subst modes and common options, respectively.
+
+2015-01-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Index locking concepts, operations.
+
+	* doc/rcs.texi (Concepts, Quick tour, ci, rcs):
+	Add @cindex for various locks/locking-related topics.
+
+2015-01-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Index ‘frob -o’ more.
+
+	* doc/rcs.texi (rcs): Use "delete" in ‘-o’ explanation,
+	reducing "outdate" to aka status; add @cindex for "deleting",
+	"removing" and "outdating".
+
+2015-01-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Use @r in examples.
+
+	* doc/rcs.texi (Quick tour, Common elements, Environment): ...here.
+
+2015-01-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[boot] Invoke autoreconf(1) w/ option ‘--force’.
+
+	* autogen.sh: ...here.
+
+2014-10-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[dist] Don't distribute HACKING.
+
+	Omission from 2013-04-02, "Don't bother w/ README-alpha any more".
+	This was vestigial support for the "X.Y.Z → alpha" versioning
+	scheme.  Starting w/ 5.8.2, we use MAJOR.MINOR.PATCH.
+
+	* Makefile.am (dist-hook) Don't check
+	$(PACKAGE_VERSION) or distribute HACKING.
+
+2014-09-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Release: 5.9.3
+
+2014-09-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[int] Use gnulib module ‘xalloc’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘xalloc’.
+
+2014-09-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[int] Use gnulib module ‘exitfail’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘exitfail’.
+
+2014-09-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Use gnulib module ‘close’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘close’.
+
+2014-08-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Use gnulib module to declare non-NULL args.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘snippet/arg-nonnull’.
+
+2014-08-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Drop compatibility w/ RCS 2.x file format.
+
+	* doc/rcs.texi (Concepts): Drop compatibility note.
+	* configure.ac (compat2): Delete this AC_ARG_ENABLE.
+	(COMPAT2): Delete this RCS_CBOOL.
+
+2014-08-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Fix typo: Spell "expansion" correctly.
+
+	* doc/rcs.texi (Misc common options): ...here.
+
+2014-08-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘vla’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘vla’.
+
+2014-08-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘vararrays’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘vararrays’.
+	* configure.ac (rcs_cv_arsz_func_parm, ARSZ_FN_PARM_OK): Delete.
+
+2014-08-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Fix bug: Formulate ‘static’ check correctly.
+
+	* configure.ac (rcs_cv_arsz_func_parm): Move func defs
+	from ‘AC_LANG_PROGRAM’ BODY to PROLOGUE; add BODY.
+	Reported by Paul Eggert -- same thread.
+
+2014-08-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Make ‘static’ check more likely to trigger lossage.
+
+	Suggested by Paul Eggert:
+	<http://lists.gnu.org/archive/html/bug-gnulib/2014-08/msg00014.html>
+
+	* configure.ac (rcs_cv_arsz_func_parm): Add C func ‘last1’.
+
+2014-08-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Check if compiler handles ‘static’ in array-size func parm.
+
+	* configure.ac <checks for compiler characteristics>: New section.
+	(rcs_cv_arsz_func_parm): New var to record check for
+	proper compilation of ‘static’ in array-size func parm.
+	(ARSZ_FN_PARM_OK): New RCS_CBOOL.
+
+2014-08-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Add diff(1)/diff3(1) support for cross-compiling.
+
+	Prompted by:
+	<http://lists.gnu.org/archive/html/help-rcs/2013-06/msg00000.html>
+
+	* configure.ac (RCS_SET_MAYBE): New AC_DEFUN.
+	(rcs_cv_sane_DIFF, rcs_cv_status_diff_success)
+	(rcs_cv_status_diff_failure, rcs_cv_status_diff_trouble)
+	(rcs_cv_options_diff, rcs_cv_options_diff_l):
+	When cross-compiling, if ‘DIFF’ is set, assign optimistic values
+	to these vars, thereby arranging to effectively skip their tests.
+	(rcs_cv_sane_diff3): Likewise for ‘DIFF3’.
+
+2013-11-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Release: 5.9.2
+
+	* build-aux/extract-help (version): Bump to "1.5".
+
+2013-10-21  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Fix bug: Avoid possibly failing commands in backticks.
+
+	Reported by Dagobert Michelsen:
+	<http://lists.gnu.org/archive/html/bug-rcs/2013-10/msg00000.html>.
+
+	* build-aux/extract-help: For ‘#include "b-yacmd.h"’ generation,
+	rewrite test to use list control operator ‘||’ directly.
+	Suggested by Paul Eggert:
+	<http://lists.gnu.org/archive/html/bug-rcs/2013-06/msg00006.html>.
+
+2013-10-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Fix bug: Bump extract-help version number.
+
+	Omission from previous releases.
+
+	* build-aux/extract-help (version): Bump to "1.4".
+
+2013-10-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Relax RCS_MEM_LIMIT default; fall back if unspecified.
+
+	* doc/rcs.texi (Environment): Update ‘RCS_MEM_LIMIT’ description;
+	add a willful ignorance hint and speculation on its removal.
+
+2013-10-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Fix typo: Spell "compatib..." correctly!
+
+	Reported by Romain Francoise.
+
+	* doc/rcs.texi: Do ‘s/compatab/compatib/g’.
+	* man/ident.1in: Likewise.
+
+2013-10-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Release: 5.9.1
+
+2013-09-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Fix bug: Avoid backslash in backticks.
+
+	* build-aux/extract-help (vprefix): ...here.
+	Suggested by Paul Eggert.
+
+2013-09-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Look for ed(1) unconditionally.
+
+	This reverts 2011-06-10, "Don't look for ed(1) if diff3(1)
+	is sane enough" for the sake of an upcoming change.
+
+	* configure.ac (ED): Set shell var and do
+	‘RCS_ABSOLUTE_PROGRAM’ regardless of diff3(1) sanity.
+
+2013-06-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Explcitly "exit 0" in extract-help script.
+
+	Reported by Jörn Clausen:
+	<http://lists.gnu.org/archive/html/bug-rcs/2013-06/msg00000.html>.
+
+	* build-aux/extract-help: ...here.
+
+2013-05-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Avoid "grep -q" in extract-help script.
+
+	Reported by Jörn Clausen:
+	<http://lists.gnu.org/archive/html/bug-rcs/2013-05/msg00001.html>.
+
+	* build-aux/extract-help: Don't use "! grep -q ...";
+	instead, use "test 0 = `grep -c ...`".
+
+2013-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Release: 5.9.0
+
+2013-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Document the effects of -V5, -V4, -V3.
+
+	* doc/rcs.texi (Misc common options): ...here, for ‘-VN’.
+
+2013-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘readdir’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘readdir’.
+
+2013-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Use ‘AS_IF’ more.
+
+	* configure.ac (rcs_cv_wac_ok, rcs_cv_rename_mw):
+	...here, instead of ‘if’ .. ‘fi’.
+
+2013-05-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Add support for cross-compilation.
+
+	Prompted by:
+	<http://lists.gnu.org/archive/html/help-rcs/2013-04/msg00007.html>
+
+	* configure.ac (rcs_cv_tinyinit_ok, rcs_cv_fopen_truncates)
+	(rcs_cv_wac_ok, rcs_cv_unlink_mw_ok, rcs_cv_rename_mw)
+	(rcs_cv_sane_mmap, rcs_cv_mmap_signal, rcs_cv_tolerant_wait):
+	Arrange to use "pessimistic defaults" when cross-compiling.
+
+2013-05-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Decruft: Don't bother w/ AC_TYPE_{OFF,SSIZE}_T.
+
+	These are handled by gnulib module ‘stdio’.
+
+	* configure.ac (AC_TYPE_OFF_T, AC_TYPE_SSIZE_T): Delete calls.
+
+2013-05-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Decruft: Don't bother w/ AC_TYPE_{MODE,PID}_T.
+
+	These are handled by gnulib module ‘fcntl-h’.
+
+	* configure.ac (AC_TYPE_MODE_T, AC_TYPE_PID_T):	Delete calls.
+
+2013-05-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Use ‘build_os’ for sane-mmap(2) check.
+
+	* configure.ac (rcs_cv_sane_mmap): ...here,
+	testing against ‘*-aix* | aix*’ with ‘AS_CASE’.
+
+2013-05-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Regularize some ‘AC_RUN_IFELSE’ cache var usage.
+
+	* configure.ac (rcs_cv_tinyinit_ok): Use temp var ‘res’
+	in the the ‘AC_RUN_IFELSE’ form as well as in the body
+	of the surrounding ‘AC_CACHE_CHECK’ form; copy its value
+	to ‘rcs_cv_tinyinit_ok’ when done.
+	(rcs_cv_rename_mw, rcs_cv_sane_mmap): Likewise.
+
+2013-05-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build int] Presume availability of ‘ftruncate’.
+
+	* configure.ac (AC_CHECK_FUNCS_ONCE): Remove ‘ftruncate’.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove ‘ac_cv_func_ftruncate’.
+
+2013-05-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘ftruncate’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘ftruncate’.
+
+2013-05-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘unlink’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘unlink’.
+
+2013-05-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘signal-h’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘signal-h’.
+
+2013-05-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘sys_types’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘sys_types’.
+
+2013-05-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Suggest "frob" as the legacy interface command name.
+
+	* doc/rcs.texi (rcs): ...here.
+
+2013-05-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[build] Use gnulib module ‘mempcpy’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘mempcpy’.
+
+2013-05-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Warn that option ‘-V’ is obsolete.
+
+	* doc/rcs.texi (Misc common options):
+	Add blurb about ‘-V’ and its future support.
+
+2013-05-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Create .lz and .xz tarballs, not .gz, for "make dist".
+
+	* configure.ac (AM_INIT_AUTOMAKE): Add
+	options ‘no-dist-gzip’, ‘dist-lzip’, ‘dist-xz’.
+
+2013-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Add "rcs --aliases".
+
+	* doc/rcs.texi (rcs) <modern>: Update table
+	for entry ‘--commands’; add entry ‘--aliases’.
+
+2013-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Internalize some RCS commands; make rcs(1) dispatch to them.
+
+	* build-aux/extract-help: If the input does not use ‘CHECK_HV’
+	with a literal string, arrange to #include "b-yacmd.h".
+	* doc/rcs.texi (dispatchusage): New macro.
+	(ci, co, rcsclean, rcsdiff, rcsmerge, rlog): Use ‘@dispatchusage’.
+	(rcs): Likewise.  Also, add two subsections for "modern"
+	and "legacy" usage, and blurb + table for the modern options.
+
+2013-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Use ‘@dots{}’ more.
+
+	* doc/rcs.texi (ci, co, ident, merge, rcs, rcsclean)
+	(rcsdiff, rlog): ...here, in ‘@usage’ 2nd arg.
+
+2013-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Include one-line description in ‘--help’ output.
+
+	* build-aux/extract-help: Also extract/format
+	first line of PROGRAM.c input file, as ‘PROGRAM_blurb’.
+
+2013-04-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Use "texi2dvi -E".
+
+	* doc/Makefile.am (TEXI2DVI): New var.
+
+2013-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Use double-hyphen in copyright notice.
+
+	* doc/rcs.texi <copying>: ...here.
+
+2013-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc int] Include ref in macro ‘noVN’.
+
+	* doc/rcs.texi (noVN): Include @pxref in macro.
+	(ident, merge): Update context of ‘noVN’ calls.
+
+2013-04-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	co: Add option ‘-S’ to enable "self-same" mode.
+
+	* doc/rcs.texi (co): Add entry for ‘-S’ in table of options.
+
+2013-04-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	ident: Recognize Subversion "fixed-width keyword syntax".
+
+	* doc/rcs.texi (ident): Add blurb, footnote and link to
+	describe support for Subversion "fixed-width keyword syntax".
+
+2013-04-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Fix bug: Document rcsmerge options ‘-A’, ‘-E’, ‘-e’.
+
+	Reported by Honza Horak.
+
+	* doc/rcs.texi (rcsmerge): ...here.
+
+2013-04-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Mention ineffectual options more prominently.
+
+	* rcs.texi (Environment): Add macro ‘ineffectual’.
+	(rcs): Move ‘-zZONE’ from table to ‘ineffectual’ call.
+	(rcsdiff): Add ‘ineffectual’ call for ‘-T’.
+	(rcsmerge): Likewise.
+	(rlog): Likewise; move ‘-q’ from table to join it.
+
+2013-04-04  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Release: 5.8.2
+
+2013-04-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[dist] Don't bother w/ README-alpha any more.
+
+	* configure.ac (AM_INIT_AUTOMAKE): Remove ‘readme-alpha’.
+	* README-alpha: Delete file.
+
+2013-03-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Fix bug: Define syntax for ‘integrity’ value.
+
+	* doc/rcs.texi (comma-v grammar): Change production ‘admin’
+	clause ‘integrity’ value to use ‘intstring’ instead of ‘string’;
+	add productions ‘intchar’, ‘thirdp’, ‘intstring’.
+	(comma-v particulars): Explain past changes and current
+	state of third-party interop space, wrt the file format.
+
+2013-03-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[doc] Add chapter describing the comma-v file format.
+
+	* doc/rcs.texi (UCS): New macro.
+	(Top): Add "File format" to menu.
+	(File format): New node/chapter.
+	(comma-v grammar): New node/section.
+	(comma-v particulars): New node/section.
+
+2013-03-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[boot int] Bump Automake min vers to 1.12.2; specify ‘serial-tests’.
+
+	* configure.ac (AM_INIT_AUTOMAKE): ...here.
+
+2013-03-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	[boot int] Don't get build-aux/missing from gnulib.
+
+	Gnulib no longer has ‘missing’ as of late June 2012:
+	<http://git.savannah.gnu.org/cgit/gnulib.git/commit/?id=d0f486f0>.
+
+	* autogen.sh (build-aux/missing): Delete ‘actually’.
+
+2012-06-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Release: 5.8.1
+
+2012-05-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Say "checked in" instead of "commited" (sic).
+
+	The former is more consistent with RCS terminology.
+	The latter is a spelling error, anyway.
+	Reported by Romain Francoise.
+
+	* doc/rcs.texi (rlog): Say "checked in" in ‘-w’ description.
+
+2012-01-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Add configure option ‘--enable-coverage’.
+
+	* configure.ac (coverage): New AC_ARG_ENABLE.
+	(enable_coverage): Disable if GCC not detected.
+	(CFLAGS) [enable_coverage]: Add ‘--coverage’.
+	(USE_NORMAL_EXIT): New RCS_CBOOL.
+
+2012-01-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Invoke diff(1) with ‘--label’ instead of ‘-L’.
+
+	GNU diff(1) support for ‘-L’ is transient.  Reported by Paul Eggert:
+	<http://lists.gnu.org/archive/html/bug-rcs/2012-01/msg00007.html>.
+
+	* configure.ac (rcs_cv_options_diff_l):
+	Check ‘diff --label’ instead of ‘diff -L’.
+
+2012-01-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Explicitly declare UTF-8 correctly.
+
+	This is what 2011-12-27, "Explicitly declare UTF-8" failed to do.
+
+	* doc/rcs.texi <header>: Move ‘@documentencoding’
+	after ‘@setfilename’; say ‘UTF-8’ instead of ‘utf-8’.
+
+2012-01-01  Karl Berry  <karl@freefriends.org>  (tiny change)
+
+	[doc] Expand "related projects" blurb; correct misunderstanding.
+
+	* doc/rcs.texi (Overview): Replace CVS plug with paragraph
+	mentioning Bazaar, CVS, Subversion and Git; include URL
+	for Bazaar; don't say "GNU CVS" since CVS is not GNU.
+
+2011-12-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘getopt-gnu’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘getopt-gnu’.
+
+2011-12-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Explicitly declare UTF-8.
+
+	* doc/rcs.texi <header>: Add ‘@documentencoding utf-8’.
+
+2011-10-30  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Decruft: Don't mention ucontext.h author.
+
+	Omission from 2011-06-14, "Separate ISR
+	scratch and alt sig stack allocations".
+
+	* doc/rcs.texi (Credits): Don't mention ucontext.h author.
+
+2011-10-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[boot int] Require INFILE for extract-help.
+
+	* build-aux/extract-help: Fail if INFILE
+	not specified; don't bother with ‘exec 0<"$in"’.
+
+2011-10-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[boot int] Tee "gnulib utility" from gnulib-tool output.
+
+	* autogen.sh: Pipe gnulib-tool output through a sed script
+	that "tee"s the module list to file .gnulib-utility.
+
+2011-10-19  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘fcntl-h’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘fcntl-h’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘stat’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘stat’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘ssize_t’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘ssize_t’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘open’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘open’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] Use gnulib to implement ‘exiting’ func attribute.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘snippet/_Noreturn’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘snprintf’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘snprintf’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] Decruft: Remove obsolete handling for broken ‘printf %.2d’.
+
+	* configure.ac (rcs_cv_dot2_ok): Delete AC_CACHE_CHECK.
+	(PRINTF_DOT2_OK): Delete AC_DEFINE_UNQUOTED.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove ‘rcs_cv_dot2_ok’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘sprintf-posix’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘sprintf-posix’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘opendir’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘opendir’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘fstat’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘fstat’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘closedir’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘closedir’.
+
+2011-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib for large file support.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘largefile’.
+	* configure.ac (AC_SYS_LARGEFILE): Delete macro call.
+
+2011-10-14  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Make extract-help fail noisily.
+
+	* build-aux/extract-help: Add ‘set -e’.
+
+2011-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Use program-specific variable name for extracted help.
+
+	* build-aux/extract-help: If an input file is specified,
+	use its stem to construct a C variable name "STEM_help".
+
+2011-09-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Make sure all macro calls use {}.
+
+	Apparently, in PDF output, unlike Info output, the macro
+	expansion abuts the following text unless there is {}.
+
+	* rcs.texi: Throughout, say ‘@repo{}’, not ‘@repo’.
+
+2011-09-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Rename sections for command FOO to "Invoking FOO".
+
+	Per GNU Coding Standards (info "(standards) Manual Structure Details").
+
+	* doc/rcs.texi (ci, co, ident, merge, rcs, rcsclean)
+	(rcsdiff, rcsmerge, rlog): Prefix section name w/ "Invoking ".
+
+2011-09-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘progname’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘progname’.
+
+2011-09-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Do weird system check/warning unconditionally.
+
+	* configure.ac (warn_weird_p): New var;
+	use its value to gate "presumably standard" check.
+
+2011-08-30  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Release: 5.8
+
+2011-08-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] No longer require ‘RCS_PRETEST’ for configure.
+
+	* configure.ac (RCS_PRETEST): Delete AC_ARG_VAR and related check.
+
+2011-07-14  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] Simplify gnulib-tool(1) invocation.
+
+	* autogen.sh: Simply do "gnulib-tool --update"; don't
+	bother w/ detecting a case for "gnulib-tool --add-import".
+
+2011-07-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Work around compilers that omit '\0' from tinysym init.
+
+	* configure.ac (rcs_cv_tinyinit_ok): New AC_CACHE_CHECK.
+	(TINY_INIT_NEEDS_EXPLICIT_NUL): New RCS_BOOL.
+
+2011-06-14  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Separate ISR scratch and alt sig stack allocations.
+
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove ucontext.h.
+	(NEED_WOE_UCONTEXT_H): Delete RCS_CBOOL.
+
+2011-06-11  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] Enable conditional dependencies for gnulib.
+
+	* autogen.sh: Specify ‘--conditional-dependencies’ to gnulib-tool.
+	* m4/gnulib-cache.m4 (gl_CONDITIONAL_DEPENDENCIES): New macro call.
+	(gl_WITNESS_C_DOMAIN): Likewise.
+
+2011-06-10  Thien-Thi Nguyen  <ttn@ambire>
+
+	[build int] Don't look for ed(1) if diff3(1) is sane enough.
+
+	* configure.ac (ED): Conditionalize: Set shell var and do
+	‘RCS_ABSOLUTE_PROGRAM’ only if diff3 is not sane enough.
+
+2011-02-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Fix bug: Distribute doc/fdl.texi, too!
+
+	Omission from 2010-03-09, "Add texinfo manual".
+
+	* doc/Makefile.am (rcs_TEXINFOS): New var.
+
+2011-02-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Document rcsclean(1) invoked w/o file specified.
+
+	* doc/rcs.texi (rcsclean): In usage line, make ‘file ...’
+	optional; briefly describe operation when no file specified.
+
+2011-01-22  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Document ‘YYYY-DDD’ and ‘YYYY-wWW-D’.
+
+	* doc/rcs.texi (Date option): Document support
+	for ‘YYYY-DDD’ and ‘YYYY-wWW-D’ date-only formats.
+
+2011-01-14  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Fix bug: Mention Panagiotis E. Hadjidoukas.
+
+	Omission from 2011-01-11, "Use bundled woe/ucontext.h for cygwin."
+
+	* doc/rcs.texi (Credits): Mention embedded
+	library written by Panagiotis E. Hadjidoukas.
+
+2011-01-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Consider ‘EXEEXT’ when searching for peer programs.
+
+	* configure.ac: If shell var ‘EXEEXT’ is non-empty,
+	‘AC_DEFINE_UNQUOTED’ C #define ‘EXEEXT’, with its string value.
+
+2011-01-11  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use bundled woe/ucontext.h for cygwin.
+
+	* configure.ac (NEED_WOE_UCONTEXT_H): New ‘RCS_CBOOL’.
+	* AUTHORS: Add Panagiotis E. Hadjidoukas.
+
+2011-01-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Make pic(1) configurable via configure arg var.
+
+	* configure.ac (PIC): New AC_ARG_VAR.
+	(PIC): Conditionalize this AC_CHECK_PROGS on
+	empty arg var ‘PIC’; add proper m4-quoting.
+
+2011-01-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Decruft: Don't generate unused .version file.
+
+	* Makefile.am (BUILT_SOURCES): Delete var.
+	($(top_srcdir)/.version): Delete target.
+
+2011-01-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Enable "intra-version strings".
+
+	* Makefile.am (BUILT_SOURCES): New var.
+	($(top_srcdir)/.version): New target.
+	(dist-hook): Also write version to
+	build-aux/.version in $(distdir).
+	* configure.ac (AC_INIT): Don't hardcode package
+	version; instead, run git-version-gen to compute it.
+	(AM_INIT_AUTOMAKE): Remove option ‘gnits’.
+
+2011-01-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘git-version-gen’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘git-version-gen’.
+
+2011-01-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Make soelim(1) user-configurable.
+
+	* configure.ac (SOELIM): New AC_ARG_VAR.
+	(SOELIM): New AC_CHECK_PROGS, conditionalized on the AC_ARG_VAR.
+
+2010-11-14  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Factor ‘-m’ description.
+
+	* doc/rcs.texi (Common elements):
+	Add "Log message option" to menu.
+	(Log message option): New node/subsection.
+	(ci, rcs): Add xref to "Log message option".
+
+2010-11-14  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Place rcs.texi in dir category "Version control".
+
+	* doc/rcs.texi (@dircategory): Use "Version control".
+	Suggested by Karl Berry.
+
+2010-11-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	ci, rcs: Make MSG in ‘-m...MSG’ optional.
+
+	* doc/rcs.texi (ci, rcs): Update ‘-m’ description.
+	Suggested by Keith Thompson.
+
+2010-11-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Expand on required MSG in ‘ci -mMSG’.
+
+	* doc/rcs.texi (ci): Explain that MSG is required;
+	describe error if omitted; add small rationale.
+
+2010-11-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Fix typo: Mention rcsdiff ‘-B’ once only.
+
+	* doc/rcs.texi (rcsdiff): Mention ‘-B’ once only.
+	Reported by Keith Thompson.
+
+2010-11-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Exclude mmap from "presumably standard" check.
+
+	Omission from 2010-10-13, "Add configure option ‘--disable-mmap’".
+	* configure.ac (rcs_mmap_ok): Delete var.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove ‘rcs_mmap_ok’.
+
+2010-10-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘tzset’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘tzset’.
+
+2010-10-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Add configure option: --enable-suid[=setreuid]
+
+	* configure.ac (suid): New AC_ARG_ENABLE.
+	(AC_CHECK_FUNCS_ONCE): Move ‘getuid’, ‘seteuid’, ‘setuid’
+	from here to AC_CHECK_FUNCS, conditionalized on ‘enable_suid’;
+	also, if ‘enable_suid’ is ‘setreuid’, check for ‘setreuid’.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove ‘ac_cv_func_getuid’.
+
+2010-10-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] New abstraction: RCS_NORM
+
+	* configure.ac (RCS_NORM): New AC_DEFUN.
+	(RCS_ALL): Use ‘RCS_NORM’.
+	[DIFF_MAYBE loop expansion]: Likewise.
+	[might be unsupported var expansion]: Likewise.
+
+2010-10-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Do "sane diff" configure check for all candidates.
+
+	Omission from 2010-03-07, "Move all DIFF*
+	config to configure.in; assume diffutils".
+	* configure.ac (sane_diff): New shell var.
+	(RCS_CHECK_DIFF, DIFF_CLASS): New AC_DEFUNs.
+	Use ‘RCS_CHECK_DIFF’ for both user-supplied program via env
+	var ‘DIFF’ as well as candidates from ‘DIFF_MAYBE’ in a loop,
+	stopping when a sane diff program is found.
+
+2010-10-15  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Don't bother with ‘psignal’.
+
+	* configure.ac (AC_CHECK_FUNCS_ONCE): Remove ‘psignal’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Add configure option ‘--disable-mmap’.
+
+	* configure.ac (mmap): New AC_ARG_ENABLE to
+	set shell var ‘use_mmap’, defaulting to ‘yes’.
+	(AC_CHECK_HEADERS_ONCE): Move sys/mman.h from here
+	to ‘AC_CHECK_HEADERS’, conditionalized on ‘use_mmap’.
+	(AC_CHECK_FUNCS_ONCE): Move ‘madvise’, ‘mmap’ from here
+	to ‘AC_CHECK_FUNCS’, conditionalized on ‘use_mmap’.
+	(rcs_cv_sane_mmap, rcs_cv_mmap_signal): Add ‘use_mmap’
+	to surrounding condition; use ‘AS_IF’ there and internally.
+	(MMAP_SIGNAL): If ‘rcs_cv_mmap_signal’ is not set, use ‘0’.
+	(rcs_mmap_ok): New shell var.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW):
+	Remove ‘rcs_cv_sane_mmap’; add ‘rcs_mmap_ok’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Tidy up configure.ac a bit.
+
+	* configure.ac (AC_CHECK_FUNCS_ONCE): Remove ‘getcwd’,
+	‘mkstemp’, ‘sigaction’, ‘sigblock’, ‘strsignal’, ‘waitpid’.
+	(SIG_ZAPS_HANDLER): Delete RCS_CBOOL, associated
+	var ‘rcs_cv_sig_zaps’, and the check that sets it.
+	(rcs_slsl_is_sl, rcs_cv_slsl_is_sl): Delete unused vars.
+	(rcs_have_psignal_or_strsignal): Likewise.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove ‘ac_cv_func_getcwd’,
+	‘ac_cv_func_mkstemp’, ‘ac_cv_func_readlink’, ‘rcs_slsl_is_sl’,
+	‘rcs_have_psignal_or_strsignal’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Drop gnulib module ‘sig2str’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Remove ‘sig2str’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘strsignal’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘strsignal’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘sigaction’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘sigaction’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘getlogin_r’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘getlogin_r’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Use ‘getpwuid_r’, not ‘getpwuid’.
+
+	* configure.ac (AC_CHECK_FUNCS_ONCE):
+	Remove ‘getpwuid’; add ‘getpwuid_r’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Document author-specification option, env vars.
+
+	* doc/rcs.texi (Misc common options): Document ‘-wLOGIN’.
+	(Environment): Document env vars ‘LOGNAME’, ‘USER’.
+
+2010-10-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use autoconf macro to enable 64-bit file offsets.
+
+	* configure.ac (AC_SYS_LARGEFILE): New macro invocation.
+
+2010-10-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Simplify stream/fd sync; avoid ‘fflush’ on input.
+
+	* configure.ac (CAN_FFLUSH_IN): Delete RCS_CBOOL
+	and associated var ‘rcs_cv_flush_in_ok’.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove ‘rcs_cv_flush_in_ok’.
+
+2010-10-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘waitpid’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘waitpid’.
+
+2010-10-11  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘getcwd’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘getcwd’.
+
+2010-10-11  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘mkstemp’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘mkstemp’.
+
+2010-10-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Document env vars that specify dir for temp files.
+
+	* doc/rcs.texi (Environment): Use @defvr;
+	document env vars ‘TMPDIR’, ‘TMP’, ‘TEMP’.
+
+2010-10-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Fix bug: Look for and use <siginfo.h>.
+
+	Regression introduced 2010-04-03, "Ignore <siginfo.h>".
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Add siginfo.h.
+
+2010-10-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Fix bug: Take empty ‘ac_cv_prog_cc_c99’ as "C99-capable".
+
+	* configure.ac (ac_cv_prog_cc_c99):
+	If empty, skip ‘RCS_MUSTHAVE’ check.
+
+2010-10-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Fix bug: Look for and use <ucontext.h>.
+
+	Regression introduced 2010-04-03, "Ignore unused <ucontext.h>".
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Add ucontext.h.
+
+2010-10-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘findprog’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘findprog’.
+
+2010-10-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[maint] Get fdl.texi from gnulib.
+
+	* autogen.sh (doc/fdl.texi): New ‘actually’.
+	* doc/fdl.texi: Delete file.
+
+2010-10-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Make configure script test program more portable.
+
+	* configure.ac (BAD_CREAT0): Remove superfluous
+	parentheses for ‘defined foo’ cpp conditional construct.
+
+2010-10-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[maint] Ensure latest INSTALL, build-aux/* files.
+
+	* autogen.sh: No longer support "autoreconf --force".
+	(actually): New shell func; use it to override INSTALL,
+	and several files in build-aux/: config.guess, config.sub,
+	install-sh, missing, mdate-sh, texinfo.tex, depcomp;
+	delete resulting backup files.
+	Suggested by Karl Berry.
+
+2010-10-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[v] Overhaul test suite.
+
+	* configure.ac (AC_CONFIG_FILES): Add
+	tests/known-failures; make it executable.
+
+2010-10-04  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[v] Use Automake for generating top-level test driver.
+
+	* configure.ac (AC_CONFIG_FILES): Remove tests/common.
+
+2010-10-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[maint] Let the configure script instantiate rcsfreeze.
+
+	* configure.ac (AC_CONFIG_FILES): Add src/rcsfreeze.
+
+2010-09-30  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[maint] Do "gnulib-tool --add-import" for bootstrap.
+
+	* autogen.sh: Use command ‘add-import’ instead of ‘import’.
+	This tracks gnulib-tool changes starting 2010-09-04.
+	Reported by Paul Eggert.
+
+2010-09-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[maint] Rename top-level directory v/ to tests/.
+
+	* tests: Rename from v.
+	* Makefile.am (SUBDIRS): Delete v; add tests.
+	* configure.ac (AC_CONFIG_FILES): Delete v/Makefile,
+	v/common; add tests/Makefile, tests/common.
+
+2010-08-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Don't avoid any gnulib modules.
+
+	* m4/gnulib-cache.m4 (gl_AVOID): Delete ‘wchar’.
+
+2010-08-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Delete redundant texinfo.tex.
+
+	* doc/texinfo.tex: Delete file.
+	Reported by Karl Berry.
+
+2010-07-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘_Exit’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘_Exit’.
+
+2010-06-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Update license to GPLv3+.
+
+	* COPYING: Update to GPLv3.
+	* Makefile.am: Update license notice.
+	* configure.ac: Likewise.
+	* build-aux/extract-help: Likewise.
+	* doc/Makefile.am: Likewise.
+
+2010-06-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Say "RCS file", not "repository file".
+
+	* doc/rcs.texi (repo): Change expansion to "RCS file";
+	throughout, change "a @repo" to "an @repo".
+	(Concepts): Trim redundant explanation, accompanying footnote.
+
+2010-06-22  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Say "repository file", not "repository".
+
+	* doc/rcs.texi (repo): New macro; throughout, use ‘@repo’, ‘@repo{}’.
+
+2010-06-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘time_r’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘time_r’.
+
+2010-06-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Expand on ‘-T’, ‘-x’; move "Still missing" up and back.
+
+	* doc/rcs.texi (Top): Move menu item "Still missing" from main menu
+	to detailed-node menu; rename "Common options" to "Common elements".
+	(Overview): Delete menu item "Still missing".
+	(Concepts): Add footnote on use of term "RCS file".
+	(Quick tour): Add @file markup, branch diagram; other small changes.
+	(Usage): Rename menu item "Common options" to "Common elements".
+	(Common elements): Rename from "Common options".
+	Add some @cindex; expand on ‘-T’, ‘-x’; document directory search.
+	(Still missing): Promote to chapter; move prior to "Reporting bugs";
+	futz w/ wording for some entries; other small changes.
+
+2010-06-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Expand on ‘-I’, ‘-q’, ‘RCSINIT’.
+
+	* doc/rcs.texi (Misc common options): Expand on ‘-I’, ‘-q’.
+	(Environment): Expand on ‘RCSINIT’.
+
+2010-06-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Say "repository", not "RCS file"; expand chapter "Concepts".
+
+	* doc/rcs.texi: Throughout, say "repository" instead of "RCS file".
+	(Concepts): Expand; add quick tour; reorg a bit.
+
+2010-05-25  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Consult env var RCS_MEM_LIMIT to set the memory limit.
+
+	* doc/rcs.texi (Environment): Document ‘RCS_MEM_LIMIT’.
+
+2010-05-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘hash-pjw’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘hash-pjw’.
+
+2010-04-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘obstack-printf’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘obstack-printf’.
+
+2010-04-22  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Say "file name" or "file-name" instead of "filename".
+
+	* doc/rcs.texi (Still missing, Common options, Description)
+	(ci, rcs): Instead of "filename", say "file name" or "file-name".
+
+2010-04-19  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Don't say "path" when referring to file names.
+
+	* doc/rcs.texi (Still missing): Say "filename" or "search path".
+
+2010-04-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module ‘unistd-safer’.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add ‘unistd-safer’.
+
+2010-04-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `readlink'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `readlink'.
+	* configure.ac (AC_CHECK_FUNCS_ONCE): Remove `readlink'.
+
+2010-04-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `obstack'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `obstack'.
+
+2010-04-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Ignore `getwd', `getabsname'.
+
+	* configure.ac (AC_CHECK_FUNCS_ONCE): Remove `getwd'.
+
+2010-04-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `same-inode'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `same-inode'.
+
+2010-04-04  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `sys_wait'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `sys_wait'.
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove sys/wait.h.
+
+2010-04-04  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `fcntl'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `fcntl'.
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove fcntl.h.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Ignore <siginfo.h>.
+
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove siginfo.h.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Ignore unused <ucontext.h>.
+
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove ucontext.h.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Tidy up configure.ac a bit.
+
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove unistd.h.
+	(rcs_cv_wac_ok, rcs_cv_tolerant_wait): Untabify C fragments.
+	(rcs_slsl_is_sl): Rename shell var from `rcs_cv_slsl_is_sl'.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove now-obsolete
+	`ac_cv_header_stdlib_h', `ac_cv_header_string_h'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `dirent'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `dirent'.
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove dirent.h.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Presume `siginfo_t' has member `si_errno'.
+
+	* configure.ac (HAVE_SI_ERRNO): Delete AC_DEFINE,
+	surrounding AC_CHECK_MEMBER, and surrounding condition.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Use gnulib module `sig2str'; push `psignal' cppcond down.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `sig2str'.
+	* configure.ac (AC_CHECK_FUNCS_ONCE):
+	Add `strsignal'; remove `sys_siglist'.
+	(rcs_have_psignal_or_strsignal): New shell var.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove `ac_cv_func_psignal',
+	`ac_cv_func_sys_siglist'; add `rcs_have_psignal_or_strsignal'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `double-slash-root'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `double-slash-root'.
+	* configure.ac (rcs_cv_slsl_is_sl): Convert from
+	AC_CACHE_CHECK to simple comparison conditional assignment.
+	(SLASHSLASH_IS_SLASH): Delete RCS_CBOOL.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move the config header (and template) from src/ to lib/.
+
+	* configure.ac (AC_CONFIG_HEADERS): Rename to lib/config.h.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Remove now-obsolete support for !HAVE_SIGNAL_H.
+
+	* configure.ac (AC_CHECK_HEADERS_ONCE): Remove signal.h.
+	(sig_atomic_t): Remove AC_CHECK_TYPE.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): Remove
+	`ac_cv_header_signal_h', `ac_cv_type_sig_atomic_t'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `sys_stat'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `sys_stat'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `time'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `time'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `stdio'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `stdio'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `stdlib'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `stdlib'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `string'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `string'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `unistd'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `unistd'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `signal'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `signal'.
+
+2010-04-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Include more info in "maybe desupported" warning.
+
+	* configure.ac: For "maybe desupported" warning, also output the
+	name and value of each var in `PRESUMABLY_STANDARD_ENOUGH_BY_NOW'.
+	* README-alpha: Update instructions re this warning.
+
+2010-04-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Remove some now-redundant configure.ac macro calls.
+
+	* configure.ac (AC_PROG_INSTALL, AC_PROG_MAKE_SET): Delete.
+
+2010-04-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move GCC attribute configuration into base.h.
+
+	* configure.ac (RCS_CHECK_GCC_ATTRIBUTE): Delete AC_DEFUN.
+	(noreturn, format): Delete these RCS_CHECK_GCC_ATTRIBUTE calls.
+
+2010-04-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `extensions'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `extensions'.
+
+2010-04-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `stdarg'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `stdarg'.
+	* autogen.sh: Make gnulib-tool invocation select between
+	--update and --import based solely on presence of lib/ and m4/.
+
+2010-04-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `errno'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `errno'.
+
+2010-04-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `stdint'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `stdint'.
+	(gl_AVOID): Add `wchar'.
+	* configure.ac (PRESUMABLY_STANDARD_ENOUGH_BY_NOW):
+	Remove `ac_cv_header_stdlib_h'.
+	* autogen.sh: Add `--avoid wchar' to gnulib-tool invocation.
+
+2010-04-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `stdbool'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `stdbool'.
+
+2010-04-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib module `inline'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `inline'.
+
+2010-04-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use gnulib to define `RCS_UNUSED'.
+
+	* m4/gnulib-cache.m4 (gl_MODULES): Add `unused-parameter'.
+	* configure.ac (unused): Delete RCS_CHECK_GCC_ATTRIBUTE.
+
+2010-04-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Add gnulib infrastructure (but don't use it yet).
+
+	* m4/gnulib-cache.m4: New file, from "gnulib-tool --import".
+	* autogen.sh: Use gnulib-tool.
+	* configure.ac (gl_EARLY, gl_INIT): New.
+	(AC_PROG_RANLIB): Delete.
+	(AC_CONFIG_FILES): Add lib/Makefile.
+	* Makefile.am (SUBDIRS): Add lib.
+	(EXTRA_DIST): Add m4/gnulib-cache.m4.
+	(ACLOCAL_AM_FLAGS): New var.
+
+2010-03-19  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use GNU Automake.
+
+	* doc/Makefile.am: New file.
+	* doc/Makefile.in: Delete file.
+	* THANKS: New file.
+	* AUTHORS, NEWS: Update.
+	* Makefile.am: New file.
+	* configure.ac (AM_INIT_AUTOMAKE, AC_PROG_RANLIB): New.
+	* INSTALL: Delete file.
+	* Makefile.in: Delete file.
+	* build-aux/install-sh: Delete file.
+	* build-aux/mkinstalldirs: Delete file.
+
+2010-03-19  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[dist] Add support for doing a pretest release.
+
+	* README-alpha: New file.
+	* Makefile.in (dist): If pretest version, distribute README-alpha.
+	* configure.ac: Bump version down to 5.7.40.
+	(pretest_p): New var.
+	(RCS_YESP, RCS_ALL): New AC_DEFUNs.
+	(RCS_PRETEST): New AC_ARG_VAR; if not set appropriately for
+	a pretest version, display a warning and exit failurefully.
+	(PRESUMABLY_STANDARD_ENOUGH_BY_NOW): New AC_DEFUN; for a pretest
+	version, if all the vars named do not have value `yes', issue a
+	warning about the platform possibly being desupported in the future.
+
+2010-03-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Don't do "make distclean" on "make dist"!
+
+	* Makefile.in (dist): Don't do "make distclean".
+	For subdir src/, replace direct hardlinking with recursion.
+
+2010-03-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] Don't distribute Tichy paper (now permanently online).
+
+	* Makefile.in (dist): Don't distribute "*.ms".
+	* rcs.ms: Delete file.
+	* README: Update; nfc.
+
+2010-03-15  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Improve quantity/quality of manual.
+
+	* doc/rcs.texi (rcscommand): New alias.
+	(usage, noVN): New macros.
+	(Top): Add a detailed node listing (@detailmenu).
+	(Overview): Use @rcscommand.
+	Add "Quick tour" menu item.
+	(Credits): Add @cindex for WFT; use @option more;
+	link to RCS homepage for Tichy paper source/output.
+	(Concepts): Reorder subsections; add some new (but mostly empty).
+	(Still missing): Use @rcscommand, @option, @command.
+	(Usage): Move --help, --version first;
+	mention required option-before-filename ordering; add
+	"Description option" and Substitution mode option" menu items.
+	(Revision options): Mention default revision if not specified;
+	use @rcscommand, @option, @command.
+	(Date option): Rename from "Date options";
+	mention `LT' timezone; use @option.
+	(Description option): New node/subsection.
+	(Substitution mode option): New node/subsection.
+	(Misc common options): Add -I, -q; remove -t; expand -V, -VN.
+	(ci, co, ident, merge, rcs, rcsclean, rcsdiff, rcsmerge, rlog):
+	Convert provisionary text to texinfo; use @rcscommand in @section.
+	(GNU FDL): Rename from "GNU Free Documentation License".
+
+2010-03-13  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[int] Revise output for --help option.
+
+	* doc/rcs.texi (ci): Update provisionary @verbatim block.
+	(co, ident, merge, rcs, rcsclean, rcsdiff, rcsmerge, rlog): Likewise.
+
+2010-03-11  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Document rcsdiff(1) options passed to underyling diff(1).
+
+	* doc/rcs.texi (rcsdiff): Update @verbatim block.
+
+2010-03-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `printf %.2d' check to configure.ac.
+
+	* configure.ac: Add check for `printf %.2d' DTRT.
+	(PRINTF_DOT2_OK): New AC_DEFINE_UNQUOTED.
+
+2010-03-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] Rename configure.in to configure.ac.
+
+	* Makefile.in (dist, $(srcdir)/configure): Update.
+	* configure.ac: Rename from configure.in.
+
+2010-03-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[v] Distribute subdir v/, as well.
+
+	* Makefile.in (v): Distribute v/ contents, as well.
+
+2010-03-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[v] Add a directory dedicated to verification.
+
+	* configure.in (AC_CONFIG_FILES): Add v/Makefile, v/common.
+	* Makefile.in (installcheck): No longer do in man/; do in v/.
+	(check): Also do in v/.
+
+2010-03-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[doc] Add texinfo manual.
+
+	* doc: New directory.
+	* doc/fdl.texi: New file (from gnulib fdl-1.3.texi).
+	* doc/texinfo.tex: New file (from texinfo 4.13).
+	* doc/Makefile.in: New file.
+	* doc/rcs.texi: New file.
+	* configure.in (AC_CONFIG_FILES): Add doc/Makefile.
+	* Makefile.in (doc): New target.
+	(dist): Make `doc' before `distclean'.
+	In dist dir, create subdir doc/; populate it from doc/.
+
+2010-03-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[dist] Distribute the config header template.
+
+	* Makefile.in (dist) For subdir src/, specify *.in
+	to include both Makefile.in and auto-sussed.h.in.
+
+2010-03-08  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[v] Add basic "make check" support.
+
+	* Makefile.in (standard_GNU_targets): Remove check.
+	(check): New target.
+	(dist): Update name of test program to distribute.
+	* README: Update; no longer mention RCSPREFIX, installdebug.
+
+2010-03-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Add check for GCC attribute `unused'.
+
+	* configure.in (unused): New RCS_CHECK_GCC_ATTRIBUTE.
+
+2010-03-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move all DIFF* config to configure.in; assume diffutils.
+
+	* configure.in (RCS_SET_VN): New AC_DEFUN.
+	(diffutils): Delete AC_ARG_WITH.
+	(DIFF_MAYBE): New AC_DEFUN.
+	(DIFF): Document with AC_VAR_ARG; search list DIFF_MAYBE; check
+	that specified program behaves like GNU diff, else error out.
+	(RCS_CHECK_STATUS): New AC_DEFUN.
+	(DIFF_SUCCESS, DIFF_FAILURE, DIFF_TROUBLE): Use `RCS_CHECK_STATUS'.
+	(DIFF3_MAYBE): New AC_DEFUN.
+	(DIFF3): Document with AC_VAR_ARG; search list DIFF3_MAYBE; if
+	specified program does not behave like GNU diff3, don't bother
+	looking for one under /usr/lib, etc, just let ed(1) handle it.
+	(DIFFFLAGS, DIFF_L, DIFF3_BIN): Compute vars
+	internally; don't let environment influence them.
+	* README: Update.
+
+2010-03-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Require absolute filenames for external programs.
+
+	* configure.in (RCS_ABSOLUTE_PROGRAM): New AC_DEFUN.
+	(mailer): Don't check absoluteness here.
+	(SENDMAIL, DIFF, DIFF3, ED): Use `RCS_ABSOLUTE_PROGRAM'.
+	(build-aux/abs-p): Delete AC_CONFIG_FILES.
+	* Makefile.in (dist): Update.
+	* README: Update.
+	* build-aux/abs-p.in: Delete file.
+
+2010-03-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] New abstration: RCS_MUSTHAVE
+
+	* configure.in (RCS_MUSTHAVE): New AC_DEFUN.
+	(DIFF, DIFF3, ac_cv_prog_cc_c99): Use `RCS_MUSTHAVE'.
+
+2010-03-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] Use `RCS_CBOOL' more.
+
+	* configure.in (COMPAT2): Use `RCS_CBOOL'.
+
+2010-03-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build int] Use `AS_IF' more.
+
+	* configure.in (RCS_CBOOL): Use `AS_IF'.
+
+2010-03-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move non-filename DIFF* configuration to configure.in.
+
+	* configure.in (diffutils): In this AC_ARG_WITH form,
+	use `AS_HELP_STRING' and incorporate DIFF* var defaulting.
+	(DIFF_SUCCESS): Delete AC_SUBST; add AC_DEFINE_UNQUOTED.
+	(DIFF_FAILURE, DIFF_TROUBLE, DIFFFLAGS, DIFF_L, DIFF3_BIN): Likewise.
+
+2010-03-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `SENDMAIL' configuration to configure.in.
+
+	* configure.in (mailer): New AC_ARG_WITH.
+	(SENDMAIL): New AC_DEFINE_UNQUOTED, if `--with-mailer=PROG'.
+	(SENDMAIL): Delete AC_PATH_PROGS, and related followup.
+	* README: Update.
+
+2010-03-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `ED' configuration into configure.in.
+
+	* configure.in (eddesc): New AC_DEFUN.
+	(ED): New AC_ARG_VAR.
+	(ED): Do this AC_PATH_PROG only if diff3(1) is not a user program.
+	(ED): New AC_DEFINE_UNQUOTED.
+
+2010-03-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `COMPAT2' configuration into configure.in.
+
+	* configure.in (compat2): New AC_ARG_ENABLE.
+	(COMPAT2): New AC_DEFINE_UNQUOTED.
+	* README: Update.
+
+2010-03-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[dist] Don't distribute INSTALL.RCS.
+
+	* README: Incorporate INSTALL.RCS.
+	* Makefile.in (dist): Don't distribute INSTALL.RCS.
+	* INSTALL.RCS: Delete file.
+
+2010-03-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Don't distribute (now-defunct) conf.heg.
+
+	* Makefile.in (dist): Remove "*.heg" from
+	list of files to distribute in the src/ subdir.
+
+2010-03-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[sec] Use `mkstemp' instead of `mktemp'.
+
+	* configure.in (mktemp): Remove from `AC_CHECK_FUNCS_ONCE'.
+	(mkstemp): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-03-04  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Fix omission bug: Distribute build-aux/abs-p.in, as well.
+
+	This fixes the omission in commit:
+	[build] Detect "absolute-filename-p" without compiling.
+
+	* Makefile.in (dist): Distribute build-aux/abs-p.in.
+
+2010-03-04  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	Add --help, --version handling for all programs.
+
+	* build-aux/extract-help: New file.
+	* Makefile.in (dist): Distribute build-aux/extract-help.
+	Also, substitute package version into $d/src/rcsfreeze.sh.
+
+2010-03-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] Don't distribute rcs_func.ms.
+
+	* rcs_func.ms: Delete file.
+	* README: Update.
+
+2010-03-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] Don't distribute REFS.
+
+	* REFS: Delete file.
+	* Makefile.in (dist): Update.
+
+2010-03-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] Rename file CREDITS to AUTHORS.
+
+	* AUTHORS: Rename from CREDITS; refill.
+	* Makefile.in (dist): Update.
+
+2010-03-03  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Detect "absolute-filename-p" without compiling.
+
+	* build-aux/abs-p.in: New file.
+	* configure.in: Add check for MS-DOS filenames.
+	(WOE): New AC_DEFINE_UNQUOTED.
+	(WOEMUX): New AC_DEFUN.
+	(ABSFILENAMEGLOB): New AC_SUBST.
+	(rcs_cv_slsl_is_sl): Use `WOEMUX'; rename local var.
+	(build-aux/abs-p): New AC_CONFIG_FILES.
+
+2010-03-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "// is /" check to configure.in.
+
+	* configure.in: Add check for "// is /".
+	(SLASHSLASH_IS_SLASH): New AC_DEFINE_UNQUOTED.
+
+2010-03-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "bad wait if SIGCHLD ignored" check to configure.in.
+
+	* configure.in: Add check for `wait' that handles ignored SIGCHLD.
+	(BAD_WAIT_IF_SIGCHLD_IGNORED): New AC_DEFINE_UNQUOTED.
+
+2010-03-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move mmap-related checks to configure.in.
+
+	* configure.in: Add checks for mmap-related quirks.
+	(madvise, mmap): Add to `AC_CHECK_FUNCS_ONCE'.
+	(SIMPLE_MMAP_PROGRAM): New AC_DEFUN.
+
+2010-03-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "bad rename" checks to configure.in.
+
+	* configure.in: Add checks for "bad rename".
+	(BAD_A_RENAME): New AC_DEFINE_UNQUOTED.
+	(BAD_B_RENAME): Likewise.
+
+2010-03-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `sys_siglist' check to configure.in.
+
+	* configure.in (sys_siglist): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-03-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "siginfo_t .si_errno" check to configure.in.
+
+	* configure.in: Add check for "siginfo_t .si_errno".
+	(HAVE_SI_ERRNO): New AC_DEFINE.
+
+2010-03-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "unlink on unwritable files" check to configure.in.
+
+	* configure.in: Add check for "unlink on unwritable files".
+	(BAD_UNLINK): New AC_DEFINE_UNQUOTED.
+
+2010-03-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "fopen w+ truncates" check to configure.in.
+
+	* configure.in: Add check for "fopen w+ truncates".
+	(BAD_FOPEN_WPLUS): New AC_DEFINE_UNQUOTED.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "signal zaps handler" check to configure.in.
+
+	* configure.in: Add check for signal zapping handlers,
+	but only do this if we have <signal.h> and not `sigaction'.
+	(SIG_ZAPS_HANDLER): New AC_DEFINE_UNQUOTED.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "fflush input" check to configure.in.
+
+	* configure.in: Add check for fflush on input stream.
+	(CAN_FFLUSH_IN): New AC_DEFINE_UNQUOTED.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move "`write' after `creat (F, 0)'" check to configure.in.
+
+	* configure.in: Add check for write(2) after
+	creat(2) with mode 0 failing in the "wrong" way.
+	(RCS_CBOOL): New AC_DEFUN.
+	(BAD_CREAT0): New AC_DEFINE_UNQUOTED.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `psiginfo' check to configure.in.
+
+	* configure.in (psiginfo): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `sigblock' check to configure.in.
+
+	* configure.in (sigblock): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `sigaction' check to configure.in.
+
+	* configure.in (sigaction): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `psignal' check to configure.in.
+
+	* configure.in (psignal): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `seteuid', `setuid' checks to configure.in.
+
+	* configure.in (seteuid, setuid): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `ftruncate' check to configure.in.
+
+	* configure.in (ftruncate): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-28  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `vfork', `fork' checks to configure.in.
+
+	* configure.in (vfork.h): Remove from `AC_CHECK_HEADERS_ONCE'.
+	(AC_FUNC_FORK): New.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `waitpid' check to configure.in.
+
+	* configure.in (waitpid): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `mktemp' check to configure.in.
+
+	* configure.in (mktemp): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `getuid', `getpwuid' checks to configure.in.
+
+	* configure.in (getpwuid, getuid): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `fchmod' check to configure.in.
+
+	* configure.in (fchmod): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `getcwd', `getwd' check to configure.in.
+
+	* configure.in (getcwd, getwd): Add to `AC_CHECK_FUNCS_ONCE'.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move `readlink' check to configure.in; use _POSIX_SYMLOOP_MAX.
+
+	* configure.in (AC_CHECK_HEADERS_ONCE): Remove sys/param.h.
+	(AC_CHECK_FUNCS_ONCE): New, with one item: `readlink'.
+
+2010-02-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move checks for missing type definitions to configure.in.
+
+	* configure.in (AC_TYPE_MODE_T, AC_TYPE_OFF_T)
+	(AC_TYPE_PID_T, AC_TYPE_SSIZE_T, AC_TYPE_UID_T): New
+	(sig_atomic_t): New AC_CHECK_TYPE.
+
+2010-02-26  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move checks for GCC __attribute__ handling to configure.in
+
+	* configure.in (RCS_CHECK_GCC_ATTRIBUTE): New AC_DEFUN.
+	(noreturn, format): New RCS_CHECK_GCC_ATTRIBUTE calls.
+
+2010-02-26  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Don't bother checking `const', `volatile' handling.
+
+	* conf.sh: Remove checks for `const', `volatile' handling.
+
+2010-02-26  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move check for system headers into configure.in.
+
+	* configure.in (AC_CHECK_HEADERS_ONCE): New.
+
+2010-02-25  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Require a C99-capable compiler.
+
+	* configure.in (AC_PROG_CC): Delete.
+	(AC_PROG_CC_C99): New.
+	If no C99-capable compiler is found, error out.
+
+2010-02-25  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Use zero-arg form of AC_OUTPUT.
+
+	* configure.in (AC_CONFIG_FILES): New.
+	(AC_OUTPUT): Move args to `AC_CONFIG_FILES'.
+
+2010-02-25  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[build] Move authoritative version number into configure.in.
+
+	* autogen.sh: New file.
+	* configure.in (AC_INIT): Use three-arg form.
+	(AC_CONFIG_HEADERS): New.
+	* Makefile.in (PACKAGE_VERSION, PACKAGE_TARNAME): New vars.
+	(dist): Use them.
+
+2010-02-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] On "make dist", don't bother with tar(1) blocking factor.
+
+	* Makefile.in (dist): Don't specify the tar(1) blocking factor.
+
+2010-02-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[man] Set metainfo at "make dist"; say "GNU RCS <VERSION>".
+
+	* Makefile.in (dist) <man>: Prepend release version and release date.
+
+2010-02-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	In RCS paper by W.F. Tichy, don't specify a separate title page.
+
+	* rcs.ms (Id): Delete macro definition.
+	(.Id, .RP): Delete.
+
+2010-02-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] Distribute only one copy of COPYING.
+
+	* Makefile.in (dist): Don't distribute man/COPYING, man/COPYING.
+
+2010-02-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	[admin] Move install-sh, mkinstalldirs into new dir build-aux/.
+
+	* build-aux/install-sh: Move here from top-level;
+	upgrade to version distributed with Automake 1.11.1.
+	* build-aux/mkinstalldirs: Likewise.
+	* configure.in (AC_CONFIG_AUX_DIR): Specify build-aux/.
+	* Makefile.in (dist): Update to distribute from new location.
+
+Fri Jun 16 06:19:24 1995  Paul Eggert  <eggert@twinsun.com>
+
+	Version 5.7 released.
+	* INSTALL.RCS (TESTPREFIX): Remove.
+	* INSTALL.RCS, Makefile.in, NEWS: Update FSF address.
+	* Makefile.in (dist): Distribute REFS.
+	* NEWS: Add brief summary.
+	* README: Add REFS.  Omit experimental distributions.
+	* REFS: Initial revision
+	* configure.in (DIFF_FAILURE, DIFF_SUCCESS):
+	Fix typo: values were interchanged.
+
+Mon Jun  5 08:31:43 1995  Paul Eggert  <eggert@twinsun.com>
+
+	* INSTALL.RCS: Warn about cross-compiling.
+
+Thu Jun  1 16:23:43 1995  Paul Eggert  <eggert@twinsun.com>
+
+	* NEWS: -kb is now implemented.  diff3 -A is no longer the default.
+	Describe Mach style memory mapping, new installation procedure,
+	Posix 1003.1b-1993 compatibility,
+	and log prefix compatibility hack for C-style Logs.
+	Add possible changes for new option syntax, symbolic links, texinfo.
+
+	* INSTALL.RCS: Renamed from src/INSTALL.
+	Building and installation now use autoconf and follow GNU standards.
+	Add --with-diffutils, PIC, X_DEFAULT.
+	Remove text_work_stdio.
+	Warn about HP-UX 8.07, HP-UX 9.*, and Solaris 2.4 mmap bugs.
+	Warn about GCC 2.5.8 Intel x86 -O bug.
+	Warn about NFS UDP checksum bug.
+
+	* README:
+	Replace src/INSTALL with INSTALL (generic GNU) and INSTALL.RCS.
+
+	* configure.in: Initial revision
+
+	* Makefile.in:
+	Renamed from Makefile; autoconf now preprocesses this file.
+	Complete rewrite to follow GNU makefile standards.
+
+	* rcs.ms: Use new log prefix scheme in example.
+
+Sun Mar 20 05:25:56 1994  Paul Eggert  <eggert@twinsun.com>
+
+	* Makefile.in: Distribute rcsfile.5in as well as rcsfile.5.
+	gzip -9.  make clean before make dist.
+
+Thu Mar 17 14:05:48 1994  Paul Eggert  <eggert@twinsun.com>
+
+	* NEWS: Describe 5.6.7 news.
+	* INSTALL: GNU diff -> GNU diffutils.  Recommend it.
+
+Tue Nov  9 17:40:15 1993  Paul Eggert  <eggert@twinsun.com>
+
+	* NEWS: Use ISO 8601 format.
+
+Wed Nov  3 17:54:40 1993  Paul Eggert  <eggert@twinsun.com>
+
+	* Makefile.in: Update for RCS 5.6.5.
+	* INSTALL, README: Update for RCS 5.6.5.
+	* CREDITS, NEWS: New files, taken from README.
+
+Sun Jan 17 18:17:11 1993  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Add -z, rcsmerge -A, $Name, white space in file names.
+	This is a pre-5.6.5 snapshot, just before splitting into
+	README, INSTALL, NEWS.
+
+Tue Jul 28 16:12:45 1992  Paul Eggert  <eggert@twinsun.com>
+
+	* INSTALL:  Add BINDIR.  conf.error -> conf.err.
+	HP-UX 8.07 crashes mmap.  Add setuid build advice.
+	* rcs.ms: Remove nonportable .PS, .PE.
+	* Makefile.in: Simplify and regularize.
+	* README:  Update for 5.6.4: identifiers can contain `.' or
+	start with a digit, -V.  ci -i -j.  rcs -l now asks.  rcsdiff
+	headers; -rN -rN optimization.  Add projects: -z, sccstorcs,
+	rlog examples, etc.
+
+Mon Feb 17 23:02:05 1992  Paul Eggert  <eggert@twinsun.com>
+
+	* INSTALL: Recommend `tail -f a.h' for slowpokes.
+	* README: Describe changes in RCS 5.6.3.
+
+Fri Jan 24 18:44:19 1992  Paul Eggert  <eggert@twinsun.com>
+
+	* INSTALL: Add DESTRCSDIR.
+	* README:  Add project to add an option to rcsclean to clean
+	directories recursively.
+
+Mon Jan  6 02:42:34 1992  Paul Eggert  <eggert@twinsun.com>
+
+	* README: 5.6 -> 5.6.1; add some suggestions
+	* INSTALL: Add comment about SunOS 4.0.3.
+
+Sun Nov  3 01:09:19 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Add brief intro.  Add rcsck, compressed, DRCS suggestions.
+
+Mon Oct  7 17:32:46 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* INSTALL: Explain rcsclean, large_memory.
+	* README: Fix typo; mention NFS problems.
+
+Tue Sep 24 00:28:38 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* INSTALL, README: Put MS-DOS support into a separate distribution.
+
+Tue Sep 10 22:15:46 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* INSTALL: Fix make directions.
+	* README: Upgrade notice for RCS 5.6 beta 5.
+
+Mon Aug 19 03:13:55 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* README:  Describe changes for DOS, -M, -r$, rcs -m, aborted
+	checkins, piece tables, and symlinks.
+	* INSTALL:  Improve advice for DOS, and for testing before
+	installing.  Describe bad_unlink_nfs, text_work_stdio,
+	TZ_must_be_set.
+
+Wed Jun  5 16:35:30 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* COPYING: GPL version 2
+
+Sun Apr 21 12:01:28 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* README: RCS 5.6 (beta 3).
+	* INSTALL: New file.
+
+Thu Feb 28 19:18:44 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Add more ci advice.
+
+Mon Feb 25 07:12:29 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Introduce RCS 5.6.  Remove setgid support.
+	Improve installation and testing instructions.
+
+Thu Jan  3 10:57:28 1991  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs.ms: Merge fixes from RCS 4.3.
+
+Thu Dec 13 06:54:04 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Adjust to GNU diff 1.15.
+
+Thu Nov  1 05:03:19 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs.ms:  Bring back descriptions of rcsclean and rcsfreeze.
+	Add pointer to GNU MAKE.  Fix troff glitches.
+	* README: Improve installation instructions.  Add -I and new -t
+	behavior.  Describe setid behavior on old hosts.  Add some more
+	projects.
+
+Sat Sep 15 01:33:22 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* README: rcstest -> src/rcstest
+
+Tue Sep 11 02:41:02 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Improve the description of changes.
+
+Tue Sep  4 08:02:07 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* README:  Don't parse two-digit years, because it won't work
+	after 1999/12/31.  Lines consisting of a single `.' are now
+	handled correctly.
+
+Wed Aug 29 07:12:54 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Add -kkvl, *merge -q, rcstest.  Fix typos.
+
+Wed Aug 22 08:08:09 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs.ms: Fix troff glitches.
+	* README: Describe changes for RCS 5.0.
+
+Wed May 23 06:56:31 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* README: Describe additions to RCS version 5.
+
+Fri Mar 30 01:40:33 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs.ms: Fix some more minor troff glitches.
+
+Thu Mar 22 07:10:13 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs.ms: Permit dates past 1999/12/31.
+	Fix some glitches in troff-RCS interactions.
+
+Thu Jan 11 16:32:50 1990  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs.ms: Use GMT, not local time, so people in different
+	timezones can collaborate.
+
+
+Copyright (C) 2010-2020 Thien-Thi Nguyen
+
+Copying and distribution of this file, with or without modification,
+are permitted provided the copyright notice and this notice are preserved.

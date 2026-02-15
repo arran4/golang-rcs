@@ -1,0 +1,21 @@
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a race-free mkdir -p... /usr/bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking if gdiff works like GNU diff... no
+checking if rdiff works like GNU diff... no
+checking if diff works like GNU diff... yes
+checking for diff... /usr/bin/diff
+checking diff success status... 0
+checking diff failure status... 1
+checking diff trouble status... 2
+checking diff options for RCS... -an
+checking if diff understands --label... yes
+checking for gdiff3... no
+checking for diff3... diff3
+checking for diff3... /usr/bin/diff3
+checking if diff3 works like GNU diff3... yes
+checking for ed... no
+configure: error: Could not find absolute name of original ed program: ed
