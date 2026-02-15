@@ -3,6 +3,7 @@ package rcs
 import (
 	"bufio"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"strings"
 )
@@ -115,6 +116,56 @@ func (ed EdDiff) Apply(onto LineReader, into LineWriter) error {
 	}
 
 	return nil
+}
+
+func hashBytes(b []byte) uint64 {
+	h := fnv.New64a()
+	var err error
+	_, err = h.Write(b)
+	if err != nil {
+		panic(err)
+	}
+	return h.Sum64()
+}
+
+func GenerateEdDiffFromLines(from []string, to []string) (EdDiff, error) {
+	type ContinuousRun struct {
+		FromStart int
+		ToStart   int
+		Length    int
+	}
+	type HashPoint struct {
+		Previous       *HashPoint
+		Hash           uint64
+		FromLineNumber *int
+		ToLineNumber   *int
+	}
+	var continuousRuns []ContinuousRun
+	m := make(map[uint64][]*HashPoint, max(len(from), len(to)))
+	var previous *HashPoint
+	for linePos, line := range from {
+		h := hashBytes([]byte(line))
+		lp := linePos
+		hp := &HashPoint{
+			Previous:       previous,
+			Hash:           h,
+			FromLineNumber: &lp,
+		}
+		m[h] = append(m[h], hp)
+		previous = hp
+	}
+	var currentContinuousRuns []ContinuousRun
+	for linePos, line := range to {
+		h := hashBytes([]byte(line))
+		lp := linePos
+		hps, ok := m[h]
+		// Find all matches in hps, figure out how this impacts currentContinuousRuns
+		previous = hp
+	}
+	// Add all remaining currentContinuousRuns toContinuousRun
+	// Greedy search of continuous runs. (Grab largest, delete everything conflicting, and continue.
+	// Create adds and removes -- ensure we test that the parser works and the apply restores it, ensure circular (undo?) testing
+
 }
 
 type EdDiffCommand interface {
