@@ -1,3 +1,2 @@
 *.go text eol=lf
 *.go,v text eol=lf
-*.txtar text eol=lf
