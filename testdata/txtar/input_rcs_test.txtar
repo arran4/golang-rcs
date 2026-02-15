@@ -1,23 +1,3 @@
--- input,v --
-head 1.1;
-comment @c@;
-
-
-1.1
-date 2022.01.01.00.00.00; author a; state s;
-branches;
-next ;
-
-
-desc
-@@
-
-
-1.1
-log
-@@
-text
-@@
 -- expected.json --
 {
   "Head": "1.1",
@@ -25,14 +5,13 @@ text
   "Description": "",
   "Comment": "c",
   "Access": false,
-  "Symbols": null,
+  "Symbols": [],
   "AccessUsers": null,
-  "Locks": null,
+  "Locks": [],
   "Strict": false,
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
-  "EndOfFileNewLineOffset": -1,
   "RevisionHeads": [
     {
       "Revision": "1.1",
@@ -52,8 +31,11 @@ text
     }
   ]
 }
+
 -- expected,v --
 head	1.1;
+symbols;
+locks;
 comment	@c@;
 
 
@@ -72,9 +54,37 @@ log
 @@
 text
 @@
--- options.conf --
-* unix line endings
-* force unix line endings
+
+-- input.rcs --
+head 1.1;
+symbols;
+locks;
+comment @c@;
+
+
+1.1
+date 2022.01.01.00.00.00; author a; state s;
+branches;
+next ;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+
 -- tests.txt --
 rcs to json
 rcs to rcs
+
+-- description.txt --
+Test checks parsing of input.rcs file instead of input,v.
+
+-- options.conf --
+* unix line endings
+* force unix line endings
