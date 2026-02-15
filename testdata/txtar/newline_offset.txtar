@@ -1,3 +1,7 @@
+-- description.txt --
+Tests round trip with newline offsets.
+
+-- input.rcs --
 head     1.1;
 branch   1.1.1;
 access   ;
@@ -152,5 +156,9 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
+-- options.conf --
 * unix line endings
 * force unix line endings
+
+-- tests.txt --
+rcs to rcs
