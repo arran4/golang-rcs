@@ -167,6 +167,10 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testCI(t, parts, options)
 		case testName == "co":
 			testCO(t, parts, options)
+		case testName == "rcsdiff":
+			testRCSDiff(t, parts, options)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
@@ -183,6 +187,14 @@ func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
 
 func testCO(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("co test type not implemented yet")
+}
+
+func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcsdiff test type not implemented yet")
+}
+
+func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs merge test type not implemented yet")
 }
 
 func testJSONToRCS(t *testing.T, parts map[string]string, options map[string]bool) {
