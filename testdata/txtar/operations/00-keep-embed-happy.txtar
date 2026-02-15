@@ -1,0 +1,31 @@
+-- description.txt --
+Dummy test to keep embed happy
+
+-- input,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@content
+@
+
+-- tests.txt --
+rcs to rcs
