@@ -39,9 +39,10 @@ func ParseEdDiff(r io.Reader) (EdDiff, error) {
 			return nil, fmt.Errorf("invalid command line %q: expected 3 items", line)
 		}
 
-		if cmdType == 'd' {
+		switch cmdType {
+		case 'd':
 			commands = append(commands, Delete{start, count})
-		} else if cmdType == 'a' {
+		case 'a':
 			var lines []string
 			for i := 0; i < count; i++ {
 				if !scanner.Scan() {
@@ -50,7 +51,7 @@ func ParseEdDiff(r io.Reader) (EdDiff, error) {
 				lines = append(lines, scanner.Text())
 			}
 			commands = append(commands, Add{Lines: lines, LineStart: start})
-		} else {
+		default:
 			return nil, fmt.Errorf("unknown command type: %c", cmdType)
 		}
 	}
