@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="13-co-k-o.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+echo 'This is revision 1.1' > file.txt
+echo '$Author: old_author $' >> file.txt
+
+# Create RCS file
+ci -q -i -u -m"r1" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+rcs -q -U file.txt
+chmod u+w file.txt
+
+# Note: ci updates the working file to have expanded keywords ($Author: tester $).
+# However, it stores the content *as provided* in the RCS file (so stored text has $Author: old_author $).
+
+# We want to test that -ko retrieves what was stored.
+# To make sure -ko and -kkv would be different, we change the author metadata.
+
+# Use sed to change the author in metadata to 'new_owner'
+# Note: The RCS file format is simple enough for this substitution.
+# We are looking for the line 'date ...; author tester; ...;' inside the revision block.
+sed -i 's/author tester;/author new_owner;/' file.txt,v
+
+# Now metadata says author is new_owner.
+# But the stored text in RCS file still says $Author: old_author $.
+# -kkv would produce $Author: new_owner $ (expanding from metadata).
+# -ko should produce $Author: old_author $ (retrieving stored text without expansion).
+
+cp file.txt,v input.txt,v
+rm file.txt
+
+# Now run co with -ko
+co -q -ko file.txt
+
+cat > "$OLDPWD/$OUT" <<EOF
+-- description.txt --
+co checkout -ko (old value)
+
+-- options.conf --
+{"args": ["-q", "-ko", "input.txt"] }
+
+-- input.txt,v --
+$(cat input.txt,v)
+
+-- tests.txt --
+co
+
+-- expected.txt --
+$(cat file.txt)
+EOF
