@@ -135,8 +135,8 @@ The quick brown fox jumped over the lazy dog.
 @
 
 -- tests.txt --
-# rcs to json
-# rcs to rcs
+rcs to json
+rcs to rcs
 
 -- description.txt --
 Test case converted from commitid.txtar

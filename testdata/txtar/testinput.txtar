@@ -147,7 +147,7 @@ a37 1
 @
 
 -- tests.txt --
-# rcs to rcs
+rcs to rcs
 
 -- description.txt --
 Migrated test from testinput.go,v

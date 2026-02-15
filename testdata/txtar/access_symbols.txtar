@@ -27,7 +27,7 @@ text
 @hello@
 
 -- tests.txt --
-# rcs to rcs
+rcs to rcs
 
 -- description.txt --
 Migrated test from access_symbols.go,v

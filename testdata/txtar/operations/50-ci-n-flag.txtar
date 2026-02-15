@@ -9,7 +9,7 @@ This is a test for the -n flag.
 Assigning a symbolic name on initial checkin.
 
 -- tests.txt --
-# ci
+ci
 
 -- expected.txt,v --
 head	1.1;

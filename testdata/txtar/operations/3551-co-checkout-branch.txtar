@@ -48,7 +48,7 @@ BRANCH
 @
 
 -- tests.txt --
-# co
+co
 
 -- expected.txt --
 BRANCH

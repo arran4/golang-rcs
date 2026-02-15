@@ -40,7 +40,7 @@ $(cat input.txt)
 $(cat input.txt,v)
 
 -- tests.txt --
-# rcs clean
+rcs clean
 
 -- expected.txt,v --
 $(cat file.txt,v)

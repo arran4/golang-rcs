@@ -40,7 +40,7 @@ text
 @@
 
 -- tests.txt --
-# parse error: ErrTooManyNewLines
+parse error: ErrTooManyNewLines
 
 -- description.txt --
 Test specifically for ErrTooManyNewLines when there are too many newlines between revisions.

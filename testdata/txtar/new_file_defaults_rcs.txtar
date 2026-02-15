@@ -42,8 +42,8 @@ desc
 
 
 -- tests.txt --
-# rcs to json
-# rcs to rcs
+rcs to json
+rcs to rcs
 
 -- description.txt --
 Test case split from new_file_defaults.txtar

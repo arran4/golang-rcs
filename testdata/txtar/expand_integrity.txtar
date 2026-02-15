@@ -51,7 +51,7 @@ text
 @@
 
 -- tests.txt --
-# rcs to rcs
+rcs to rcs
 
 -- description.txt --
 Test parsing of integrity field and reordering of header fields.

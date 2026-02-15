@@ -9,7 +9,7 @@ A clock unwinds its shadow into rain,
 While silver echoes fold a paper sky;
 
 -- tests.txt --
-# ci
+ci
 
 -- expected.txt,v --
 head	1.1;

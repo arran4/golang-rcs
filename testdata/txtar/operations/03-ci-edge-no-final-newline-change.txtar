@@ -35,7 +35,7 @@ text
 LINE2@
 
 -- tests.txt --
-# ci
+ci
 
 -- expected.txt,v --
 head	1.2;

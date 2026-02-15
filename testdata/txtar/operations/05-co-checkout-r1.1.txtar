@@ -47,7 +47,7 @@ text
 @
 
 -- tests.txt --
-# co
+co
 
 -- expected.txt --
 ONE
