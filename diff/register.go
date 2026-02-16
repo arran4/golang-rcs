@@ -32,3 +32,21 @@ func DefaultAlgorithm() (DiffAlgorithm, error) {
 	}
 	return GetAlgorithm(defaultAlgo)
 }
+
+// SetDefaultAlgorithm sets the default algorithm by name.
+func SetDefaultAlgorithm(name string) error {
+	if _, ok := registry[name]; !ok {
+		return fmt.Errorf("diff algorithm %q not found", name)
+	}
+	defaultAlgo = name
+	return nil
+}
+
+// ListAlgorithms returns a list of registered algorithm names.
+func ListAlgorithms() []string {
+	var keys []string
+	for k := range registry {
+		keys = append(keys, k)
+	}
+	return keys
+}
