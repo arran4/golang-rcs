@@ -79,6 +79,7 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
   "Integrity": "",
   "Expand": "b",
   "NewLine": "\n",
+  "EndOfFileNewLineOffset": -1,
   "RevisionHeads": [
     {
       "Revision": "1.1",

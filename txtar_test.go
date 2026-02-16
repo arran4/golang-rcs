@@ -69,8 +69,11 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
-	// Normalize CRLF to LF for txtar parsing
+  // TDOO find a better work around
+	// Windows compatibility: txtar.Parse expects LF line endings.
+	// If the file was checked out with CRLF, we need to normalize it.
 	content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
+
 	archive := txtar.Parse(content)
 	parts := make(map[string]string)
 	for _, f := range archive.Files {
@@ -100,19 +103,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		testContent, ok = parts["tests.md"]
 	}
 
-	// Fallback for migration: if tests.txt is missing, try to guess based on old logic
 	if !ok {
 		t.Fatalf("Missing tests.txt or tests.md")
-		//if _, ok := parts["input,v"]; ok {
-		//	testRCSToJSON(t, parts, options)
-		//	testCircular(t, parts, options) // rcs to rcs
-		//} else if _, ok := parts["input.rcs"]; ok {
-		//	parts["input,v"] = parts["input.rcs"] // map old name
-		//	testRCSToJSON(t, parts, options)
-		//	testCircular(t, parts, options)
-		//} else if _, ok := parts["input.json"]; ok {
-		//	testJSONToRCS(t, parts, options)
-		//}
 		return
 	}
 
