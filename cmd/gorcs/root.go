@@ -90,7 +90,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 		Commit:   commit,
 		Date:     date,
 	}
-	c.FlagSet.StringVar(&c.DiffAlgo, "diff-algo", "lcs", "Diff algorithm to use (default: lcs)")
+	c.StringVar(&c.DiffAlgo, "diff-algo", "lcs", "Diff algorithm to use (default: lcs)")
 	c.FlagSet.Usage = c.Usage
 
 	c.Commands["format"] = c.NewFormat()

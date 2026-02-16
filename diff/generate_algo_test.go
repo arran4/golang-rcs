@@ -45,5 +45,7 @@ func TestSetDefaultAlgorithm(t *testing.T) {
 	// Cleanup: set back to lcs (or empty/default) to avoid affecting other tests if they run in same process
 	// Note: defaultAlgo is package level variable.
 	// Since lcs is what Generate falls back to, setting it to lcs is safe.
-	SetDefaultAlgorithm("lcs")
+	if err := SetDefaultAlgorithm("lcs"); err != nil {
+		t.Errorf("SetDefaultAlgorithm(lcs) failed during cleanup: %v", err)
+	}
 }
