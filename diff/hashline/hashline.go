@@ -22,10 +22,6 @@ func hashBytes(b []byte) uint64 {
 }
 
 func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
-	type HashPoint struct {
-		Hash           uint64
-		FromLineNumber int
-	}
 	// Map from Hash to list of occurrences in 'from'
 	m := make(map[uint64][]int, len(from))
 	for linePos, line := range from {
@@ -40,24 +36,6 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 	}
 
 	var runs []ContinuousRun
-
-	// Scan 'to' lines to identify runs
-	// We track runs ending at current line.
-	// activeRuns maps FromIndex -> RunLength ending at FromIndex
-	// When we process 'to' line j, if we match 'from' line i, we look if there was a match at i-1 in activeRuns.
-	// This is effectively identifying matching diagonals.
-	// activeRuns[i] = length means there is a run of length ending at from[i] and to[j].
-	// This uses O(min(N,M)) space if sparse? No, could be O(N).
-
-	// Better approach for finding all runs:
-	// Use a map for "current runs": Map[int]int : FromIndex -> StartOfRun
-	// Wait, we need to find MAXIMAL runs.
-
-	// Simple greedy identification:
-	// For each 'to' index j:
-	//   For each 'from' index i matching to[j]:
-	//     Extend run if possible.
-	// This is O(N*M) worst case.
 
 	// Optimized approach using the Hash Map:
 	// Iterate through 'to'.
@@ -79,18 +57,6 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 						length = prevLen + 1
 					}
 					nextRuns[i] = length
-
-					// If a run ended (was not extended), we might have added it already?
-					// No, we need to capture ALL maximal runs.
-					// A run is maximal if it cannot be extended left or right.
-					// We are extending right.
-					// We add to 'runs' list only when a run TERMINATES or at the end.
-					// But simplified: Just collect all candidate runs, then filter.
-					// Or just collect long runs?
-					// Let's store every run segment >= 1 for now? No, too many.
-					// We only care about the *end* of runs.
-					// If nextRuns[i] exists, the run ending at i-1 is extended to i.
-					// We implicitly "move" the run.
 				}
 			}
 		}
@@ -123,9 +89,6 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 	// 1. Length (descending)
 	// 2. Distance from origin? i.e. (i+j) ascending? Or closeness to diagonal?
 	// User said: "Length of match, 2. Distance from origin."
-	// Assuming "Distance from origin" means standard Euclidean or Manhattan distance of the start point (0,0).
-	// i.e., prefer matches closer to start? Or matches closer to diagonal?
-	// Usually greedy diff prefers matches closer to the start of the file.
 	sort.Slice(runs, func(i, j int) bool {
 		if runs[i].Length != runs[j].Length {
 			return runs[i].Length > runs[j].Length
@@ -138,15 +101,6 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 
 	// Greedy selection
 	var selectedRuns []ContinuousRun
-
-	// To check conflicts efficiently, we need to ensure new run doesn't overlap with any selected run.
-	// Overlap check:
-	// A run covers from [f, f+len) and to [t, t+len).
-	// A new run [nf, nf+nlen), [nt, nt+nlen) conflicts if ranges overlap OR if relative ordering is violated (crossing).
-	// Wait, standard diff allows non-crossing matches.
-	// If we pick a run A, then run B is valid only if B is strictly "before" or strictly "after" A in BOTH dimensions.
-	// i.e. (B.end <= A.start) OR (B.start >= A.end).
-	// AND relative order must be preserved: if B is before A in 'from', it must be before A in 'to'.
 
 	for _, run := range runs {
 		conflict := false
@@ -188,30 +142,8 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 		}
 		if gapToLen > 0 {
 			// Add to gap
-			// Adds are inserted AFTER currFrom (which is now effectively handled)
-			// Wait, adds happen at the point.
-			// EdDiff format: Add at line X means insert AFTER line X.
-			// If we deleted gapFromLen lines starting at currFrom+1, we are at line currFrom.
-			// So insertions should be at currFrom?
-			// Or rather:
-			// If we replaced (deleted and added), we delete lines [currFrom+1, run.FromStart].
-			// And we add lines [currTo, run.ToStart].
-			// The Add command should be at `currFrom`.
-
 			// Extract lines to add
 			linesToAdd := to[currTo : currTo+gapToLen]
-
-			// Append Add command
-			// Note: If we had a deletion, we typically delete first.
-			// Add pos is currFrom.
-			// BUT if we deleted lines, does the insertion point change?
-			// EdDiff uses ORIGINAL line numbers for Delete.
-			// Add uses index in the *current* state? No, standard `ed` adds after line N.
-			// If we deleted lines currFrom+1..run.FromStart, we are sitting at currFrom.
-			// So Add at currFrom is correct.
-			// Check grouping: if we have multiple adds at same spot?
-			// We handle gap as one block.
-
 			result = append(result, diff.Add{LineStart: currFrom, Lines: linesToAdd})
 		}
 
