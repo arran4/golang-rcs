@@ -1946,9 +1946,9 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 		wantErrorCheck func(t *testing.T, err error)
 	}{
 		{
-			name:    "Invalid date format",
-			input:   "date\tbad-date;",
-			wantErr: "unable to parse date: bad-date",
+			name:           "Invalid date format",
+			input:          "date\tbad-date;",
+			wantErr:        "unable to parse date: bad-date",
 			wantErrorCheck: nil,
 		},
 		{
