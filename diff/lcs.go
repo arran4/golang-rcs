@@ -1,14 +1,10 @@
-package lcs
-
-import (
-	"github.com/arran4/golang-rcs/diff"
-)
+package diff
 
 func init() {
-	diff.Register("lcs", GenerateEdDiffFromLines)
+	Register("lcs", GenerateEdDiffFromLines)
 }
 
-func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
+func GenerateEdDiffFromLines(from []string, to []string) (EdDiff, error) {
 	m := len(from)
 	n := len(to)
 	lcs := make([][]int, m+1)
@@ -67,7 +63,7 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 		actions[k], actions[len(actions)-1-k] = actions[len(actions)-1-k], actions[k]
 	}
 
-	var result diff.EdDiff
+	var result EdDiff
 	currentLine := 0 // 0-based index of original file processed
 
 	for k := 0; k < len(actions); k++ {
@@ -78,7 +74,7 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 		case actDelete:
 			// Check if we can extend previous delete
 			if len(result) > 0 {
-				if del, ok := result[len(result)-1].(diff.Delete); ok {
+				if del, ok := result[len(result)-1].(Delete); ok {
 					// Check if this delete is contiguous
 					// del[0] is start line (1-based), del[1] is count
 					// The range deleted is [del[0], del[0] + del[1] - 1]
@@ -89,20 +85,20 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 
 					if del[0]+del[1] == currentLine+1 {
 						// Extend
-						result[len(result)-1] = diff.Delete{del[0], del[1] + 1}
+						result[len(result)-1] = Delete{del[0], del[1] + 1}
 						currentLine++
 						continue
 					}
 				}
 			}
 
-			result = append(result, diff.Delete{currentLine + 1, 1})
+			result = append(result, Delete{currentLine + 1, 1})
 			currentLine++
 
 		case actAdd:
 			// Check if we can extend previous add
 			if len(result) > 0 {
-				if add, ok := result[len(result)-1].(diff.Add); ok {
+				if add, ok := result[len(result)-1].(Add); ok {
 					// Check if this add is at same position
 					// add.LineStart is the line number *after* which we insert.
 					// If we are still at the same insertion point (currentLine), extend.
@@ -115,7 +111,7 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 				}
 			}
 
-			result = append(result, diff.Add{LineStart: currentLine, Lines: []string{a.text}})
+			result = append(result, Add{LineStart: currentLine, Lines: []string{a.text}})
 			// Do not increment currentLine
 		}
 	}

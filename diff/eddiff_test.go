@@ -1,4 +1,4 @@
-package rcs
+package diff
 
 import (
 	"reflect"

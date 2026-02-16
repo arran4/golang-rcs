@@ -15,9 +15,6 @@ var (
 // Register registers a diff algorithm with a name.
 func Register(name string, algo DiffAlgorithm) {
 	registry[name] = algo
-	if defaultAlgo == "" {
-		defaultAlgo = name
-	}
 }
 
 // GetAlgorithm returns the registered algorithm by name.

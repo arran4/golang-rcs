@@ -1,4 +1,4 @@
-package lcs
+package hashline
 
 import (
 	"math/rand"
@@ -7,13 +7,11 @@ import (
 )
 
 func BenchmarkGenerateEdDiffFromLines(b *testing.B) {
-	// Generate random strings for benchmarking
 	from := make([]string, 1000)
 	to := make([]string, 1000)
 	for i := 0; i < 1000; i++ {
 		from[i] = randString(10)
 		to[i] = randString(10)
-		// Make them somewhat similar
 		if i%2 == 0 {
 			to[i] = from[i]
 		}
