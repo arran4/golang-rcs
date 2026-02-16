@@ -12,34 +12,41 @@ import (
 	_ "github.com/arran4/golang-rcs/diff/hashline"
 )
 
+// GenerateRandomLines generates random lines using a local random source for reproducibility in benchmarks.
 func GenerateRandomLines(n int, lineLen int) []string {
+	// Use a fixed seed for reproducible benchmarks across runs, or time-based if variance is desired.
+	// For benchmarks, consistency is usually better.
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
 	lines := make([]string, n)
-	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < n; i++ {
-		lines[i] = randomString(lineLen)
+		lines[i] = randomString(r, lineLen)
 	}
 	return lines
 }
 
-func randomString(n int) string {
+func randomString(r *rand.Rand, n int) string {
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = byte(rand.Intn(26) + 'a')
+		b[i] = byte(r.Intn(26) + 'a')
 	}
 	return string(b)
 }
 
 func GenerateCodeLines(n int) []string {
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
 	lines := make([]string, n)
-	rand.Seed(time.Now().UnixNano())
 	indent := 0
 	for i := 0; i < n; i++ {
-		if rand.Float32() < 0.1 && indent > 0 {
+		if r.Float32() < 0.1 && indent > 0 {
 			indent--
 		}
 		prefix := strings.Repeat("\t", indent)
 		lines[i] = prefix + "if (cond) {"
-		if rand.Float32() < 0.2 {
+		if r.Float32() < 0.2 {
 			indent++
 		}
 	}
@@ -47,11 +54,18 @@ func GenerateCodeLines(n int) []string {
 }
 
 func GenerateRepetitiveLines(n int, uniqueLines int) []string {
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
+	// Generate uniques first
+	uniques := make([]string, uniqueLines)
+	for i := 0; i < uniqueLines; i++ {
+		uniques[i] = randomString(r, 20)
+	}
+
 	lines := make([]string, n)
-	uniques := GenerateRandomLines(uniqueLines, 20)
-	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < n; i++ {
-		lines[i] = uniques[rand.Intn(uniqueLines)]
+		lines[i] = uniques[r.Intn(uniqueLines)]
 	}
 	return lines
 }
@@ -62,8 +76,11 @@ func benchmarkDiff(b *testing.B, algoName string, generator func(int) []string, 
 		b.Fatalf("algorithm %s not found: %v", algoName, err)
 	}
 
+	// For micro-benchmarks, we might want to generate once outside the loop to measure pure algo time.
+	// However, if the algo modifies input (it shouldn't), that would be bad.
+	// Assuming algo is read-only.
 	lines1 := generator(n)
-	lines2 := generator(n) // Two different sets generated similarly
+	lines2 := generator(n)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -167,12 +184,17 @@ func TestBenchmarkReport_Repetitive(t *testing.T) {
 		for _, size := range sizes {
 			// Generate repetitive lines (e.g., 10 unique lines repeated)
 			lines1 := GenerateRepetitiveLines(size, 10)
+
+			// Use local rand for modifications too
+			src := rand.NewSource(time.Now().UnixNano())
+			r := rand.New(src)
+
 			// Modify some lines in lines2 to create diffs but keep repetitive structure
 			lines2 := make([]string, size)
 			copy(lines2, lines1)
 			// Change 10% of lines
 			for i := 0; i < size/10; i++ {
-				idx := rand.Intn(size)
+				idx := r.Intn(size)
 				lines2[idx] = "modified line"
 			}
 
