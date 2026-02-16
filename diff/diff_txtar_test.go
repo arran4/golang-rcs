@@ -1,4 +1,4 @@
-package hashline
+package diff
 
 import (
 	"embed"
@@ -13,7 +13,7 @@ import (
 //go:embed testdata/*.txtar
 var testData embed.FS
 
-func TestHashLineWithTxtar(t *testing.T) {
+func TestDiffWithTxtar(t *testing.T) {
 	files, err := testData.ReadDir("testdata")
 	if err != nil {
 		t.Fatalf("failed to read testdata dir: %v", err)
@@ -48,14 +48,12 @@ func TestHashLineWithTxtar(t *testing.T) {
 				t.Fatalf("missing input1.txt or input2.txt in txtar file")
 			}
 
-			diff, err := GenerateEdDiffFromLines(input1, input2)
+			// Test the default Generate function (which uses LCS/local implementation)
+			diff, err := Generate(input1, input2)
 			if err != nil {
-				t.Fatalf("GenerateEdDiffFromLines failed: %v", err)
+				t.Fatalf("Generate failed: %v", err)
 			}
 
-			// Verify generated diff string matches expected.diff if present
-			// Note: hashline produces LCS-like output so it should match the expectations
-			// derived from LCS if they are minimal/standard.
 			if expectedDiff != "" {
 				gotDiff := strings.TrimSpace(diff.String())
 				if gotDiff != expectedDiff {
@@ -63,7 +61,6 @@ func TestHashLineWithTxtar(t *testing.T) {
 				}
 			}
 
-			// Verify apply (Round Trip)
 			r := rcstesting.NewStringLineReader(strings.Join(input1, "\n"))
 			w := &rcstesting.StringLineWriter{}
 			if err := diff.Apply(r, w); err != nil {

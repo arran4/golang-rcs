@@ -21,18 +21,13 @@ func hashBytes(b []byte) uint64 {
 }
 
 func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
-	type ContinuousRun struct {
-		FromStart int
-		ToStart   int
-		Length    int
-	}
 	type HashPoint struct {
 		Previous       *HashPoint
 		Hash           uint64
 		FromLineNumber *int
 		ToLineNumber   *int
 	}
-	// var continuousRuns []ContinuousRun // Placeholder for future optimization
+	// Placeholder for future optimization with continuous runs
 	m := make(map[uint64][]*HashPoint, max(len(from), len(to)))
 	var previous *HashPoint
 	for linePos, line := range from {
