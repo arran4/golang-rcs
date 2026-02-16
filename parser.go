@@ -1034,7 +1034,7 @@ func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) er
 	if haveHead {
 		opts = append(opts, WithConsumed(true))
 	}
-	if dateStr, err := ParseOptionalToken(s, ScanTokenNum, opts...); err != nil {
+	if dateStr, err := ParseOptionalToken(s, ScanTokenDate, opts...); err != nil {
 		return err
 	} else {
 		dateStr = strings.TrimSpace(dateStr)
@@ -1413,6 +1413,13 @@ func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
 		}
 	}
 	return err
+}
+
+func ScanTokenDate(s *Scanner) (string, error) {
+	if err := ScanUntilFieldTerminator(s); err != nil {
+		return "", err
+	}
+	return s.Text(), nil
 }
 
 func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, err error) {

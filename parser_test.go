@@ -1806,6 +1806,11 @@ func TestParseRevisionHeaderDateLine_Compat(t *testing.T) {
 			input:        "date\t20.01.01.00.00.00;\tauthor arran;\tstate Exp;\n",
 			expectedTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 		},
+		{
+			name:         "Date with LT",
+			input:        "date\t2023.01.01.12.00.00 LT;\tauthor user;\tstate Exp;\n",
+			expectedTime: time.Date(2023, 1, 1, 12, 0, 0, 0, time.Local),
+		},
 	}
 
 	for _, tt := range tests {
@@ -1943,16 +1948,8 @@ func TestParseRevisionHeaderDateLine_Errors(t *testing.T) {
 		{
 			name:    "Invalid date format",
 			input:   "date\tbad-date;",
-			wantErr: "expected value for date",
-			wantErrorCheck: func(t *testing.T, err error) {
-				var e ErrParseProperty
-				if !errors.As(err, &e) {
-					t.Errorf("error is not ErrParseProperty: %T", err)
-				}
-				if e.Property != "date" {
-					t.Errorf("property = %q, want %q", e.Property, "date")
-				}
-			},
+			wantErr: "unable to parse date: bad-date",
+			wantErrorCheck: nil,
 		},
 		{
 			name:    "Error parsing author",
@@ -1999,7 +1996,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 		{
 			name:    "Bad date",
 			input:   "1.1\ndate bad;",
-			wantErr: "expected value for date",
+			wantErr: "unable to parse date: bad",
 		},
 		{
 			name:    "Bad next",
