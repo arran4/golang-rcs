@@ -2,7 +2,9 @@ package hashline
 
 import (
 	"hash/fnv"
+	"runtime"
 	"sort"
+	"sync"
 
 	"github.com/arran4/golang-rcs/diff"
 )
@@ -21,11 +23,47 @@ func hashBytes(b []byte) uint64 {
 	return h.Sum64()
 }
 
+func parallelHash(lines []string) []uint64 {
+	n := len(lines)
+	hashes := make([]uint64, n)
+	numCPU := runtime.NumCPU()
+	if n < 1000 || numCPU == 1 {
+		for i, line := range lines {
+			hashes[i] = hashBytes([]byte(line))
+		}
+		return hashes
+	}
+
+	var wg sync.WaitGroup
+	chunkSize := (n + numCPU - 1) / numCPU
+	for i := 0; i < numCPU; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+		if start >= n {
+			break
+		}
+		if end > n {
+			end = n
+		}
+		wg.Add(1)
+		go func(s, e int) {
+			defer wg.Done()
+			for k := s; k < e; k++ {
+				hashes[k] = hashBytes([]byte(lines[k]))
+			}
+		}(start, end)
+	}
+	wg.Wait()
+	return hashes
+}
+
 func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
+	// 1. Parallel Hash 'from' lines
+	fromHashes := parallelHash(from)
+
 	// Map from Hash to list of occurrences in 'from'
 	m := make(map[uint64][]int, len(from))
-	for linePos, line := range from {
-		h := hashBytes([]byte(line))
+	for linePos, h := range fromHashes {
 		m[h] = append(m[h], linePos)
 	}
 
@@ -42,11 +80,22 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 	// Keep track of active runs.
 	// currentRuns: map[int]int  (FromIndex -> Length of run ending at FromIndex)
 
-	currentRuns := make(map[int]int)
+	// We use two maps and swap them to avoid allocation per iteration
+	map1 := make(map[int]int)
+	map2 := make(map[int]int)
+	currentRuns := map1
 
-	for j, line := range to {
-		h := hashBytes([]byte(line))
-		nextRuns := make(map[int]int)
+	// 'nextRuns' will point to map2 initially in the loop logic below (via swap logic)
+	// But actually we need to designate one map as 'next' buffer.
+	nextRunsBuf := map2
+
+	// 2. Parallel Hash 'to' lines (optional, but good for large files)
+	toHashes := parallelHash(to)
+
+	for j, h := range toHashes {
+		nextRuns := nextRunsBuf
+		// Clear nextRuns for reuse
+		clear(nextRuns)
 
 		if indices, ok := m[h]; ok {
 			for _, i := range indices {
@@ -73,7 +122,13 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 				})
 			}
 		}
+
+		// Swap maps
+		// currentRuns becomes the one we just populated (nextRuns)
+		// nextRunsBuf becomes the old currentRuns (to be cleared next time)
+		tmp := currentRuns
 		currentRuns = nextRuns
+		nextRunsBuf = tmp
 	}
 
 	// Add remaining runs at the end of 'to'
@@ -88,7 +143,6 @@ func GenerateEdDiffFromLines(from []string, to []string) (diff.EdDiff, error) {
 	// Sort runs
 	// 1. Length (descending)
 	// 2. Distance from origin? i.e. (i+j) ascending? Or closeness to diagonal?
-	// User said: "Length of match, 2. Distance from origin."
 	sort.Slice(runs, func(i, j int) bool {
 		if runs[i].Length != runs[j].Length {
 			return runs[i].Length > runs[j].Length
