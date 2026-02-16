@@ -29,6 +29,9 @@ func TestHashLineWithTxtar(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to read file %s: %v", file, err)
 			}
+			if len(content) > 0 {
+				content = []byte(strings.ReplaceAll(string(content), "\r\n", "\n"))
+			}
 			a := txtar.Parse(content)
 
 			var input1, input2 []string
