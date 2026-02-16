@@ -52,6 +52,7 @@ func NormalizeRevisions(padCommits bool, files ...string) error {
 		})
 		for _, rh := range r.RevisionHeads {
 			dt, _ := rh.Date.DateTime()
+			dt = dt.UTC()
 			fmt.Printf("%s on %s by %s\n", rh.Revision, dt.In(time.Local), rh.Author)
 			datesSet[dt] = struct{}{}
 		}
@@ -72,6 +73,7 @@ func NormalizeRevisions(padCommits bool, files ...string) error {
 		revisionToRevision := map[string]string{}
 		for _, rh := range r.Rcs.RevisionHeads {
 			dt, _ := rh.Date.DateTime()
+			dt = dt.UTC()
 			s := dateToRevision[dt]
 			revisionToRevision[rh.Revision.String()] = s
 			fmt.Println("Updating date ", dt.Format(rcs.DateFormat), " to revision: ", s, "from", rh.Revision)
@@ -93,6 +95,7 @@ func NormalizeRevisions(padCommits bool, files ...string) error {
 				return fmt.Errorf("file %s has mismatching heads (%d) and contents (%d)", r.FN, len(r.Rcs.RevisionHeads), len(r.Rcs.RevisionContents))
 			}
 			dt, _ := h.Date.DateTime()
+			dt = dt.UTC()
 			byDate[dt] = hc{h: h, c: r.Rcs.RevisionContents[i]}
 		}
 		for _, rc := range r.Rcs.RevisionContents {
