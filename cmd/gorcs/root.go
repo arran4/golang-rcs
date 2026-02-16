@@ -9,6 +9,8 @@ import (
 	"os"
 
 	"github.com/arran4/golang-rcs/cmd/gorcs/templates"
+	"github.com/arran4/golang-rcs/diff"
+	_ "github.com/arran4/golang-rcs/diff/hashline"
 )
 
 type Cmd interface {
@@ -56,6 +58,7 @@ type RootCmd struct {
 	Commit        string
 	Date          string
 	CommandAction func(c *RootCmd) error
+	DiffAlgo      string
 }
 
 func (c *RootCmd) Usage() {
@@ -87,6 +90,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 		Commit:   commit,
 		Date:     date,
 	}
+	c.FlagSet.StringVar(&c.DiffAlgo, "diff-algo", "lcs", "Diff algorithm to use (default: lcs)")
 	c.FlagSet.Usage = c.Usage
 
 	c.Commands["format"] = c.NewFormat()
@@ -136,6 +140,11 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 func (c *RootCmd) Execute(args []string) error {
 	if err := c.Parse(args); err != nil {
 		return NewUserError(err, fmt.Sprintf("flag parse error %s", err.Error()))
+	}
+	if c.DiffAlgo != "" {
+		if err := diff.SetDefaultAlgorithm(c.DiffAlgo); err != nil {
+			return err
+		}
 	}
 	remainingArgs := c.Args()
 	if len(remainingArgs) < 1 {
