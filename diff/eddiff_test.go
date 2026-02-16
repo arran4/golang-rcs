@@ -1,59 +1,12 @@
-package rcs
+package diff
 
 import (
-	"io"
 	"reflect"
 	"strings"
 	"testing"
+
+	rcstesting "github.com/arran4/golang-rcs/internal/testing"
 )
-
-type StringLineReader struct {
-	lines []string
-	pos   int
-}
-
-func NewStringLineReader(content string) *StringLineReader {
-	lines := strings.Split(content, "\n")
-	// strings.Split always returns at least one element. If content is empty, returns [""] -> 1 line.
-	// But empty file should have 0 lines?
-	if content == "" {
-		lines = []string{}
-	} else {
-		// If ends with newline, Split gives empty string at end.
-		// RCS files often end with newline.
-		// "foo\nbar\n" -> ["foo", "bar", ""].
-		// We want ["foo", "bar"].
-		if len(lines) > 0 && lines[len(lines)-1] == "" {
-			lines = lines[:len(lines)-1]
-		}
-	}
-	return &StringLineReader{lines: lines}
-}
-
-func (r *StringLineReader) ReadLine() (string, error) {
-	if r.pos >= len(r.lines) {
-		return "", io.EOF
-	}
-	line := r.lines[r.pos]
-	r.pos++
-	return line, nil
-}
-
-type StringLineWriter struct {
-	lines []string
-}
-
-func (w *StringLineWriter) WriteLine(line string) error {
-	w.lines = append(w.lines, line)
-	return nil
-}
-
-func (w *StringLineWriter) String() string {
-	if len(w.lines) == 0 {
-		return ""
-	}
-	return strings.Join(w.lines, "\n") + "\n"
-}
 
 func TestParseEdDiff(t *testing.T) {
 	tests := []struct {
@@ -198,8 +151,8 @@ func TestEdDiff_Apply(t *testing.T) {
 				t.Fatalf("ParseEdDiff error: %v", err)
 			}
 
-			r := NewStringLineReader(tt.original)
-			w := &StringLineWriter{}
+			r := rcstesting.NewStringLineReader(tt.original)
+			w := &rcstesting.StringLineWriter{}
 
 			if err := ed.Apply(r, w); (err != nil) != tt.wantErr {
 				t.Errorf("Apply() error = %v, wantErr %v", err, tt.wantErr)
