@@ -1,0 +1,6 @@
+Usage: gorcs state list [flags] [files...]
+
+List state of all revisions.
+
+Positional Arguments:
+    files      List of RCS files to process

@@ -106,6 +106,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	c.Commands["list-heads"] = c.NewListHeads()
 	c.Commands["co"] = c.NewCo()
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
+	c.Commands["state"] = c.NewState()
 	c.Commands["to-json"] = c.NewToJson()
 	c.Commands["validate"] = c.NewValidate()
 	c.Commands["help"] = &InternalCommand{

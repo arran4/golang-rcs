@@ -343,6 +343,64 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
+### `gorcs state`
+
+Manage the state of revisions in an RCS file.
+
+#### `gorcs state set`
+
+Sets the state of a revision.
+
+**Usage:**
+
+```shell
+gorcs state set [-state <state>] [-rev <rev>] [file ...]
+```
+
+- `-state <state>`: The new state to set (e.g., `Rel`, `Exp`). If omitted, resets to `Exp`.
+- `-rev <rev>`: The revision to modify. If omitted, defaults to the head revision.
+
+**Example:**
+
+```shell
+gorcs state set -state Rel -rev 1.2 file.txt
+gorcs state set file.txt # Resets head revision state to Exp
+```
+
+#### `gorcs state get`
+
+Gets the state of a revision.
+
+**Usage:**
+
+```shell
+gorcs state get [-rev <rev>] [file ...]
+```
+
+- `-rev <rev>`: The revision to query. If omitted, defaults to the head revision.
+
+**Example:**
+
+```shell
+gorcs state get -rev 1.2 file.txt
+```
+
+#### `gorcs state list`
+
+Lists the state of all revisions in the file.
+
+**Usage:**
+
+```shell
+gorcs state list [file ...]
+```
+
+**Example:**
+
+```shell
+gorcs state list file.txt
+```
+
 ## License
 
 MIT.

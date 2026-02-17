@@ -1,0 +1,9 @@
+Usage: gorcs state get [flags] [files...]
+
+Get state of a revision.
+
+Flags:
+    -rev string      Revision to get state of. If empty, defaults to head.
+
+Positional Arguments:
+    files      List of RCS files to process

@@ -1,8 +1,8 @@
 -- description.txt --
-rcs -s flag (change state, no revision)
+state set (reset state to Exp)
 
 -- options.conf --
-{"args": ["-sRel", "input.txt"]}
+{"args": ["state", "set", "input.txt"]}
 
 -- input.txt,v --
 head	1.1;
@@ -13,7 +13,7 @@ comment	@# @;
 
 
 1.1
-date	2020.01.01.00.00.00;	author tester;	state Exp;
+date	2020.01.01.00.00.00;	author tester;	state Rel;
 branches;
 next	;
 
@@ -31,7 +31,7 @@ text
 @
 
 -- tests.txt --
-state set -state Rel input.txt
+state set input.txt
 
 -- expected.txt,v --
 head	1.1;
@@ -42,7 +42,7 @@ comment	@# @;
 
 
 1.1
-date	2020.01.01.00.00.00;	author tester;	state Rel;
+date	2020.01.01.00.00.00;	author tester;	state Exp;
 branches;
 next	;
 

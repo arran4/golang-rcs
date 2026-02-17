@@ -1,0 +1,10 @@
+Usage: gorcs state set [flags] [files...]
+
+Set state of a revision.
+
+Flags:
+    -state string    State to set (e.g. Rel, Exp). If empty, defaults to Exp.
+    -rev string      Revision to modify. If empty, defaults to head.
+
+Positional Arguments:
+    files      List of RCS files to process

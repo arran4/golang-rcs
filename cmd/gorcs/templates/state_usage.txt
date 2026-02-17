@@ -1,0 +1,10 @@
+Usage: gorcs state <command> [flags]
+
+Commands:
+    set       Set state of a revision
+    get       Get state of a revision
+    list      List state of all revisions
+
+Subcommands:
+    help         Print this help message
+    usage        Print this usage message

@@ -6,6 +6,7 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"strings"
 	"testing"
@@ -171,10 +172,139 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
+		case strings.HasPrefix(testName, "state "):
+			testState(t, parts, options, testName)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testState(t *testing.T, parts map[string]string, options map[string]bool, testName string) {
+	t.Run(testName, func(t *testing.T) {
+		inputRCS := getInputRCS(t, parts)
+		parsedFile, err := parseRCS(inputRCS)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		args := strings.Fields(testName)
+		if len(args) < 2 {
+			t.Fatalf("Invalid state command: %s", testName)
+		}
+		subCmd := args[1]
+
+		switch subCmd {
+		case "set":
+			// args: state set -state X -rev Y file
+			stateVal := ""
+			revVal := ""
+			for i := 2; i < len(args); i++ {
+				if args[i] == "-state" && i+1 < len(args) {
+					stateVal = args[i+1]
+					i++
+				} else if args[i] == "-rev" && i+1 < len(args) {
+					revVal = args[i+1]
+					i++
+				}
+			}
+
+			targetRev := revVal
+			if targetRev == "" {
+				targetRev = parsedFile.Head
+			}
+			if targetRev == "" {
+				t.Fatalf("No revision specified and no head revision found")
+			}
+
+			newState := stateVal
+			if newState == "" {
+				newState = "Exp"
+			}
+
+			found := false
+			for _, rh := range parsedFile.RevisionHeads {
+				if rh.Revision.String() == targetRev {
+					rh.State = ID(newState)
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("Revision %s not found", targetRev)
+			}
+
+			expectedRCS, ok := parts["expected.txt,v"]
+			if !ok {
+				t.Fatal("Missing expected.txt,v")
+			}
+
+			if options["unix line endings"] {
+				parsedFile.SwitchLineEnding("\n")
+			}
+
+			gotRCS := parsedFile.String()
+			checkRCS(t, expectedRCS, gotRCS, options)
+
+		case "get":
+			// args: state get -rev Y file
+			revVal := ""
+			for i := 2; i < len(args); i++ {
+				if args[i] == "-rev" && i+1 < len(args) {
+					revVal = args[i+1]
+					i++
+				}
+			}
+
+			targetRev := revVal
+			if targetRev == "" {
+				targetRev = parsedFile.Head
+			}
+
+			found := false
+			var gotState string
+			for _, rh := range parsedFile.RevisionHeads {
+				if rh.Revision.String() == targetRev {
+					gotState = string(rh.State)
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("Revision %s not found", targetRev)
+			}
+
+			expectedOut, ok := parts["expected.out"]
+			if !ok {
+				t.Fatal("Missing expected.out")
+			}
+
+			// get prints state + newline usually
+			gotOut := gotState + "\n"
+			if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+				t.Errorf("State Get mismatch (-want +got):\n%s", diff)
+			}
+
+		case "list":
+			var sb strings.Builder
+			for _, rh := range parsedFile.RevisionHeads {
+				sb.WriteString(fmt.Sprintf("%s %s\n", rh.Revision, rh.State))
+			}
+			gotOut := sb.String()
+
+			expectedOut, ok := parts["expected.out"]
+			if !ok {
+				t.Fatal("Missing expected.out")
+			}
+
+			if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+				t.Errorf("State List mismatch (-want +got):\n%s", diff)
+			}
+
+		default:
+			t.Fatalf("Unknown state subcommand: %s", subCmd)
+		}
+	})
 }
 
 func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
@@ -571,6 +701,9 @@ func testParseError(t *testing.T, testName string, parts map[string]string, opti
 
 func getInputRCS(t *testing.T, parts map[string]string) string {
 	if content, ok := parts["input,v"]; ok {
+		return content
+	}
+	if content, ok := parts["input.txt,v"]; ok {
 		return content
 	}
 	if content, ok := parts["input.rcs"]; ok {
