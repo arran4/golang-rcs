@@ -51,6 +51,16 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
 -- expected.json --
 {
+  "EndOfFileNewLineOffset": -1,
+  "HeadSeparatorSpaces": 5,
+  "BranchSeparatorSpaces": 3,
+  "AccessSeparatorSpaces": 3,
+  "SymbolsInline": true,
+  "SymbolsFirstSpaces": 2,
+  "SymbolsBetweenSpaces": 1,
+  "LocksSeparatorSpaces": 4,
+  "CommentSeparatorSpaces": 2,
+  "ExpandSeparatorSpaces": 3,
   "Head": "1.1",
   "Branch": "1.1.1",
   "Description": "",
@@ -72,9 +82,13 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
   "Integrity": "",
   "Expand": "b",
   "NewLine": "\n",
-  "EndOfFileNewLineOffset": -1,
   "RevisionHeads": [
     {
+      "DateSeparatorSpaces": 5,
+      "DateAuthorSpacingSpaces": 2,
+      "AuthorStateSpacingSpaces": 2,
+      "BranchesSeparatorSpaces": 1,
+      "NextSeparatorSpaces": 5,
       "Revision": "1.1",
       "Date": "2004.09.07.08.24.09",
       "Author": "cisers",
@@ -86,6 +100,11 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
       "CommitID": ""
     },
     {
+      "DateSeparatorSpaces": 5,
+      "DateAuthorSpacingSpaces": 2,
+      "AuthorStateSpacingSpaces": 2,
+      "BranchesSeparatorSpaces": 1,
+      "NextSeparatorSpaces": 5,
       "Revision": "1.1.1.1",
       "Date": "2004.09.07.08.24.09",
       "Author": "cisers",
@@ -97,10 +116,10 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
   ],
   "RevisionContents": [
     {
+      "PrecedingNewLinesOffset": 1,
       "Revision": "1.1",
       "Log": "da28248b4ec75efbe0ba7461142ed60d\n",
-      "Text": "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n",
-      "PrecedingNewLinesOffset": 1
+      "Text": "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n"
     },
     {
       "Revision": "1.1.1.1",
