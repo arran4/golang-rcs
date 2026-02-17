@@ -171,6 +171,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
+		case testName == "access-list copy":
+			testAccessListCopy(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
@@ -179,6 +181,61 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 
 func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("rcs clean test type not implemented yet")
+}
+
+func testAccessListCopy(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("access-list copy", func(t *testing.T) {
+		var fromFile string
+		var targetFiles []string
+
+		for i := 0; i < len(args); i++ {
+			if args[i] == "-from" && i+1 < len(args) {
+				fromFile = args[i+1]
+				i++
+			} else if !strings.HasPrefix(args[i], "-") {
+				targetFiles = append(targetFiles, args[i])
+			}
+		}
+
+		if fromFile == "" {
+			t.Fatal("Missing -from argument")
+		}
+		if len(targetFiles) == 0 {
+			t.Fatal("Missing target files")
+		}
+
+		fromContent, ok := parts[fromFile]
+		if !ok {
+			t.Fatalf("Missing from file: %s", fromFile)
+		}
+
+		fromRCS, err := parseRCS(fromContent)
+		if err != nil {
+			t.Fatalf("Failed to parse from file %s: %v", fromFile, err)
+		}
+
+		for _, targetFile := range targetFiles {
+			targetContent, ok := parts[targetFile]
+			if !ok {
+				t.Fatalf("Missing target file: %s", targetFile)
+			}
+
+			targetRCS, err := parseRCS(targetContent)
+			if err != nil {
+				t.Fatalf("Failed to parse target file %s: %v", targetFile, err)
+			}
+
+			targetRCS.CopyAccessList(fromRCS)
+
+			expectedKey := "expected.txt,v"
+			expectedContent, ok := parts[expectedKey]
+			if !ok {
+				t.Fatalf("Missing expected file: %s", expectedKey)
+			}
+
+			checkRCS(t, expectedContent, targetRCS.String(), options)
+		}
+	})
 }
 
 func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {

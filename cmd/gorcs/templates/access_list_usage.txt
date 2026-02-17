@@ -1,0 +1,8 @@
+Usage: gorcs access-list <subcommand>
+
+Subcommands:
+{{if .Recursive}}
+    access-list copy    Copy access list from one file to others
+{{else}}
+    copy                Copy access list from one file to others
+{{end}}
