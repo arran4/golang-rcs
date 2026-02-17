@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/arran4/golang-rcs"
 )
 
-func TestReadmeExamples(t *testing.T) {
+// NOTE TO DEVS/AGENTS:
+// This file contains examples that are used in the README.md.
+// If you modify this file, PLEASE UPDATE README.md accordingly.
+// The code in the README should be kept in sync with this file to ensure accuracy.
+
+func Example_readme() {
 	rcsContent := `head     1.1;
 branch   ;
 access   ;
@@ -41,7 +45,7 @@ text
 	f := strings.NewReader(rcsContent)
 	rcsFile, err := rcs.ParseFile(f)
 	if err != nil {
-		t.Fatalf("Error parsing RCS file: %s", err)
+		log.Fatalf("Error parsing RCS file: %s", err)
 	}
 
 	fmt.Printf("Head: %s\n", rcsFile.Head)
@@ -69,10 +73,20 @@ text
 	})
 
 	output := rcsFile.String()
-	if !strings.Contains(output, "Updated description") {
-		t.Errorf("Description not updated")
+	if strings.Contains(output, "Updated description") {
+		fmt.Println("Description updated successfully")
 	}
-	if !strings.Contains(output, "jules:1.2") {
-		t.Errorf("Lock not added")
+	if strings.Contains(output, "jules:1.2") {
+		fmt.Println("Lock added successfully")
 	}
+
+	// Output:
+	// Head: 1.1
+	// Description: Initial description
+	// Revision 1.1
+	//   Date:   2022-03-23T13:18:09Z
+	//   Author: arran
+	//   State:  Exp
+	// Description updated successfully
+	// Lock added successfully
 }
