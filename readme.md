@@ -147,12 +147,12 @@ Contains metadata about a specific revision.
 
 ### Custom Types
 
-The library uses several custom types which are aliases for `string`. They are provided to improve code readability and sometimes offer utility methods.
+The library uses several custom types which are underlying `string` types. They are provided to improve code readability and implement the `fmt.Stringer` interface. You can cast them to `string` if needed, or use them directly in contexts that accept `fmt.Stringer` (like `fmt.Printf`).
 
-*   **`Num`**: Represents a revision number (e.g., "1.1", "1.2.3.4").
-*   **`ID`**: Represents an identifier, such as an author name or state.
-*   **`Sym`**: Represents a symbolic name or commit ID.
-*   **`DateTime`**: Represents a raw RCS date string (e.g., "2022.03.23.13.18.09"). It provides a method `.DateTime()` which returns `(time.Time, error)` to parse the string into a standard Go `time.Time` object.
+*   **`Num`** (underlying `string`): Represents a revision number (e.g., "1.1", "1.2.3.4").
+*   **`ID`** (underlying `string`): Represents an identifier, such as an author name or state.
+*   **`Sym`** (underlying `string`): Represents a symbolic name or commit ID.
+*   **`DateTime`** (underlying `string`): Represents a raw RCS date string (e.g., "2022.03.23.13.18.09"). It provides a method `.DateTime()` which returns `(time.Time, error)` to parse the string into a standard Go `time.Time` object.
 
 ### `RevisionContent`
 Contains the log message and text content for a revision.
