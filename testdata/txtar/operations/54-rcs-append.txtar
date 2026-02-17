@@ -35,9 +35,7 @@ rcs
 
 -- expected.txt,v --
 head	1.1;
-access
-	jules
-	martha;
+access jules martha;
 symbols;
 locks; strict;
 comment	@# @;

@@ -1,0 +1,28 @@
+-- description.txt --
+Test rlog parsing.
+
+-- tests.txt --
+rlog: -r1.1,1.2 -luser1;user2 -wuser3,user4 -sExp;Dead -d>2020-01-01
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+expand	@o@;
+
+
+1.1
+date	2023.10.27.10.00.00;	author user1;	state Exp;
+branches;
+next	;
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@

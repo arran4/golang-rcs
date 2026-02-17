@@ -1,0 +1,51 @@
+-- description.txt --
+Test rcs -a with delimited list.
+
+-- tests.txt --
+rcs: -auser1,user2, user3
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+expand	@o@;
+
+
+1.1
+date	2023.10.27.10.00.00;	author user1;	state Exp;
+branches;
+next	;
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+
+-- expected.txt,v --
+head	1.1;
+access user1 user2 user3;
+symbols;
+locks; strict;
+comment	@# @;
+expand	@o@;
+
+
+1.1
+date	2023.10.27.10.00.00;	author user1;	state Exp;
+branches;
+next	;
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
