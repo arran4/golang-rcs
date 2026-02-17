@@ -1,0 +1,39 @@
+-- description.txt --
+ci -k preserves old metadata from keywords
+
+-- options.conf --
+{"args": ["-q","-k","-u","-m","restored","-t-","input.txt"] }
+
+-- input.txt --
+$Id: input.txt,v 1.1 1990/01/01 12:00:00 oldguy Exp $
+Old content.
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	90.01.01.12.00.00;	author oldguy;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@restored
+@
+text
+@$Id: input.txt,v 1.1 1990/01/01 12:00:00 oldguy Exp $
+Old content.
+@

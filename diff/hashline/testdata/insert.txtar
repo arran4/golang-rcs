@@ -1,0 +1,11 @@
+
+-- input1.txt --
+A
+C
+-- input2.txt --
+A
+B
+C
+-- expected.diff --
+a1 1
+B

@@ -1,0 +1,65 @@
+-- description.txt --
+rcsdiff -rREV1 -rREV2 (compare two revisions)
+
+-- options.conf --
+{"args": ["-r1.1", "-r1.2", "file.txt"] }
+
+-- input.txt --
+Line 1
+Line 2
+Line 3
+
+-- tests.txt --
+rcs diff
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks
+	tester:1.2; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.2
+log
+@r2
+@
+text
+@Line 1
+Line 2
+@
+
+
+1.1
+log
+@r1
+@
+text
+@d2 1
+@
+
+-- expected.out --
+===================================================================
+RCS file: file.txt,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -r1.1 -r1.2
+1a2
+> Line 2

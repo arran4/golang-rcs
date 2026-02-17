@@ -313,6 +313,20 @@ gorcs validate [-o output_file] [-w] [-s] [-f] [file1,v ...]
 - `-f`, `--force`: Force overwrite if output file exists.
 - `-` as input file reads from stdin.
 
+### `gorcs co`
+
+Checks out a revision from an RCS file and optionally updates lock state.
+
+```bash
+gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
+```
+
+- `-rREV`: Check out a specific revision.
+- `-l[REV]`: Check out and lock the given revision (or head when omitted).
+- `-u[REV]`: Check out and unlock the given revision (or head when omitted).
+- `-wUSER`: User to apply lock changes for (defaults to current logged in user).
+- `-q`: Quiet mode.
+
 ## License
 
 MIT.

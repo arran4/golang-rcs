@@ -1,0 +1,43 @@
+-- description.txt --
+co checkout -kk (keyword only)
+
+-- options.conf --
+{"args": ["-q", "-kk", "input.txt"] }
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@This is revision 1.1
+$Revision$
+$Date$
+$Author$
+@
+
+-- tests.txt --
+# co
+
+-- expected.txt --
+This is revision 1.1
+$Revision$
+$Date$
+$Author$

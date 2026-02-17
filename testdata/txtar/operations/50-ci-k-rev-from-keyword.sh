@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="50-ci-k-rev-from-keyword.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+cat > input.txt <<'EOF'
+$Id: input.txt,v 1.5 2020/01/01 12:00:00 tester Exp $
+Some content.
+EOF
+
+ci -q -k -u -m"forced 1.5" -t- input.txt
+
+cat > "$OLDPWD/$OUT" <<EOF
+-- description.txt --
+ci -k uses revision from keywords
+
+-- options.conf --
+{"args": ["-q","-k","-u","-m","forced 1.5","-t-","input.txt"] }
+
+-- input.txt --
+\$Id: input.txt,v 1.5 2020/01/01 12:00:00 tester Exp \$
+Some content.
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+$(cat input.txt,v)
+EOF

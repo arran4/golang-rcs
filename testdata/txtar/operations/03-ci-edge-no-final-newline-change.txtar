@@ -1,0 +1,79 @@
+-- description.txt --
+ci edge case no trailing newline
+
+-- options.conf --
+{"args": ["-q","-u","-m","no-final-newline-change","-wtester","-d","2020-01-02 00:00:00Z","input.txt"] }
+
+-- input.txt --
+LINE1
+LINE2
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@LINE1
+LINE2@
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@no-final-newline-change
+@
+text
+@LINE1
+LINE2X@
+
+
+1.1
+log
+@r1
+@
+text
+@d2 1
+a2 1
+LINE2@

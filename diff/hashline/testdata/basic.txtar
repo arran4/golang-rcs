@@ -1,0 +1,12 @@
+-- input1.txt --
+Hello world
+This is a test
+File
+-- input2.txt --
+Hello world
+This is a modified test
+File
+-- expected.diff --
+d2 1
+a1 1
+This is a modified test
