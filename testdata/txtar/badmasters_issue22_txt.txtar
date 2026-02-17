@@ -18281,5 +18281,6 @@ usbwin32-mirror/VERSION.txt,v content for 1.1
       "Log": "f5a857c32001e2e2ec4361887d98c720\n",
       "Text": "d1 1\na1 1\nusbwin32-mirror/VERSION.txt,v content for 1.1\n"
     }
-  ]
+  ],
+  "SymbolTerminatorPrefix": "\n\t"
 }

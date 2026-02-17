@@ -258,5 +258,6 @@ a1 1
       "Log": "b2a21b96e761608ee046498471074495\n",
       "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 1.1\n"
     }
-  ]
+  ],
+  "SymbolTerminatorPrefix": "\n\t"
 }

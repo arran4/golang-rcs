@@ -1,0 +1,72 @@
+-- description.txt --
+Symbols terminator on its own indented line.
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.1;
+access;
+symbols
+	rel:1.1
+	;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@@
+text
+@@
+
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "rel",
+      "Revision": "1.1"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2022.01.01.00.00.00",
+      "Author": "user",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "",
+      "Text": ""
+    }
+  ],
+  "SymbolTerminatorPrefix": "\n\t"
+}

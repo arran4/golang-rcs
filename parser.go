@@ -158,6 +158,7 @@ type File struct {
 	EndOfFileNewLineOffset  int `json:",omitempty"`
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
+	SymbolTerminatorPrefix  string `json:",omitempty"`
 }
 
 func NewFile() *File {
@@ -235,6 +236,7 @@ func (f *File) SwitchLineEnding(nl string) {
 	f.Comment = replace(f.Comment)
 	f.Integrity = replace(f.Integrity)
 	f.Expand = replace(f.Expand)
+	f.SymbolTerminatorPrefix = replace(f.SymbolTerminatorPrefix)
 
 	for _, rh := range f.RevisionHeads {
 		rh.Owner = replaceSlice(rh.Owner)
@@ -285,6 +287,7 @@ func (f *File) String() string {
 			sb.WriteString(nl + "\t")
 			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
 		}
+		sb.WriteString(f.SymbolTerminatorPrefix)
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
@@ -511,10 +514,11 @@ func ParseHeader(s *Scanner, f *File) error {
 				f.AccessUsers = users
 			}
 		case "symbols":
-			if sym, err := ParseHeaderSymbols(s, true); err != nil {
+			if sym, termPrefix, err := ParseHeaderSymbols(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Symbols = sym
+				f.SymbolTerminatorPrefix = termPrefix
 			}
 		case "locks":
 			var err error
@@ -898,37 +902,42 @@ func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
 	return ids, nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, string, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "symbols"); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
 	m := make([]*Symbol, 0)
+	var terminatorPrefix string
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
-			return nil, err
+			return nil, "", err
 		}
+		ws := s.Text()
 		if err := ScanStrings(s, ";"); err == nil {
+			if strings.Contains(ws, "\n") || strings.Contains(ws, "\r") {
+				terminatorPrefix = ws
+			}
 			break
 		}
 
 		sym, err := ScanTokenSym(s)
 		if err != nil {
-			return nil, fmt.Errorf("expected sym in symbols: %w", err)
+			return nil, "", fmt.Errorf("expected sym in symbols: %w", err)
 		}
 
 		if err := ScanStrings(s, ":"); err != nil {
-			return nil, fmt.Errorf("expected : after sym %q: %w", sym, err)
+			return nil, "", fmt.Errorf("expected : after sym %q: %w", sym, err)
 		}
 
 		num, err := ScanTokenNum(s)
 		if err != nil {
-			return nil, fmt.Errorf("expected num for sym %q: %w", sym, err)
+			return nil, "", fmt.Errorf("expected num for sym %q: %w", sym, err)
 		}
 		m = append(m, &Symbol{Name: sym, Revision: num})
 	}
-	return m, nil
+	return m, terminatorPrefix, nil
 }
 
 func ParseAtQuotedString(s *Scanner) (string, error) {
