@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	rcs "github.com/arran4/golang-rcs"
 )
@@ -24,12 +25,14 @@ type COVerdict struct {
 // Flags:
 //
 //	revision: -r revision to check out
+//	date: -d date to check out
+//	zone: -z timezone for date
 //	lock: -l lock checked-out revision
 //	unlock: -u unlock checked-out revision
 //	user: -w user for lock operations
 //	quiet: -q suppress status output
 //	files: ... List of working files to process
-func Co(revision string, lock, unlock bool, user string, quiet bool, files ...string) error {
+func Co(revision, date, zone string, lock, unlock bool, user string, quiet bool, files ...string) error {
 	if lock && unlock {
 		return fmt.Errorf("cannot combine -l and -u")
 	}
@@ -39,8 +42,27 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 	if len(files) == 0 {
 		return fmt.Errorf("no files provided")
 	}
+
+	var parsedZone *time.Location
+	var parsedDate time.Time
+	var err error
+
+	if zone != "" {
+		parsedZone, err = parseZone(zone)
+		if err != nil {
+			return fmt.Errorf("invalid zone %q: %w", zone, err)
+		}
+	}
+
+	if date != "" {
+		parsedDate, err = rcs.ParseDate(date, time.Now(), parsedZone)
+		if err != nil {
+			return fmt.Errorf("invalid date %q: %w", date, err)
+		}
+	}
+
 	for _, file := range files {
-		result, err := coFile(revision, lock, unlock, user, quiet, file)
+		result, err := coFile(revision, parsedDate, lock, unlock, user, quiet, file)
 		if err != nil {
 			return err
 		}
@@ -58,7 +80,27 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 	return nil
 }
 
-func coFile(revision string, lock, unlock bool, user string, quiet bool, workingFile string) (COVerdict, error) {
+func parseZone(z string) (*time.Location, error) {
+	if z == "LT" {
+		return time.Local, nil
+	}
+	// Try parsing numeric offsets using time.Parse
+	// Supports -0700, -07:00, +0700, etc.
+	if t, err := time.Parse("-0700", z); err == nil {
+		return t.Location(), nil
+	}
+	if t, err := time.Parse("-07:00", z); err == nil {
+		return t.Location(), nil
+	}
+	if t, err := time.Parse("Z07:00", z); err == nil {
+		return t.Location(), nil
+	}
+
+	// Fallback to loading location by name
+	return time.LoadLocation(z)
+}
+
+func coFile(revision string, date time.Time, lock, unlock bool, user string, quiet bool, workingFile string) (COVerdict, error) {
 	rcsFile := workingFile
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
@@ -72,9 +114,12 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, working
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
 	}
 
-	ops := make([]any, 0, 2)
+	ops := make([]any, 0, 3)
 	if revision != "" {
 		ops = append(ops, rcs.WithRevision(revision))
+	}
+	if !date.IsZero() {
+		ops = append(ops, rcs.WithDate(date))
 	}
 	if lock {
 		ops = append(ops, rcs.WithSetLock)

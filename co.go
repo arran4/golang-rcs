@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/arran4/golang-rcs/diff"
 )
@@ -27,23 +28,32 @@ const (
 
 type WithRevision string
 
+type WithDate time.Time
+
 // Checkout resolves revision content and applies lock changes to the file.
 //
 // Options:
 //   - WithRevision("1.2") picks an explicit revision (defaults to file head)
 //   - WithSetLock / WithClearLock controls lock mutation
+//   - WithDate(time.Time) picks the latest revision on the selected branch no later than date
 func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if file == nil {
 		return nil, fmt.Errorf("nil file")
 	}
 	revision := file.Head
 	lockMode := WithNoLockChange
+	var date time.Time
+	revisionSet := false
+
 	for _, op := range ops {
 		switch v := op.(type) {
 		case WithRevision:
 			revision = string(v)
+			revisionSet = true
 		case WithLock:
 			lockMode = v
+		case WithDate:
+			date = time.Time(v)
 		default:
 			return nil, fmt.Errorf("unsupported checkout option type %T", op)
 		}
@@ -51,6 +61,16 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if revision == "" {
 		return nil, fmt.Errorf("missing target revision")
 	}
+	if !date.IsZero() && !revisionSet {
+		// If revision was not explicitly set, we are traversing from Head (trunk).
+		// Find latest revision <= date.
+		var err error
+		revision, err = file.resolveRevisionByDate(revision, date)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if lockMode == WithSetLock || lockMode == WithClearLock {
 		if user == "" {
 			return nil, fmt.Errorf("lock operation requires user")
@@ -218,4 +238,35 @@ func (file *File) clearLock(user, revision string) bool {
 	}
 	file.Locks = out
 	return changed
+}
+
+func (file *File) resolveRevisionByDate(startRevision string, targetDate time.Time) (string, error) {
+	rhByRevision := map[string]*RevisionHead{}
+	for _, rh := range file.RevisionHeads {
+		rhByRevision[rh.Revision.String()] = rh
+	}
+
+	current := startRevision
+	for {
+		rh, ok := rhByRevision[current]
+		if !ok {
+			return "", fmt.Errorf("revision header %q not found", current)
+		}
+		dt, err := rh.Date.DateTime()
+		if err != nil {
+			return "", fmt.Errorf("parse date for revision %q: %w", current, err)
+		}
+		// If current revision date is <= targetDate, we found it.
+		// Since we assume we are traversing trunk backwards (newest to oldest),
+		// the first one we see that satisfies the condition is the latest one <= targetDate.
+		if !dt.After(targetDate) {
+			return current, nil
+		}
+
+		next := rh.NextRevision.String()
+		if next == "" {
+			return "", fmt.Errorf("no revision found before or at %v", targetDate)
+		}
+		current = next
+	}
 }

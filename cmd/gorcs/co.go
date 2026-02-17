@@ -24,6 +24,8 @@ type Co struct {
 	lockSet       bool
 	unlockSet     bool
 	quiet         bool
+	date          string
+	zone          string
 	user          string
 	files         []string
 	SubCommands   map[string]Cmd
@@ -122,6 +124,34 @@ func (c *Co) Execute(args []string) error {
 				} else {
 					c.unlockRev = strings.TrimPrefix(trimmed, "u")
 				}
+			case trimmed == "d" || strings.HasPrefix(trimmed, "d"):
+				if trimmed == "d" {
+					if !hasValue {
+						if i+1 < len(args) {
+							value = args[i+1]
+							i++
+						} else {
+							return fmt.Errorf("flag -d requires a value")
+						}
+					}
+					c.date = value
+				} else {
+					c.date = strings.TrimPrefix(trimmed, "d")
+				}
+			case trimmed == "z" || strings.HasPrefix(trimmed, "z"):
+				if trimmed == "z" {
+					if !hasValue {
+						if i+1 < len(args) {
+							value = args[i+1]
+							i++
+						} else {
+							return fmt.Errorf("flag -z requires a value")
+						}
+					}
+					c.zone = value
+				} else {
+					c.zone = strings.TrimPrefix(trimmed, "z")
+				}
 			default:
 				return fmt.Errorf("unknown flag: %s", name)
 			}
@@ -160,7 +190,7 @@ func (c *RootCmd) NewCo() *Co {
 		if c.revision != "" && (checkoutLock || checkoutUnlock) {
 			return fmt.Errorf("cannot combine -r with -l/-u")
 		}
-		err := cli.Co(checkoutRevision, checkoutLock, checkoutUnlock, c.user, c.quiet, c.files...)
+		err := cli.Co(checkoutRevision, c.date, c.zone, checkoutLock, checkoutUnlock, c.user, c.quiet, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
