@@ -210,17 +210,18 @@ func testLocks(t *testing.T, testName string, parts map[string]string, options m
 		// Manual flag parsing
 		for i := 0; i < len(cmdArgs); i++ {
 			arg := cmdArgs[i]
-			if arg == "-revision" {
+			switch arg {
+			case "-revision":
 				if i+1 < len(cmdArgs) {
 					revision = cmdArgs[i+1]
 					i++
 				}
-			} else if arg == "-w" {
+			case "-w":
 				if i+1 < len(cmdArgs) {
 					user = cmdArgs[i+1]
 					i++
 				}
-			} else if arg == "-u" {
+			case "-u":
 				// Special case for clean -u?
 				// But clean command might use it.
 			}
