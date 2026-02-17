@@ -32,6 +32,11 @@ desc
   "Expand": "",
   "NewLine": "\n",
   "EndOfFileNewLineOffset": 1,
+  "HeadSeparatorSpaces": 5,
+  "AccessSeparatorSpaces": 3,
+  "SymbolsSeparatorSpaces": 2,
+  "LocksSeparatorSpaces": 4,
+  "CommentSeparatorSpaces": 2,
   "RevisionHeads": null,
   "RevisionContents": null
 }

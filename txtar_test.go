@@ -200,7 +200,16 @@ func testRCSToJSON(t *testing.T, parts map[string]string, options map[string]boo
 			expectedJSON = strings.ReplaceAll(expectedJSON, "\r\n", "\n")
 		}
 
-		if diff := cmp.Diff(strings.TrimSpace(expectedJSON), strings.TrimSpace(gotJSON)); diff != "" {
+		var expectedObj any
+		if err := json.Unmarshal([]byte(expectedJSON), &expectedObj); err != nil {
+			t.Fatalf("json.Unmarshal expected.json error: %v", err)
+		}
+		var gotObj any
+		if err := json.Unmarshal([]byte(gotJSON), &gotObj); err != nil {
+			t.Fatalf("json.Unmarshal got JSON error: %v", err)
+		}
+
+		if diff := cmp.Diff(expectedObj, gotObj); diff != "" {
 			t.Errorf("JSON mismatch (-want +got):\n%s", diff)
 		}
 	})
