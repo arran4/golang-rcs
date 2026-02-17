@@ -67,11 +67,37 @@ func main() {
 	// Iterate over revision headers
 	for _, rh := range rcsFile.RevisionHeads {
 		fmt.Printf("Revision %s\n", rh.Revision)
-		fmt.Printf("  Date:   %s\n", rh.Date.Format(time.RFC3339))
+
+		// Parse DateTime string to time.Time
+		date, err := rh.Date.DateTime()
+		if err != nil {
+			log.Printf("Error parsing date: %s", err)
+		} else {
+			fmt.Printf("  Date:   %s\n", date.Format(time.RFC3339))
+		}
+
 		fmt.Printf("  Author: %s\n", rh.Author)
 		fmt.Printf("  State:  %s\n", rh.State)
 	}
 }
+```
+
+## Modifying RCS Files
+
+You can also modify the parsed structure and serialize it back to an RCS file string.
+
+```go
+	// Modify description
+	rcsFile.Description = "Updated description via golang-rcs"
+
+	// Add a new lock
+	rcsFile.Locks = append(rcsFile.Locks, &rcs.Lock{
+		User:     "jules",
+		Revision: "1.2",
+	})
+
+	// Print back to stdout (or file)
+	fmt.Println(rcsFile.String())
 ```
 
 ## Data Structures
@@ -87,8 +113,7 @@ The top-level structure representing a parsed RCS file.
 | `Branch` | `string` | The default branch (if any). |
 | `Access` | `bool` | Whether the access list is present. |
 | `AccessUsers` | `[]string` | List of users in the access list. |
-| `Symbols` | `bool` | Whether symbols are present. |
-| `SymbolMap` | `map[string]string` | Map of symbolic names to revision numbers. |
+| `Symbols` | `[]*Symbol` | List of symbolic names. |
 | `Locks` | `[]*Lock` | List of locks held on the file. |
 | `Strict` | `bool` | Whether strict locking is enabled. |
 | `Integrity` | `string` | Integrity configuration string. |
@@ -112,13 +137,13 @@ Contains metadata about a specific revision.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `Revision` | `string` | The revision number (e.g., "1.1"). |
-| `Date` | `time.Time` | The date and time of the revision. |
-| `Author` | `string` | The username of the author. |
-| `State` | `string` | The state of the revision (e.g., "Exp"). |
-| `Branches` | `[]string` | List of branches starting from this revision. |
-| `NextRevision` | `string` | The revision number of the next revision in the sequence. |
-| `CommitID` | `string` | The Commit ID of the revision (if present). |
+| `Revision` | `Num` | The revision number (e.g., "1.1"). Alias for `string`. |
+| `Date` | `DateTime` | The date and time string of the revision. Use `.DateTime()` to parse to `time.Time`. |
+| `Author` | `ID` | The username of the author. Alias for `string`. |
+| `State` | `ID` | The state of the revision (e.g., "Exp"). Alias for `string`. |
+| `Branches` | `[]Num` | List of branches starting from this revision. |
+| `NextRevision` | `Num` | The revision number of the next revision in the sequence. |
+| `CommitID` | `Sym` | The Commit ID of the revision (if present). Alias for `string`. |
 
 ### `RevisionContent`
 Contains the log message and text content for a revision.
