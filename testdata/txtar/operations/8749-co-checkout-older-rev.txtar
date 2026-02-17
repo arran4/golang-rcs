@@ -1,8 +1,8 @@
 -- description.txt --
 co checkout older revision 1.1 when 1.3 is head
 
--- options.conf --
-{"args": ["-q","-r1.1","input.txt"] }
+-- options.json --
+{"args":["-q","-r1.1","input.txt"],"flags":{"quiet":true},"options":["co"]}
 
 -- input.txt,v --
 head	1.3;

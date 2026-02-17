@@ -1,0 +1,12 @@
+Usage: gorcs co [flags...] [files...]
+
+Subcommands:
+  help	show help
+  usage	show usage
+
+Flags:
+  -q	quiet
+  -r<rev>	checkout specific revision
+  -l[rev]	checkout and lock revision (default head)
+  -u[rev]	checkout and unlock revision (default head)
+  -w<user>	lock user (default to current logged in user)
