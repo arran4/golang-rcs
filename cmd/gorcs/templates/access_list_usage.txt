@@ -1,0 +1,10 @@
+Usage: gorcs access-list <subcommand>
+
+Access list operations.
+
+Subcommands:
+{{if .Recursive}}
+    access-list copy
+{{else}}
+    copy
+{{end}}

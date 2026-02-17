@@ -2,7 +2,7 @@
 rcs append access list from file
 
 -- options.conf --
-{"args": ["-Asource.txt", "input.txt"] }
+{"args": ["-from", "source.txt,v", "input.txt,v"] }
 
 -- source.txt,v --
 head	1.1;
@@ -59,7 +59,7 @@ text
 @
 
 -- tests.txt --
-rcs
+access-list copy
 
 -- expected.txt,v --
 head	1.1;

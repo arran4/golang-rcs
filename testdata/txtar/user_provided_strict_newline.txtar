@@ -58,7 +58,10 @@
 
 -- expected,v --
 head	1.2;
-access user1 user2 user3;
+access
+	user1
+	user2
+	user3;
 symbols;
 locks
 	arran:1.2;

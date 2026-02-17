@@ -183,6 +183,26 @@ gorcs branches default set <name> [file1 file2 ...]
 gorcs branches default set 1.1.1.1 file.txt
 ```
 
+### `gorcs access-list copy`
+
+Copies the access list from one RCS file to one or more other RCS files.
+
+**Usage:**
+
+```shell
+gorcs access-list copy -from <source_file,v> <target_file1,v> [target_file2,v ...]
+```
+
+**Flags:**
+
+- `-from`: The source RCS file to copy the access list from.
+
+**Example:**
+
+```shell
+gorcs access-list copy -from file1,v file2,v
+```
+
 ### `gorcs list-heads`
 
 A simple tool to list revisions in specified RCS files.
