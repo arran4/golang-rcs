@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
-	"io"
 	"os"
 	"strings"
 )
@@ -16,8 +15,9 @@ import (
 //	output: -o --output Output file path
 //	force: -f --force Force overwrite output
 //	indent: -I --indent Indent JSON output
+//	mmap: -m --mmap Use mmap to read file
 //	files: ... List of files to process, or - for stdin
-func ToJson(output string, force, indent bool, files ...string) error {
+func ToJson(output string, force, indent, useMmap bool, files ...string) error {
 	var err error
 	if files, err = ensureFiles(files); err != nil {
 		return err
@@ -26,19 +26,13 @@ func ToJson(output string, force, indent bool, files ...string) error {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
-		var f io.Reader
-		if fn == "-" {
-			f = os.Stdin
-		} else {
-			file, err := os.Open(fn)
-			if err != nil {
-				return fmt.Errorf("error with file %s: %w", fn, err)
-			}
-			defer func() {
-				_ = file.Close()
-			}()
-			f = file
+		f, closeFunc, err := OpenFile(fn, useMmap)
+		if err != nil {
+			return fmt.Errorf("error with file %s: %w", fn, err)
 		}
+		defer func() {
+			_ = closeFunc()
+		}()
 		r, err := rcs.ParseFile(f)
 		if err != nil {
 			return fmt.Errorf("error parsing %s: %w", fn, err)
@@ -79,8 +73,9 @@ func ToJson(output string, force, indent bool, files ...string) error {
 //
 //	output: -o --output Output file path
 //	force: -f --force Force overwrite output
+//	mmap: -m --mmap Use mmap to read file
 //	files: ... List of files to process, or - for stdin
-func FromJson(output string, force bool, files ...string) error {
+func FromJson(output string, force, useMmap bool, files ...string) error {
 	var err error
 	if files, err = ensureFiles(files); err != nil {
 		return err
@@ -89,19 +84,13 @@ func FromJson(output string, force bool, files ...string) error {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
-		var f io.Reader
-		if fn == "-" {
-			f = os.Stdin
-		} else {
-			file, err := os.Open(fn)
-			if err != nil {
-				return fmt.Errorf("error with file %s: %w", fn, err)
-			}
-			defer func() {
-				_ = file.Close()
-			}()
-			f = file
+		f, closeFunc, err := OpenFile(fn, useMmap)
+		if err != nil {
+			return fmt.Errorf("error with file %s: %w", fn, err)
 		}
+		defer func() {
+			_ = closeFunc()
+		}()
 		var r rcs.File
 		if err := json.NewDecoder(f).Decode(&r); err != nil {
 			return fmt.Errorf("error parsing %s: %w", fn, err)

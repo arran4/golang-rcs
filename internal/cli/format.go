@@ -14,16 +14,17 @@ import (
 //	output: -o --output Output file path
 //	force: -f --force Force overwrite output
 //	keep-truncated-years: --keep-truncated-years Keep truncated years (do not expand to 4 digits)
+//	mmap: -m --mmap Use mmap to read file
 //	files: ... List of files to process, or - for stdin
-func Format(output string, force, keepTruncatedYears bool, files ...string) error {
+func Format(output string, force, keepTruncatedYears, useMmap bool, files ...string) error {
 	var err error
 	if files, err = ensureFiles(files); err != nil {
 		return err
 	}
-	return runFormat(os.Stdin, os.Stdout, output, force, false, false, keepTruncatedYears, files...)
+	return runFormat(os.Stdin, os.Stdout, output, force, false, false, keepTruncatedYears, useMmap, files...)
 }
 
-func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears bool, files ...string) error {
+func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrite, stdoutFlag, keepTruncatedYears, useMmap bool, files ...string) error {
 	if output != "" && output != "-" && len(files) > 1 {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
@@ -49,12 +50,12 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		} else {
 			// Using closure to ensure Close is called immediately after use
 			err = func() error {
-				f, openErr := os.Open(fn)
+				f, closeFunc, openErr := OpenFile(fn, useMmap)
 				if openErr != nil {
 					return fmt.Errorf("error opening file %s: %w", fn, openErr)
 				}
 				defer func() {
-					_ = f.Close()
+					_ = closeFunc()
 				}()
 
 				content, err = processReader(f, keepTruncatedYears)

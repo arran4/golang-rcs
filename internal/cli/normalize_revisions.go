@@ -29,8 +29,9 @@ func (d DateSorter) Swap(i, j int) {
 // Flags:
 //
 //	padCommits: -p --pad-commits pad commits with empty commits
+//	mmap: -m --mmap Use mmap to read file
 //	files: ... List of files to process
-func NormalizeRevisions(padCommits bool, files ...string) error {
+func NormalizeRevisions(padCommits, useMmap bool, files ...string) error {
 	var err error
 	if files, err = ensureFiles(files); err != nil {
 		return err
@@ -42,7 +43,7 @@ func NormalizeRevisions(padCommits bool, files ...string) error {
 	var rs []Pair
 	datesSet := map[time.Time]struct{}{}
 	for _, f := range files {
-		r, err := ReadParse(f)
+		r, err := ReadParse(f, useMmap)
 		if err != nil {
 			return err
 		}
@@ -149,13 +150,13 @@ func WriteFile(fn string, file *rcs.File) error {
 	return nil
 }
 
-func ReadParse(fn string) (*rcs.File, error) {
-	f, err := os.Open(fn)
+func ReadParse(fn string, useMmap bool) (*rcs.File, error) {
+	f, closeFunc, err := OpenFile(fn, useMmap)
 	if err != nil {
 		return nil, fmt.Errorf("error with file %s: %w", fn, err)
 	}
 	defer func() {
-		_ = f.Close()
+		_ = closeFunc()
 	}()
 	fmt.Println("Parsing: ", fn)
 	r, err := rcs.ParseFile(f)

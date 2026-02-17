@@ -74,7 +74,7 @@ func TestPadCommits(t *testing.T) {
 	subset := writeSubset(t, dir, []int{0, 1, 2})
 	full := writeFull(t, dir)
 
-	if err := NormalizeRevisions(false, subset, full); err != nil {
+	if err := NormalizeRevisions(false, false, subset, full); err != nil {
 		t.Errorf("NormalizeRevisions failed: %v", err)
 	}
 
@@ -98,7 +98,7 @@ func TestPadCommits(t *testing.T) {
 	// So we should re-create full as well to be safe.
 	full = writeFull(t, dir)
 
-	if err := NormalizeRevisions(true, subset, full); err != nil {
+	if err := NormalizeRevisions(true, false, subset, full); err != nil {
 		t.Errorf("NormalizeRevisions failed: %v", err)
 	}
 

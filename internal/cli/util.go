@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"golang.org/x/exp/mmap"
+	"io"
 	"os"
 )
 
@@ -26,4 +28,23 @@ func ensureFiles(files []string) ([]string, error) {
 
 	// Stdin is piped or redirected
 	return []string{"-"}, nil
+}
+
+func OpenFile(filename string, useMmap bool) (io.Reader, func() error, error) {
+	if filename == "-" {
+		return os.Stdin, func() error { return nil }, nil
+	}
+	if useMmap {
+		r, err := mmap.Open(filename)
+		if err != nil {
+			return nil, nil, err
+		}
+		sr := io.NewSectionReader(r, 0, int64(r.Len()))
+		return sr, func() error { return r.Close() }, nil
+	}
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	return f, f.Close, nil
 }
