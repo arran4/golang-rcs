@@ -26,42 +26,49 @@ func ToJson(output string, force, indent, useMmap bool, files ...string) error {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
-		f, closeFunc, err := OpenFile(fn, useMmap)
-		if err != nil {
-			return fmt.Errorf("error with file %s: %w", fn, err)
+		if err := processFileToJson(fn, output, force, indent, useMmap); err != nil {
+			return err
 		}
-		defer func() {
-			_ = closeFunc()
-		}()
-		r, err := rcs.ParseFile(f)
-		if err != nil {
-			return fmt.Errorf("error parsing %s: %w", fn, err)
-		}
-		var b []byte
-		if indent {
-			b, err = json.MarshalIndent(r, "", "  ")
-		} else {
-			b, err = json.Marshal(r)
-		}
-		if err != nil {
-			return fmt.Errorf("error serializing %s: %w", fn, err)
-		}
+	}
+	return nil
+}
 
-		if output == "-" {
-			fmt.Printf("%s", b)
-		} else if output != "" {
-			if err := writeOutput(output, b, force); err != nil {
-				return err
-			}
-		} else if fn == "-" {
-			// When reading from stdin and no output file specified, write to stdout
-			fmt.Printf("%s", b)
-		} else {
-			// Default output: filename + .json
-			outPath := fn + ".json"
-			if err := writeOutput(outPath, b, force); err != nil {
-				return err
-			}
+func processFileToJson(fn string, output string, force, indent, useMmap bool) error {
+	f, closeFunc, err := OpenFile(fn, useMmap)
+	if err != nil {
+		return fmt.Errorf("error with file %s: %w", fn, err)
+	}
+	defer func() {
+		_ = closeFunc()
+	}()
+	r, err := rcs.ParseFile(f)
+	if err != nil {
+		return fmt.Errorf("error parsing %s: %w", fn, err)
+	}
+	var b []byte
+	if indent {
+		b, err = json.MarshalIndent(r, "", "  ")
+	} else {
+		b, err = json.Marshal(r)
+	}
+	if err != nil {
+		return fmt.Errorf("error serializing %s: %w", fn, err)
+	}
+
+	if output == "-" {
+		fmt.Printf("%s", b)
+	} else if output != "" {
+		if err := writeOutput(output, b, force); err != nil {
+			return err
+		}
+	} else if fn == "-" {
+		// When reading from stdin and no output file specified, write to stdout
+		fmt.Printf("%s", b)
+	} else {
+		// Default output: filename + .json
+		outPath := fn + ".json"
+		if err := writeOutput(outPath, b, force); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -84,40 +91,47 @@ func FromJson(output string, force, useMmap bool, files ...string) error {
 		return fmt.Errorf("cannot specify output file with multiple input files")
 	}
 	for _, fn := range files {
-		f, closeFunc, err := OpenFile(fn, useMmap)
-		if err != nil {
-			return fmt.Errorf("error with file %s: %w", fn, err)
+		if err := processFileFromJson(fn, output, force, useMmap); err != nil {
+			return err
 		}
-		defer func() {
-			_ = closeFunc()
-		}()
-		var r rcs.File
-		if err := json.NewDecoder(f).Decode(&r); err != nil {
-			return fmt.Errorf("error parsing %s: %w", fn, err)
+	}
+	return nil
+}
+
+func processFileFromJson(fn string, output string, force, useMmap bool) error {
+	f, closeFunc, err := OpenFile(fn, useMmap)
+	if err != nil {
+		return fmt.Errorf("error with file %s: %w", fn, err)
+	}
+	defer func() {
+		_ = closeFunc()
+	}()
+	var r rcs.File
+	if err := json.NewDecoder(f).Decode(&r); err != nil {
+		return fmt.Errorf("error parsing %s: %w", fn, err)
+	}
+
+	outBytes := []byte(r.String())
+
+	if output == "-" {
+		fmt.Print(string(outBytes))
+	} else if output != "" {
+		if err := writeOutput(output, outBytes, force); err != nil {
+			return err
 		}
-
-		outBytes := []byte(r.String())
-
-		if output == "-" {
-			fmt.Print(string(outBytes))
-		} else if output != "" {
-			if err := writeOutput(output, outBytes, force); err != nil {
-				return err
-			}
-		} else if fn == "-" {
-			fmt.Print(string(outBytes))
-		} else {
-			// Default output: remove .json suffix, append ,v if not present
-			outPath := fn
-			if strings.HasSuffix(fn, ".json") {
-				outPath = strings.TrimSuffix(fn, ".json")
-			}
-			if !strings.HasSuffix(outPath, ",v") {
-				outPath += ",v"
-			}
-			if err := writeOutput(outPath, outBytes, force); err != nil {
-				return err
-			}
+	} else if fn == "-" {
+		fmt.Print(string(outBytes))
+	} else {
+		// Default output: remove .json suffix, append ,v if not present
+		outPath := fn
+		if strings.HasSuffix(fn, ".json") {
+			outPath = strings.TrimSuffix(fn, ".json")
+		}
+		if !strings.HasSuffix(outPath, ",v") {
+			outPath += ",v"
+		}
+		if err := writeOutput(outPath, outBytes, force); err != nil {
+			return err
 		}
 	}
 	return nil
