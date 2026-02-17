@@ -27,27 +27,51 @@ const (
 
 type WithRevision string
 
+type WithExpandKeyword KeywordSubstitution
+
+type WithRCSFilename string
+
 // Checkout resolves revision content and applies lock changes to the file.
 //
 // Options:
 //   - WithRevision("1.2") picks an explicit revision (defaults to file head)
 //   - WithSetLock / WithClearLock controls lock mutation
+//   - WithExpandKeyword(KV) sets keyword substitution mode
+//   - WithRCSFilename("foo.c,v") sets RCS filename for keyword expansion
 func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if file == nil {
 		return nil, fmt.Errorf("nil file")
 	}
 	revision := file.Head
 	lockMode := WithNoLockChange
+	keywordMode := KV
+	rcsFilename := ""
+
 	for _, op := range ops {
 		switch v := op.(type) {
 		case WithRevision:
 			revision = string(v)
 		case WithLock:
 			lockMode = v
+		case WithExpandKeyword:
+			keywordMode = KeywordSubstitution(v)
+		case WithRCSFilename:
+			rcsFilename = string(v)
 		default:
 			return nil, fmt.Errorf("unsupported checkout option type %T", op)
 		}
 	}
+
+	// Resolve revision if it is a symbol
+	if file.Symbols != nil {
+		for _, sym := range file.Symbols {
+			if sym.Name == revision {
+				revision = sym.Revision
+				break
+			}
+		}
+	}
+
 	if revision == "" {
 		return nil, fmt.Errorf("missing target revision")
 	}
@@ -60,6 +84,45 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	content, err := file.resolveRevisionContent(revision)
 	if err != nil {
 		return nil, err
+	}
+
+	// Apply keyword expansion
+	if keywordMode != O && keywordMode != B {
+		rh := file.GetRevisionHead(revision)
+		if rh == nil {
+			return nil, fmt.Errorf("revision head %q not found for keyword expansion", revision)
+		}
+		rc := file.GetRevisionContent(revision)
+		if rc == nil {
+			return nil, fmt.Errorf("revision content %q not found for keyword expansion", revision)
+		}
+
+		ctx := KeywordContext{
+			Revision:    revision,
+			Date:        string(rh.Date),
+			Author:      string(rh.Author),
+			State:       string(rh.State),
+			Log:         rc.Log,
+			RCSFile:     rcsFilename,
+			WorkingFile: "", // TODO: Pass working file name if needed
+			Strict:      file.Strict,
+			Comment:     file.Comment,
+		}
+
+		// Determine Locker
+		if lockMode == WithSetLock {
+			ctx.Locker = user
+		} else if keywordMode == KVL {
+			// Only for KVL do we check existing locks to populate Locker for expansion
+			for _, l := range file.Locks {
+				if l.Revision == revision {
+					ctx.Locker = l.User
+					break
+				}
+			}
+		}
+
+		content = ExpandKeywords(content, keywordMode, ctx)
 	}
 
 	v := &COVerdict{Revision: revision, Content: content}
@@ -78,6 +141,24 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	}
 
 	return v, nil
+}
+
+func (file *File) GetRevisionHead(rev string) *RevisionHead {
+	for _, rh := range file.RevisionHeads {
+		if rh.Revision.String() == rev {
+			return rh
+		}
+	}
+	return nil
+}
+
+func (file *File) GetRevisionContent(rev string) *RevisionContent {
+	for _, rc := range file.RevisionContents {
+		if rc.Revision == rev {
+			return rc
+		}
+	}
+	return nil
 }
 
 func (file *File) resolveRevisionContent(targetRevision string) (string, error) {

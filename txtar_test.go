@@ -254,16 +254,46 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 		}
 
 		user := "tester"
-		ops := make([]any, 0, 2)
-		for _, arg := range args {
+		ops := make([]any, 0, 4)
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
 			if !strings.HasPrefix(arg, "-") {
 				continue
 			}
 			switch {
 			case arg == "-q":
 				continue
-			case strings.HasPrefix(arg, "-k"), strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
+			case strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
 				t.Skipf("unsupported co flag in basic co mode: %s", arg)
+			case strings.HasPrefix(arg, "-k"):
+				modeStr := ""
+				if arg == "-k" {
+					if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+						modeStr = args[i+1]
+						i++
+					}
+				} else {
+					modeStr = strings.TrimPrefix(arg, "-k")
+				}
+				var mode KeywordSubstitution
+				switch modeStr {
+				case "kv":
+					mode = KV
+				case "kvl":
+					mode = KVL
+				case "k":
+					mode = K
+				case "o":
+					mode = O
+				case "b":
+					mode = B
+				case "v":
+					mode = V
+				default:
+					t.Fatalf("Unknown keyword substitution mode: %s", modeStr)
+				}
+				ops = append(ops, WithExpandKeyword(mode))
+
 			case strings.HasPrefix(arg, "-w"):
 				if arg == "-w" {
 					continue
@@ -271,18 +301,24 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 				user = strings.TrimPrefix(arg, "-w")
 			case strings.HasPrefix(arg, "-r"):
 				rev := strings.TrimPrefix(arg, "-r")
+				if rev == "" && i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+					rev = args[i+1]
+					i++
+				}
 				if strings.Count(rev, ".") > 1 {
 					t.Skipf("unsupported branch checkout in basic co mode: %s", arg)
 				}
 				ops = append(ops, WithRevision(rev))
 			case strings.HasPrefix(arg, "-l"):
 				rev := strings.TrimPrefix(arg, "-l")
+				// REMOVED greedy consumption of next arg for -l and -u
 				if rev != "" {
 					ops = append(ops, WithRevision(rev))
 				}
 				ops = append(ops, WithSetLock)
 			case strings.HasPrefix(arg, "-u"):
 				rev := strings.TrimPrefix(arg, "-u")
+				// REMOVED greedy consumption of next arg for -l and -u
 				if rev != "" {
 					ops = append(ops, WithRevision(rev))
 				}
@@ -291,6 +327,22 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 				t.Skipf("unsupported co arg format in basic co mode: %s", arg)
 			}
 		}
+
+		// Pass RCS filename
+		// In tests, we don't know the filename unless args specifies it or we infer it.
+		// Usually tests pass "input.txt" as args.
+		// We'll peek at args for a filename?
+		// Actually, `testCO` is called with `optionArgs` derived from `options.conf`.
+		// `options.conf` typically contains `["-q", "input.txt"]`.
+		// But `testCO` iterates args starting with `-`.
+		// What about positional args?
+		// `testCO` ignores non-flag args?
+		// `if !strings.HasPrefix(arg, "-") { continue }`
+
+		// So we need to explicitly pass filename.
+		// Or assume "input.txt,v".
+		// We'll pass "input.txt,v" (or whatever parts uses).
+		ops = append(ops, WithRCSFilename("file.txt,v")) // Standard dummy name for tests
 
 		verdict, err := parsed.Checkout(user, ops...)
 		if err != nil {

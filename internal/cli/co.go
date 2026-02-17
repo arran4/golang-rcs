@@ -29,7 +29,7 @@ type COVerdict struct {
 //	user: -w user for lock operations
 //	quiet: -q suppress status output
 //	files: ... List of working files to process
-func Co(revision string, lock, unlock bool, user string, quiet bool, files ...string) error {
+func Co(revision string, lock, unlock bool, keywordMode rcs.KeywordSubstitution, user string, quiet bool, files ...string) error {
 	if lock && unlock {
 		return fmt.Errorf("cannot combine -l and -u")
 	}
@@ -40,7 +40,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 		return fmt.Errorf("no files provided")
 	}
 	for _, file := range files {
-		result, err := coFile(revision, lock, unlock, user, quiet, file)
+		result, err := coFile(revision, lock, unlock, keywordMode, user, quiet, file)
 		if err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 	return nil
 }
 
-func coFile(revision string, lock, unlock bool, user string, quiet bool, workingFile string) (COVerdict, error) {
+func coFile(revision string, lock, unlock bool, keywordMode rcs.KeywordSubstitution, user string, quiet bool, workingFile string) (COVerdict, error) {
 	rcsFile := workingFile
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
@@ -72,7 +72,7 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, working
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
 	}
 
-	ops := make([]any, 0, 2)
+	ops := make([]any, 0, 4)
 	if revision != "" {
 		ops = append(ops, rcs.WithRevision(revision))
 	}
@@ -81,6 +81,8 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, working
 	} else if unlock {
 		ops = append(ops, rcs.WithClearLock)
 	}
+	ops = append(ops, rcs.WithExpandKeyword(keywordMode))
+	ops = append(ops, rcs.WithRCSFilename(rcsFile))
 
 	verdict, err := parsed.Checkout(user, ops...)
 	if err != nil {
