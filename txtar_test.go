@@ -230,11 +230,6 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 				branchName = strings.Join(parts[:len(parts)-1], ".")
 			}
 			parsed.Branch = branchName
-		} else if len(args) == 0 {
-			// Backwards compatibility for existing tests which might rely on empty args doing nothing
-			// But wait, the original code skipped if branchName == ""!
-			// "if branchName == "" { t.Skip("unsupported rcs operation fixture") }"
-			// I should maintain this unless new flags are present.
 		}
 
 		// Check if any operation was performed or expected.
