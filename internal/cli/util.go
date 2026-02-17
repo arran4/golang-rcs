@@ -30,21 +30,33 @@ func ensureFiles(files []string) ([]string, error) {
 	return []string{"-"}, nil
 }
 
-func OpenFile(filename string, useMmap bool) (io.Reader, func() error, error) {
+type mmapReadCloser struct {
+	*io.SectionReader
+	closer func() error
+}
+
+func (m *mmapReadCloser) Close() error {
+	return m.closer()
+}
+
+func OpenFile(filename string, useMmap bool) (io.ReadCloser, error) {
 	if filename == "-" {
-		return os.Stdin, func() error { return nil }, nil
+		return io.NopCloser(os.Stdin), nil
 	}
 	if useMmap {
 		r, err := mmap.Open(filename)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		sr := io.NewSectionReader(r, 0, int64(r.Len()))
-		return sr, func() error { return r.Close() }, nil
+		return &mmapReadCloser{
+			SectionReader: sr,
+			closer:        r.Close,
+		}, nil
 	}
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return f, f.Close, nil
+	return f, nil
 }

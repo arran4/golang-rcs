@@ -26,12 +26,12 @@ func ListHeads(useMmap bool, files ...string) error {
 }
 
 func listHeadsFile(fn string, useMmap bool) error {
-	f, closeFunc, err := OpenFile(fn, useMmap)
+	f, err := OpenFile(fn, useMmap)
 	if err != nil {
 		return fmt.Errorf("error with file: %w", err)
 	}
 	defer func() {
-		_ = closeFunc()
+		_ = f.Close()
 	}()
 	fmt.Println("Parsing: ", fn)
 	r, err := rcs.ParseFile(f)

@@ -34,12 +34,12 @@ func ToJson(output string, force, indent, useMmap bool, files ...string) error {
 }
 
 func processFileToJson(fn string, output string, force, indent, useMmap bool) error {
-	f, closeFunc, err := OpenFile(fn, useMmap)
+	f, err := OpenFile(fn, useMmap)
 	if err != nil {
 		return fmt.Errorf("error with file %s: %w", fn, err)
 	}
 	defer func() {
-		_ = closeFunc()
+		_ = f.Close()
 	}()
 	r, err := rcs.ParseFile(f)
 	if err != nil {
@@ -99,12 +99,12 @@ func FromJson(output string, force, useMmap bool, files ...string) error {
 }
 
 func processFileFromJson(fn string, output string, force, useMmap bool) error {
-	f, closeFunc, err := OpenFile(fn, useMmap)
+	f, err := OpenFile(fn, useMmap)
 	if err != nil {
 		return fmt.Errorf("error with file %s: %w", fn, err)
 	}
 	defer func() {
-		_ = closeFunc()
+		_ = f.Close()
 	}()
 	var r rcs.File
 	if err := json.NewDecoder(f).Decode(&r); err != nil {

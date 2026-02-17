@@ -50,12 +50,12 @@ func runFormat(stdin io.Reader, stdout io.Writer, output string, force, overwrit
 		} else {
 			// Using closure to ensure Close is called immediately after use
 			err = func() error {
-				f, closeFunc, openErr := OpenFile(fn, useMmap)
+				f, openErr := OpenFile(fn, useMmap)
 				if openErr != nil {
 					return fmt.Errorf("error opening file %s: %w", fn, openErr)
 				}
 				defer func() {
-					_ = closeFunc()
+					_ = f.Close()
 				}()
 
 				content, err = processReader(f, keepTruncatedYears)

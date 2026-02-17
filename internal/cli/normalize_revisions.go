@@ -151,12 +151,12 @@ func WriteFile(fn string, file *rcs.File) error {
 }
 
 func ReadParse(fn string, useMmap bool) (*rcs.File, error) {
-	f, closeFunc, err := OpenFile(fn, useMmap)
+	f, err := OpenFile(fn, useMmap)
 	if err != nil {
 		return nil, fmt.Errorf("error with file %s: %w", fn, err)
 	}
 	defer func() {
-		_ = closeFunc()
+		_ = f.Close()
 	}()
 	fmt.Println("Parsing: ", fn)
 	r, err := rcs.ParseFile(f)
