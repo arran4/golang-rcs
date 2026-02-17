@@ -427,7 +427,7 @@ func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 
 	if diff := cmp.Diff(normExpected, normGot); diff != "" {
 		t.Errorf("RCS mismatch (-want +got):\n%s", diff)
-		if !(ignoreWhitespace || ignoreAllWhitespace) {
+		if !ignoreWhitespace && !ignoreAllWhitespace {
 			t.Logf("Got RCS:\n%q", got)
 		}
 	}
