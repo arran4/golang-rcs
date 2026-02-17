@@ -156,6 +156,7 @@ type File struct {
 	Expand                  string
 	NewLine                 string
 	EndOfFileNewLineOffset  int `json:",omitempty"`
+	RevisionStartLineOffset int `json:"-"`
 	RevisionHeads           []*RevisionHead
 	RevisionContents        []*RevisionContent
 }
@@ -322,8 +323,9 @@ func (f *File) String() string {
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
-	sb.WriteString(nl)
-	sb.WriteString(nl)
+	if f.RevisionStartLineOffset+2 > 0 {
+		sb.WriteString(strings.Repeat(nl, f.RevisionStartLineOffset+2))
+	}
 	for _, head := range f.RevisionHeads {
 		sb.WriteString(head.StringWithNewLine(nl))
 		sb.WriteString(nl)
@@ -388,11 +390,12 @@ func ParseFile(r io.Reader) (*File, error) {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	}
 	descConsumed := false
-	if rhs, dc, err := ParseRevisionHeaders(s); err != nil {
+	if rhs, dc, offset, err := parseRevisionHeadersWithOffset(s); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		descConsumed = dc
 		f.RevisionHeads = rhs
+		f.RevisionStartLineOffset = offset
 		for _, h := range rhs {
 			if h.YearTruncated {
 				f.DateYearPrefixTruncated = true
@@ -562,174 +565,172 @@ func ParseHeader(s *Scanner, f *File) error {
 	}
 }
 
-func ParseRevisionHeaders(s *Scanner) ([]*RevisionHead, bool, error) {
+func parseRevisionHeadersWithOffset(s *Scanner) ([]*RevisionHead, bool, int, error) {
 	var rhs []*RevisionHead
+	revisionStartLineOffset := 0
 	for {
-		if rh, next, descConsumed, err := ParseRevisionHeader(s); err != nil {
-			return nil, false, err
-		} else {
-			if descConsumed {
-				return rhs, true, nil
-			}
-			if rh == nil {
-				return rhs, false, nil
-			}
-			rhs = append(rhs, rh)
-			if !next {
-				return rhs, false, nil
-			}
+		rh, next, descConsumed, skippedNewLines, err := parseRevisionHeaderWithOffset(s)
+		if err != nil {
+			return nil, false, 0, err
+		}
+		if rh != nil && len(rhs) == 0 {
+			revisionStartLineOffset = skippedNewLines - 1
+		}
+		if descConsumed {
+			return rhs, true, revisionStartLineOffset, nil
+		}
+		if rh == nil {
+			return rhs, false, revisionStartLineOffset, nil
+		}
+		rhs = append(rhs, rh)
+		if !next {
+			return rhs, false, revisionStartLineOffset, nil
 		}
 	}
 }
 
-func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
+func parseRevisionHeaderWithOffset(s *Scanner) (*RevisionHead, bool, bool, int, error) {
 	rh := &RevisionHead{}
+	skippedNewLines := 0
 	for {
 		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
-			if IsNotFound(err) {
-				return nil, false, false, nil
+			if IsNotFound(err) || IsEOFError(err) {
+				return nil, false, false, skippedNewLines, nil
 			}
-			if IsEOFError(err) {
-				return nil, false, false, nil
-			}
-			return nil, false, false, err
+			return nil, false, false, skippedNewLines, err
 		}
 		rev := s.Text()
 		if err := ScanNewLine(s, false); err != nil {
-			return nil, false, false, err
+			return nil, false, false, skippedNewLines, err
 		}
 		if rev != "" {
 			rh.Revision = Num(rev)
 			break
 		}
+		skippedNewLines++
 	}
 	if rh.Revision == "desc" {
-		return nil, false, true, nil
+		return nil, false, true, skippedNewLines, nil
 	}
 	for {
 		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "deltatype", "kopt", "mergepoint", "filename", "username", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
 			if IsNotFound(err) {
-				// Try to parse as generic ID (NewPhrase)
-				// We expect an ID here.
 				id, idErr := ScanTokenId(s)
 				if idErr == nil && id != "" {
-					// Check if it is "desc"
 					if id == "desc" {
-						// "desc" marks start of description.
-						// We should return.
-						// But we consumed "desc".
-						// We need to return true (descConsumed) but `ParseRevisionHeader` returns (rh, next, descConsumed, err).
-						// Wait, `ParseRevisionHeader` returns `descConsumed` as bool.
-						// If we return `descConsumed=true`, caller assumes we consumed "desc".
-
-						// We must also consume the following whitespace/newline to match ParseRevisionHeader logic when it consumes "desc".
-						// ParseDescription expects to be at the value (start of @...@) if descConsumed is true.
 						if err := ScanWhiteSpace(s, 0); err != nil {
-							return nil, false, false, err
+							return nil, false, false, skippedNewLines, err
 						}
-
-						return rh, false, true, nil
+						return rh, false, true, skippedNewLines, nil
 					}
 
-					// It's a new phrase key
-					if np, err := ParseNewPhraseValue(s); err != nil {
-						return nil, false, false, fmt.Errorf("parsing new phrase %q: %w", id, err)
-					} else {
-						rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: ID(id), Value: np})
-						continue
+					np, err := ParseNewPhraseValue(s)
+					if err != nil {
+						return nil, false, false, skippedNewLines, fmt.Errorf("parsing new phrase %q: %w", id, err)
 					}
+					rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: ID(id), Value: np})
+					continue
 				}
 
-				// If ScanTokenId failed or empty
-				return rh, false, false, nil
+				return rh, false, false, skippedNewLines, nil
 			}
-			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
+			return nil, false, false, skippedNewLines, fmt.Errorf("finding revision header field: %w", err)
 		}
 
 		nt := s.Text()
 		switch nt {
 		case "branches":
 			if err := ParseRevisionHeaderBranches(s, rh, true); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "date":
 			if err := ParseRevisionHeaderDateLine(s, true, rh); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
-			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true)); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.NextRevision = Num(n)
+			n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true))
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.NextRevision = Num(n)
 		case "commitid":
-			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true)); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.CommitID = Sym(c)
+			c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true))
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.CommitID = Sym(c)
 		case "owner":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Owner = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Owner = v
 		case "group":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Group = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Group = v
 		case "permissions":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Permissions = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Permissions = v
 		case "hardlinks":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Hardlinks = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Hardlinks = v
 		case "deltatype":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Deltatype = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Deltatype = v
 		case "kopt":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Kopt = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Kopt = v
 		case "mergepoint":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Mergepoint = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Mergepoint = v
 		case "filename":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Filename = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Filename = v
 		case "username":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Username = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Username = v
 		case "\n\n", "\r\n\r\n":
-			return rh, true, false, nil
+			return rh, true, false, skippedNewLines, nil
 		case "\n", "\r\n":
 			continue
 		default:
-			return nil, false, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
+			return nil, false, false, skippedNewLines, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
+}
+
+func ParseRevisionHeaders(s *Scanner) ([]*RevisionHead, bool, error) {
+	rhs, descConsumed, _, err := parseRevisionHeadersWithOffset(s)
+	return rhs, descConsumed, err
+}
+
+func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
+	rh, next, descConsumed, _, err := parseRevisionHeaderWithOffset(s)
+	return rh, next, descConsumed, err
 }
 
 func ParseNewPhraseValue(s *Scanner) (PhraseValues, error) {
