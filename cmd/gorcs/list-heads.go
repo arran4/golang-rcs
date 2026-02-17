@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"errors"
@@ -18,6 +19,7 @@ var _ Cmd = (*ListHeads)(nil)
 type ListHeads struct {
 	*RootCmd
 	Flags         *flag.FlagSet
+	mmap          bool
 	files         []string
 	SubCommands   map[string]Cmd
 	CommandAction func(c *ListHeads) error
@@ -57,8 +59,26 @@ func (c *ListHeads) Execute(args []string) error {
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
+			value := ""
+			hasValue := false
+			if strings.Contains(arg, "=") {
+				parts := strings.SplitN(arg, "=", 2)
+				name = parts[0]
+				value = parts[1]
+				hasValue = true
+			}
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
+			case "mmap", "m":
+				if hasValue {
+					b, err := strconv.ParseBool(value)
+					if err != nil {
+						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
+					}
+					c.mmap = b
+				} else {
+					c.mmap = true
+				}
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -97,11 +117,14 @@ func (c *RootCmd) NewListHeads() *ListHeads {
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
+	set.BoolVar(&v.mmap, "mmap", false, "Use mmap for reading files")
+	set.BoolVar(&v.mmap, "m", false, "Use mmap for reading files")
+
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *ListHeads) error {
 
-		err := cli.ListHeads(c.files...)
+		err := cli.ListHeads(c.mmap || c.Mmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

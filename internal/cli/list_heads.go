@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	rcs "github.com/arran4/golang-rcs"
-	"os"
 	"time"
 )
 
@@ -11,22 +10,23 @@ import (
 //
 // Flags:
 //
+//	mmap: -m --mmap Use mmap to read file
 //	files: ... List of files to process
-func ListHeads(files ...string) error {
+func ListHeads(useMmap bool, files ...string) error {
 	var err error
 	if files, err = ensureFiles(files); err != nil {
 		return err
 	}
 	for _, f := range files {
-		if err := listHeadsFile(f); err != nil {
+		if err := listHeadsFile(f, useMmap); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func listHeadsFile(fn string) error {
-	f, err := os.Open(fn)
+func listHeadsFile(fn string, useMmap bool) error {
+	f, err := OpenFile(fn, useMmap)
 	if err != nil {
 		return fmt.Errorf("error with file: %w", err)
 	}
