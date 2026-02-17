@@ -36,7 +36,7 @@ text
 @
 
 -- tests.txt --
-rcs clean
+locks clean input.txt
 
 -- expected.txt,v --
 head	1.1;

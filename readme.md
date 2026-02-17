@@ -343,6 +343,43 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
+### `gorcs locks`
+
+Manage locks on RCS files without checking out content.
+
+**Usage:**
+
+```shell
+gorcs locks <command> [flags] [files...]
+```
+
+**Commands:**
+
+*   `lock`: Lock a revision.
+    *   `-revision REV`: Revision to lock (defaults to HEAD).
+    *   `-w USER`: User to set the lock for (defaults to current user).
+*   `unlock`: Unlock a revision.
+    *   `-revision REV`: Revision to unlock. If omitted, attempts to find a lock held by the user.
+    *   `-w USER`: User to unlock for (defaults to current user).
+*   `clean`: Unlock and remove the working file (similar to `rcsclean -u`).
+    *   `-revision REV`: Revision to unlock.
+    *   `-w USER`: User to unlock for.
+*   `strict`: Enable strict locking.
+*   `nonstrict`: Disable strict locking.
+
+**Examples:**
+
+```shell
+# Lock HEAD revision for current user
+gorcs locks lock file.txt
+
+# Unlock specific revision
+gorcs locks unlock -revision 1.2 file.txt
+
+# Set strict locking
+gorcs locks strict file.txt
+```
+
 ## License
 
 MIT.

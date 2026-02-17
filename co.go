@@ -66,11 +66,11 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	switch lockMode {
 	case WithNoLockChange:
 	case WithSetLock:
-		changed := file.setLock(user, revision)
+		changed := file.SetLock(user, revision)
 		v.FileModified = changed
 		v.LockSet = changed
 	case WithClearLock:
-		changed := file.clearLock(user, revision)
+		changed := file.ClearLock(user, revision)
 		v.FileModified = changed
 		v.LockCleared = changed
 	default:
@@ -192,7 +192,7 @@ func (w *lineWriter) WriteLine(line string) error {
 	return nil
 }
 
-func (file *File) setLock(user, revision string) bool {
+func (file *File) SetLock(user, revision string) bool {
 	for _, l := range file.Locks {
 		if l.User == user {
 			if l.Revision == revision {
@@ -206,7 +206,7 @@ func (file *File) setLock(user, revision string) bool {
 	return true
 }
 
-func (file *File) clearLock(user, revision string) bool {
+func (file *File) ClearLock(user, revision string) bool {
 	out := file.Locks[:0]
 	changed := false
 	for _, l := range file.Locks {

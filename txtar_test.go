@@ -171,10 +171,108 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
+		case strings.HasPrefix(testName, "locks "):
+			testLocks(t, testName, parts, options)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testLocks(t *testing.T, testName string, parts map[string]string, options map[string]bool) {
+	t.Run(testName, func(t *testing.T) {
+		input, ok := parts["input.txt,v"]
+		if !ok {
+			t.Fatal("Missing input.txt,v")
+		}
+		expectedRCS, ok := parts["expected.txt,v"]
+		if !ok {
+			t.Fatal("Missing expected.txt,v")
+		}
+
+		parsed, err := parseRCS(input)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		args := strings.Fields(testName)
+		// args[0] is "locks"
+		if len(args) < 2 {
+			t.Fatalf("Invalid locks command: %s", testName)
+		}
+		subCmd := args[1]
+
+		// Parse flags from args[2:]
+		cmdArgs := args[2:]
+		revision := ""
+		user := "tester"
+
+		// Manual flag parsing
+		for i := 0; i < len(cmdArgs); i++ {
+			arg := cmdArgs[i]
+			if arg == "-revision" {
+				if i+1 < len(cmdArgs) {
+					revision = cmdArgs[i+1]
+					i++
+				}
+			} else if arg == "-w" {
+				if i+1 < len(cmdArgs) {
+					user = cmdArgs[i+1]
+					i++
+				}
+			} else if arg == "-u" {
+				// Special case for clean -u?
+				// But clean command might use it.
+			}
+		}
+
+		switch subCmd {
+		case "lock":
+			if revision == "" {
+				revision = parsed.Head // Default to head
+			}
+			parsed.SetLock(user, revision)
+		case "unlock":
+			if revision == "" {
+				// Find lock
+				for _, l := range parsed.Locks {
+					if l.User == user {
+						revision = l.Revision
+						break
+					}
+				}
+			}
+			if revision != "" {
+				parsed.ClearLock(user, revision)
+			}
+		case "clean":
+			// Same as unlock for RCS file
+			if revision == "" {
+				for _, l := range parsed.Locks {
+					if l.User == user {
+						revision = l.Revision
+						break
+					}
+				}
+			}
+			if revision != "" {
+				parsed.ClearLock(user, revision)
+			}
+		case "strict":
+			parsed.Strict = true
+		case "nonstrict":
+			parsed.Strict = false
+		default:
+			t.Fatalf("Unknown locks subcommand: %s", subCmd)
+		}
+
+		if options["unix line endings"] {
+			parsed.SwitchLineEnding("\n")
+		}
+
+		gotRCS := parsed.String()
+		checkRCS(t, expectedRCS, gotRCS, options)
+	})
 }
 
 func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
