@@ -47,10 +47,14 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 -- expected.json --
 {
   "Head": "1.1",
+  "HeadSeparatorSpaces": 5,
   "Branch": "1.1.1",
+  "BranchSeparatorSpaces": 3,
   "Description": "",
   "Comment": "# Master with an expand field that's data, not a token.",
+  "CommentSeparatorSpaces": 2,
   "Access": true,
+  "AccessSeparatorSpaces": 3,
   "Symbols": [
     {
       "Name": "rc1",
@@ -61,32 +65,47 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
       "Revision": "1.1.1"
     }
   ],
+  "SymbolsInline": true,
+  "SymbolsFirstSpaces": 2,
+  "SymbolsBetweenSpaces": 1,
   "AccessUsers": null,
   "Locks": [],
+  "LocksSeparatorSpaces": 4,
   "Strict": true,
   "Integrity": "",
   "Expand": "b",
+  "ExpandSeparatorSpaces": 3,
   "NewLine": "\n",
   "EndOfFileNewLineOffset": -1,
   "RevisionHeads": [
     {
       "Revision": "1.1",
       "Date": "2004.09.07.08.24.09",
+      "DateSeparatorSpaces": 5,
+      "DateAuthorSpacingSpaces": 2,
       "Author": "cisers",
+      "AuthorStateSpacingSpaces": 2,
       "State": "Exp",
       "Branches": [
         "1.1.1.1"
       ],
+      "BranchesSeparatorSpaces": 1,
       "NextRevision": "",
+      "NextSeparatorSpaces": 5,
       "CommitID": ""
     },
     {
       "Revision": "1.1.1.1",
       "Date": "2004.09.07.08.24.09",
+      "DateSeparatorSpaces": 5,
+      "DateAuthorSpacingSpaces": 2,
       "Author": "cisers",
+      "AuthorStateSpacingSpaces": 2,
       "State": "Exp",
       "Branches": [],
+      "BranchesSeparatorSpaces": 1,
       "NextRevision": "",
+      "NextSeparatorSpaces": 5,
       "CommitID": ""
     }
   ],
@@ -157,6 +176,10 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 -- options.conf --
 * unix line endings
 * force unix line endings
+* ignore all white space
+-- description.txt --
+The input,v and expected,v are inconsistent (input preserves spacing, expected normalizes).
+We use 'ignore all white space' to pass the RCS-to-RCS test, while ensuring JSON correctly captures input formatting.
 -- tests.txt --
 rcs to json
 rcs to rcs
