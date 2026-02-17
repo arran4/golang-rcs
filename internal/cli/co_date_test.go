@@ -13,7 +13,9 @@ func TestCoDate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir)
+	}()
 
 	rcsFile := filepath.Join(tmpDir, "input.txt,v")
 	rcsContent := `head	1.3;
@@ -104,12 +106,12 @@ Content 1.1
 			expected: "Content 1.1\n",
 		},
 		{
-			name:     "Date before 1.1 (should fail)",
-			args:     []string{"", "2020-01-01", ""},
-			wantErr:  true,
+			name:    "Date before 1.1 (should fail)",
+			args:    []string{"", "2020-01-01", ""},
+			wantErr: true,
 		},
 		{
-			name:     "Date with timezone (PST -0800)",
+			name: "Date with timezone (PST -0800)",
 			// 2023-01-01 21:00 PST = 2023-01-02 05:00 UTC.
 			// 1.2 is 12:00 UTC.
 			// Target (05:00) < 1.2 (12:00). So verify 1.1.
@@ -125,7 +127,9 @@ Content 1.1
 		t.Run(tt.name, func(t *testing.T) {
 			workingFile := filepath.Join(tmpDir, "input.txt")
 			// Clean working file
-			os.Remove(workingFile)
+			if err := os.Remove(workingFile); err != nil && !os.IsNotExist(err) {
+				t.Fatalf("failed to remove working file: %v", err)
+			}
 
 			rev, date, zone := tt.args[0], tt.args[1], tt.args[2]
 			err := Co(rev, date, zone, false, false, "tester", true, workingFile)
