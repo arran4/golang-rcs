@@ -26,10 +26,11 @@ type COVerdict struct {
 //	revision: -r revision to check out
 //	lock: -l lock checked-out revision
 //	unlock: -u unlock checked-out revision
+//	force: -f force overwrite of working file
 //	user: -w user for lock operations
 //	quiet: -q suppress status output
 //	files: ... List of working files to process
-func Co(revision string, lock, unlock bool, user string, quiet bool, files ...string) error {
+func Co(revision string, lock, unlock, force bool, user string, quiet bool, files ...string) error {
 	if lock && unlock {
 		return fmt.Errorf("cannot combine -l and -u")
 	}
@@ -40,7 +41,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 		return fmt.Errorf("no files provided")
 	}
 	for _, file := range files {
-		result, err := coFile(revision, lock, unlock, user, quiet, file)
+		result, err := coFile(revision, lock, unlock, force, user, quiet, file)
 		if err != nil {
 			return err
 		}
@@ -58,7 +59,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 	return nil
 }
 
-func coFile(revision string, lock, unlock bool, user string, quiet bool, workingFile string) (COVerdict, error) {
+func coFile(revision string, lock, unlock, force bool, user string, quiet bool, workingFile string) (COVerdict, error) {
 	rcsFile := workingFile
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
@@ -86,6 +87,15 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, working
 	if err != nil {
 		return COVerdict{}, fmt.Errorf("co %s: %w", rcsFile, err)
 	}
+
+	if !force {
+		if info, err := os.Stat(workingFile); err == nil {
+			if info.Mode().Perm()&0200 != 0 {
+				return COVerdict{}, fmt.Errorf("writable %s exists; remove it or use -f", workingFile)
+			}
+		}
+	}
+	_ = os.Remove(workingFile)
 
 	if err := os.WriteFile(workingFile, []byte(verdict.Content), 0644); err != nil {
 		return COVerdict{}, fmt.Errorf("write %s: %w", workingFile, err)

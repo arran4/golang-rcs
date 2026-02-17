@@ -24,6 +24,7 @@ type Co struct {
 	lockSet       bool
 	unlockSet     bool
 	quiet         bool
+	force         bool
 	user          string
 	files         []string
 	SubCommands   map[string]Cmd
@@ -77,6 +78,11 @@ func (c *Co) Execute(args []string) error {
 			case trimmed == "help" || trimmed == "h":
 				c.Usage()
 				return nil
+			case trimmed == "f" || strings.HasPrefix(trimmed, "f"):
+				c.force = true
+				if trimmed != "f" {
+					c.revision = strings.TrimPrefix(trimmed, "f")
+				}
 			case trimmed == "q":
 				c.quiet = true
 			case trimmed == "w" || strings.HasPrefix(trimmed, "w"):
@@ -160,7 +166,7 @@ func (c *RootCmd) NewCo() *Co {
 		if c.revision != "" && (checkoutLock || checkoutUnlock) {
 			return fmt.Errorf("cannot combine -r with -l/-u")
 		}
-		err := cli.Co(checkoutRevision, checkoutLock, checkoutUnlock, c.user, c.quiet, c.files...)
+		err := cli.Co(checkoutRevision, checkoutLock, checkoutUnlock, c.force, c.user, c.quiet, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
@@ -176,5 +182,12 @@ func (c *RootCmd) NewCo() *Co {
 	}
 	v.SubCommands["help"] = &InternalCommand{Exec: func(args []string) error { v.Usage(); return nil }, UsageFunc: v.Usage}
 	v.SubCommands["usage"] = &InternalCommand{Exec: func(args []string) error { v.Usage(); return nil }, UsageFunc: v.Usage}
+	return v
+}
+
+func (c *RootCmd) NewCheckout() *Co {
+	v := c.NewCo()
+	v.Flags = flag.NewFlagSet("checkout", flag.ContinueOnError)
+	v.Flags.Usage = v.Usage
 	return v
 }

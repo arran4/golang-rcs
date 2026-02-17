@@ -262,7 +262,12 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			switch {
 			case arg == "-q":
 				continue
-			case strings.HasPrefix(arg, "-k"), strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
+			case strings.HasPrefix(arg, "-f"):
+				if arg == "-f" {
+					continue
+				}
+				t.Skipf("unsupported co flag in basic co mode: %s", arg)
+			case strings.HasPrefix(arg, "-k"), strings.HasPrefix(arg, "-s"):
 				t.Skipf("unsupported co flag in basic co mode: %s", arg)
 			case strings.HasPrefix(arg, "-w"):
 				if arg == "-w" {
