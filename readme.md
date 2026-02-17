@@ -49,14 +49,9 @@ import (
 
 func main() {
 	fileName := "example.go,v"
-	f, err := os.Open(fileName)
-	if err != nil {
-		log.Panicf("Error opening file: %s", err)
-	}
-	defer f.Close()
 
 	// Parse the RCS file
-	rcsFile, err := rcs.ParseFile(f)
+	rcsFile, err := rcs.ParsePath(fileName)
 	if err != nil {
 		log.Panicf("Error parsing RCS file: %s", err)
 	}
@@ -72,6 +67,28 @@ func main() {
 		fmt.Printf("  State:  %s\n", rh.State)
 	}
 }
+```
+
+
+If you already have an `io.Reader`, continue using `ParseFile`:
+
+```go
+f, err := os.Open(fileName)
+if err != nil {
+	log.Panicf("Error opening file: %s", err)
+}
+defer f.Close()
+
+rcsFile, err := rcs.ParseFile(f)
+if err != nil {
+	log.Panicf("Error parsing RCS file: %s", err)
+}
+```
+
+For lower read-time heap usage when parsing directly from disk, use mmap-backed IO:
+
+```go
+rcsFile, err := rcs.ParsePath("example.go,v", rcs.WithMmap(true))
 ```
 
 ## Data Structures
