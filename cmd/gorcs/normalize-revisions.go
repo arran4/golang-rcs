@@ -140,7 +140,7 @@ func (c *RootCmd) NewNormalizeRevisions() *NormalizeRevisions {
 
 	v.CommandAction = func(c *NormalizeRevisions) error {
 
-		err := cli.NormalizeRevisions(c.padCommits, c.mmap || c.RootCmd.Mmap, c.files...)
+		err := cli.NormalizeRevisions(c.padCommits, c.mmap || c.Mmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

@@ -169,7 +169,7 @@ func (c *RootCmd) NewFormat() *Format {
 
 	v.CommandAction = func(c *Format) error {
 
-		err := cli.Format(c.output, c.force, c.keepTruncatedYears, c.mmap || c.RootCmd.Mmap, c.files...)
+		err := cli.Format(c.output, c.force, c.keepTruncatedYears, c.mmap || c.Mmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

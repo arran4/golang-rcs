@@ -170,7 +170,7 @@ func (c *RootCmd) NewToJson() *ToJson {
 
 	v.CommandAction = func(c *ToJson) error {
 
-		err := cli.ToJson(c.output, c.force, c.indent, c.mmap || c.RootCmd.Mmap, c.files...)
+		err := cli.ToJson(c.output, c.force, c.indent, c.mmap || c.Mmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

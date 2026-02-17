@@ -89,8 +89,8 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 		Date:     date,
 	}
 	c.FlagSet.Usage = c.Usage
-	c.FlagSet.BoolVar(&c.Mmap, "mmap", false, "Use mmap for reading files")
-	c.FlagSet.BoolVar(&c.Mmap, "m", false, "Use mmap for reading files")
+	c.BoolVar(&c.Mmap, "mmap", false, "Use mmap for reading files")
+	c.BoolVar(&c.Mmap, "m", false, "Use mmap for reading files")
 
 	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()

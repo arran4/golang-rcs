@@ -155,7 +155,7 @@ func (c *RootCmd) NewFromJson() *FromJson {
 
 	v.CommandAction = func(c *FromJson) error {
 
-		err := cli.FromJson(c.output, c.force, c.mmap || c.RootCmd.Mmap, c.files...)
+		err := cli.FromJson(c.output, c.force, c.mmap || c.Mmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

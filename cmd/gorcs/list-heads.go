@@ -124,7 +124,7 @@ func (c *RootCmd) NewListHeads() *ListHeads {
 
 	v.CommandAction = func(c *ListHeads) error {
 
-		err := cli.ListHeads(c.mmap || c.RootCmd.Mmap, c.files...)
+		err := cli.ListHeads(c.mmap || c.Mmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

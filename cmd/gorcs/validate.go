@@ -155,7 +155,7 @@ func (c *RootCmd) NewValidate() *Validate {
 
 	v.CommandAction = func(c *Validate) error {
 
-		err := cli.Validate(c.output, c.force, c.mmap || c.RootCmd.Mmap, c.files...)
+		err := cli.Validate(c.output, c.force, c.mmap || c.Mmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
