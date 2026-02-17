@@ -27,7 +27,7 @@ newfield	value1 @value 2@;
 `
 
 	s := NewScanner(strings.NewReader(input))
-	rh, _, _, err := ParseRevisionHeader(s)
+	rh, _, _, _, err := ParseRevisionHeader(s)
 	if err != nil {
 		t.Fatalf("ParseRevisionHeader returned error: %v", err)
 	}

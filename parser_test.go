@@ -1108,7 +1108,7 @@ func TestParseRevisionHeader(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRH, gotNext, _, err := ParseRevisionHeader(tt.args.s)
+			gotRH, gotNext, _, _, err := ParseRevisionHeader(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeader() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1310,7 +1310,7 @@ func TestParseRevisionHeaders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := ParseRevisionHeaders(tt.args.s)
+			got, _, _, err := ParseRevisionHeaders(tt.args.s)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseRevisionHeaders() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1748,7 +1748,7 @@ func TestParseRevisionHeaderWithExtraFields(t *testing.T) {
 		"\n\n"
 
 	s := NewScanner(strings.NewReader(input))
-	rh, _, _, err := ParseRevisionHeader(s)
+	rh, _, _, _, err := ParseRevisionHeader(s)
 	if err != nil {
 		t.Fatalf("ParseRevisionHeader returned error: %v", err)
 	}
@@ -2013,7 +2013,7 @@ func TestParseRevisionHeader_Errors(t *testing.T) {
 				return
 			}
 			s := NewScanner(strings.NewReader(tt.input))
-			_, _, _, err := ParseRevisionHeader(s)
+			_, _, _, _, err := ParseRevisionHeader(s)
 			if tt.wantErr == "" {
 				if err != nil {
 					t.Errorf("ParseRevisionHeader() error = %v, want nil", err)

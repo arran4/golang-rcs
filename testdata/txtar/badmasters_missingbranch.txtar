@@ -135,6 +135,7 @@ content for 1.1
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
+  "DescriptionNewLineOffset": -1,
   "RevisionHeads": [
     {
       "Revision": "1.4",
