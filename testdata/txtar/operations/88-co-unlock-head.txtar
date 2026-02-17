@@ -1,8 +1,8 @@
 -- description.txt --
 co checkout and unlock head revision
 
--- options.conf --
-{"args": ["-q","-u","input.txt"] }
+-- options.json --
+{"args":["-q","-u","input.txt"],"flags":{"quiet":true,"unlock":true},"options":["co"]}
 
 -- input.txt,v --
 head	1.1;

@@ -69,7 +69,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
-  // TDOO find a better work around
+	// TDOO find a better work around
 	// Windows compatibility: txtar.Parse expects LF line endings.
 	// If the file was checked out with CRLF, we need to normalize it.
 	content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
@@ -85,16 +85,14 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		t.Log("description.txt is missing")
 	}
 
-	// options.conf
+	// options.conf / options.json
 	options := make(map[string]bool)
+	optionArgs := []string{}
 	if optContent, ok := parts["options.conf"]; ok {
-		scanner := bufio.NewScanner(strings.NewReader(optContent))
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if strings.HasPrefix(line, "* ") {
-				options[strings.TrimPrefix(line, "* ")] = true
-			}
-		}
+		parseOptions(optContent, options, &optionArgs)
+	}
+	if optContent, ok := parts["options.json"]; ok {
+		parseOptions(optContent, options, &optionArgs)
 	}
 
 	// tests.txt or tests.md
@@ -162,7 +160,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		case testName == "ci":
 			testCI(t, parts, options)
 		case testName == "co":
-			testCO(t, parts, options)
+			testCO(t, parts, options, optionArgs)
 		case testName == "rcsdiff":
 			testRCSDiff(t, parts, options)
 		case testName == "rcs diff":
@@ -197,8 +195,108 @@ func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("ci test type not implemented yet")
 }
 
-func testCO(t *testing.T, parts map[string]string, options map[string]bool) {
-	t.Skip("co test type not implemented yet")
+func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []string) {
+	t.Run("co", func(t *testing.T) {
+		input, ok := parts["input.txt,v"]
+		if !ok {
+			t.Fatal("Missing input.txt,v")
+		}
+		expectedWorking, ok := parts["expected.txt"]
+		if !ok {
+			t.Fatal("Missing expected.txt")
+		}
+		expectedRCS, hasExpectedRCS := parts["expected.txt,v"]
+
+		parsed, err := parseRCS(input)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		user := "tester"
+		ops := make([]any, 0, 2)
+		for _, arg := range args {
+			if !strings.HasPrefix(arg, "-") {
+				continue
+			}
+			switch {
+			case arg == "-q":
+				continue
+			case strings.HasPrefix(arg, "-k"), strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
+				t.Skipf("unsupported co flag in basic co mode: %s", arg)
+			case strings.HasPrefix(arg, "-w"):
+				if arg == "-w" {
+					continue
+				}
+				user = strings.TrimPrefix(arg, "-w")
+			case strings.HasPrefix(arg, "-r"):
+				rev := strings.TrimPrefix(arg, "-r")
+				if strings.Count(rev, ".") > 1 {
+					t.Skipf("unsupported branch checkout in basic co mode: %s", arg)
+				}
+				ops = append(ops, WithRevision(rev))
+			case strings.HasPrefix(arg, "-l"):
+				rev := strings.TrimPrefix(arg, "-l")
+				if rev != "" {
+					ops = append(ops, WithRevision(rev))
+				}
+				ops = append(ops, WithSetLock)
+			case strings.HasPrefix(arg, "-u"):
+				rev := strings.TrimPrefix(arg, "-u")
+				if rev != "" {
+					ops = append(ops, WithRevision(rev))
+				}
+				ops = append(ops, WithClearLock)
+			default:
+				t.Skipf("unsupported co arg format in basic co mode: %s", arg)
+			}
+		}
+
+		verdict, err := parsed.Checkout(user, ops...)
+		if err != nil {
+			t.Fatalf("Checkout failed: %v", err)
+		}
+
+		if diff := cmp.Diff(strings.TrimSpace(expectedWorking), strings.TrimSpace(verdict.Content)); diff != "" {
+			t.Fatalf("working file mismatch (-want +got):\n%s", diff)
+		}
+
+		if hasExpectedRCS {
+			if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
+				t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
+			}
+		}
+	})
+}
+
+func parseOptions(content string, options map[string]bool, optionArgs *[]string) {
+	trimmed := strings.TrimSpace(content)
+	if strings.HasPrefix(trimmed, "{") {
+		var parsed struct {
+			Args    []string        `json:"args"`
+			Flags   map[string]bool `json:"flags"`
+			Options []string        `json:"options"`
+		}
+		if err := json.Unmarshal([]byte(trimmed), &parsed); err == nil {
+			if len(parsed.Args) > 0 {
+				*optionArgs = append((*optionArgs)[:0], parsed.Args...)
+			}
+			for k, v := range parsed.Flags {
+				options[k] = v
+			}
+			for _, opt := range parsed.Options {
+				options[opt] = true
+			}
+			return
+		}
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(content))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "* ") {
+			options[strings.TrimPrefix(line, "* ")] = true
+		}
+	}
 }
 
 func testJSONToRCS(t *testing.T, parts map[string]string, options map[string]bool) {
