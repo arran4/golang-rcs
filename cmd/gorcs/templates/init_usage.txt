@@ -1,0 +1,4 @@
+Usage: gorcs rcs init [flags...] [files...]
+
+Flags:
+  -t[description]	initial description

@@ -1,0 +1,6 @@
+Usage: gorcs rcs [subcommand] [flags...] [files...]
+
+Subcommands:
+  init	create and initialize a new RCS file
+  help	show help
+  usage	show usage

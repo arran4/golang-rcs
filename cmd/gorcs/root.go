@@ -85,6 +85,8 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "    %s\n", "normalize-revisions")
 	fmt.Fprintf(os.Stderr, "    %s\n", "to-json")
 	fmt.Fprintf(os.Stderr, "    %s\n", "validate")
+	fmt.Fprintf(os.Stderr, "    %s\n", "rcs")
+	fmt.Fprintf(os.Stderr, "    %s\n", "rcs init")
 }
 
 func NewRoot(name, version, commit, date string) (*RootCmd, error) {
@@ -108,6 +110,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
 	c.Commands["to-json"] = c.NewToJson()
 	c.Commands["validate"] = c.NewValidate()
+	c.Commands["rcs"] = c.NewRcs()
 	c.Commands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
 			for _, arg := range args {

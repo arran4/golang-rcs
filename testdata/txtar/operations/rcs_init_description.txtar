@@ -1,0 +1,19 @@
+-- description.txt --
+rcs init with description
+
+-- options.conf --
+{"args": ["init", "-t-My Description", "file1"]}
+
+-- tests.txt --
+rcs init
+
+-- expected,v --
+head	;
+symbols;
+locks; strict;
+comment	@@;
+
+
+
+desc
+@My Description@

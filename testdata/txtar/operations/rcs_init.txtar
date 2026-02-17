@@ -1,0 +1,19 @@
+-- description.txt --
+rcs init creates a new RCS file
+
+-- options.conf --
+{"args": ["init", "file1"]}
+
+-- tests.txt --
+rcs init
+
+-- expected,v --
+head	;
+symbols;
+locks; strict;
+comment	@@;
+
+
+
+desc
+@@

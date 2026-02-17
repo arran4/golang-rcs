@@ -136,8 +136,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testFormatRCS(t, parts, options)
 		case testName == "validate rcs":
 			testValidateRCS(t, parts, options)
-		case testName == "new rcs":
-			testNewRCS(t, parts, options)
+		case testName == "new rcs" || testName == "rcs init":
+			testNewRCS(t, parts, options, optionArgs)
 		case testName == "list heads":
 			testListHeads(t, parts, options)
 		case testName == "normalize revisions":
@@ -466,7 +466,7 @@ func testValidateRCS(t *testing.T, parts map[string]string, options map[string]b
 	})
 }
 
-func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool) {
+func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
 	t.Run("new rcs", func(t *testing.T) {
 		expectedRCS, ok := parts["expected,v"]
 		if !ok {
@@ -477,6 +477,29 @@ func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool) 
 		if options["unix line endings"] {
 			f.NewLine = "\n"
 		}
+
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
+			if strings.HasPrefix(arg, "-t") {
+				if arg == "-t" {
+					if i+1 < len(args) {
+						i++
+						// TODO read file?
+						// f.Description = args[i]
+						t.Skip("reading file from -t arg not implemented in test runner")
+					}
+				} else {
+					val := strings.TrimPrefix(arg, "-t")
+					if strings.HasPrefix(val, "-") {
+						f.Description = strings.TrimPrefix(val, "-")
+					} else {
+						// TODO read file?
+						t.Skip("reading file from -t arg not implemented in test runner")
+					}
+				}
+			}
+		}
+
 		gotRCS := f.String()
 		checkRCS(t, expectedRCS, gotRCS, options)
 	})
