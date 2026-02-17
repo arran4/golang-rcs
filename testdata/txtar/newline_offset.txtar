@@ -1,3 +1,17 @@
+-- description.txt --
+Test newline offset handling.
+The input,v and expected,v are inconsistent (input preserves spacing, expected normalizes).
+We use 'ignore all white space' to pass the RCS-to-RCS test, while ensuring JSON correctly captures input formatting.
+
+-- options.conf --
+* unix line endings
+* force unix line endings
+* ignore all white space
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
 -- input,v --
 head     1.1;
 branch   1.1.1;
@@ -44,6 +58,7 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
+
 -- expected.json --
 {
   "Head": "1.1",
@@ -173,13 +188,3 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
--- options.conf --
-* unix line endings
-* force unix line endings
-* ignore all white space
--- description.txt --
-The input,v and expected,v are inconsistent (input preserves spacing, expected normalizes).
-We use 'ignore all white space' to pass the RCS-to-RCS test, while ensuring JSON correctly captures input formatting.
--- tests.txt --
-rcs to json
-rcs to rcs

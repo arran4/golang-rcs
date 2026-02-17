@@ -1,0 +1,67 @@
+-- description.txt --
+co checkout revision 1.1 and unlock
+
+-- options.json --
+{"args":["-q","-u1.1","input.txt"],"flags":{"quiet":true,"unlock":true},"options":["co"]}
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks
+	tester:1.1;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@ONE
+TWO
+@
+
+-- tests.txt --
+co
+
+-- expected.txt --
+ONE
+TWO
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@ONE
+TWO
+@

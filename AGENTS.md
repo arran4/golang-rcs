@@ -15,3 +15,7 @@
 
 ## Documentation
 *   Whenever subcommands are updated, update the documentation such as `readme.md`.
+
+## Project-specific Hints
+* Where it fits naturally, prefer receiver-based variadic typed options (`ops ...any` with small option types) for operation-style APIs.
+* For `cmd/gorcs` command code, keep files generator-aligned with `github.com/arran4/go-subcommand`; after changing CLI shape, run `go generate ./internal/cli` and keep the generated banner comments in command files.

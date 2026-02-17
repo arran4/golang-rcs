@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="91-co-lock-head.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+printf "LOCKME\n" > file.txt
+
+# Initial check-in (1.1)
+ci -q -i -u -m"r1" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+# Disable strict locking
+rcs -q -U file.txt
+
+cp file.txt,v input.txt,v
+rm file.txt
+
+# Run co with -l (lock head)
+co -q -l file.txt
+
+cat > "$OLDPWD/$OUT" <<EOF
+-- description.txt --
+co checkout and lock head revision
+
+-- options.conf --
+{"args": ["-q","-l","input.txt"] }
+
+-- input.txt,v --
+$(cat input.txt,v)
+
+-- tests.txt --
+co
+
+-- expected.txt --
+LOCKME
+
+-- expected.txt,v --
+$(cat file.txt,v)
+EOF

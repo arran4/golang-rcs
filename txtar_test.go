@@ -14,7 +14,7 @@ import (
 	"golang.org/x/tools/txtar"
 )
 
-//go:embed testdata/txtar/*.txtar
+//go:embed testdata/txtar/*.txtar testdata/txtar/operations/*.txtar
 var txtarTests embed.FS
 
 var ErrorTestProvider = map[string]func(b []byte) (error, error){
@@ -69,6 +69,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	if err != nil {
 		t.Fatalf("ReadFile error: %v", err)
 	}
+	// TDOO find a better work around
 	// Windows compatibility: txtar.Parse expects LF line endings.
 	// If the file was checked out with CRLF, we need to normalize it.
 	content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
@@ -84,16 +85,14 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		t.Log("description.txt is missing")
 	}
 
-	// options.conf
+	// options.conf / options.json
 	options := make(map[string]bool)
+	optionArgs := []string{}
 	if optContent, ok := parts["options.conf"]; ok {
-		scanner := bufio.NewScanner(strings.NewReader(optContent))
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if strings.HasPrefix(line, "* ") {
-				options[strings.TrimPrefix(line, "* ")] = true
-			}
-		}
+		parseOptions(optContent, options, &optionArgs)
+	}
+	if optContent, ok := parts["options.json"]; ok {
+		parseOptions(optContent, options, &optionArgs)
 	}
 
 	// tests.txt or tests.md
@@ -118,36 +117,184 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		line = strings.TrimPrefix(line, "- ")
 
 		// Split by comma for multiple tests on one line?
-		testNames := strings.Split(line, ",")
+		testLine := strings.SplitN(line, ":", 2)
+		testName := testLine[0]
 
-		for _, testName := range testNames {
-			testName = strings.TrimSpace(testName)
-			if testName == "" {
+		testName = strings.TrimSpace(testName)
+		if testName == "" {
+			continue
+		}
+
+		switch {
+		case testName == "json to rcs":
+			testJSONToRCS(t, parts, options)
+		case testName == "rcs to json":
+			testRCSToJSON(t, parts, options)
+		case testName == "rcs to rcs":
+			testCircular(t, parts, options)
+		case testName == "format rcs":
+			testFormatRCS(t, parts, options)
+		case testName == "validate rcs":
+			testValidateRCS(t, parts, options)
+		case testName == "new rcs":
+			testNewRCS(t, parts, options)
+		case testName == "list heads":
+			testListHeads(t, parts, options)
+		case testName == "normalize revisions":
+			testNormalizeRevisions(t, parts, options)
+		case testName == "parse error":
+			testParseError(t, line, parts, options)
+		case strings.HasPrefix(testName, "parse error:"):
+			// TODO this test case should be no more as the error details should be moved into option.s
+			fullLine := line
+			if testName == "parse error" && len(testLine) > 1 {
+				fullLine = "parse error: " + testLine[1]
+			}
+			testParseError(t, fullLine, parts, options)
+		case testName == "rcs":
+			testRCS(t, parts, options)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
+		case testName == "ci":
+			testCI(t, parts, options)
+		case testName == "co":
+			testCO(t, parts, options, optionArgs)
+		case testName == "rcsdiff":
+			testRCSDiff(t, parts, options)
+		case testName == "rcs diff":
+			testRCSDiff(t, parts, options)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
+		case testName == "rcs clean":
+			testRCSClean(t, parts, options)
+		default:
+			t.Errorf("Unknown test type: %q", testName)
+		}
+	}
+}
+
+func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs clean test type not implemented yet")
+}
+
+func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcsdiff test type not implemented yet")
+}
+
+func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs test type not implemented yet")
+}
+
+func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("rcs merge test type not implemented yet")
+}
+
+func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
+	t.Skip("ci test type not implemented yet")
+}
+
+func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []string) {
+	t.Run("co", func(t *testing.T) {
+		input, ok := parts["input.txt,v"]
+		if !ok {
+			t.Fatal("Missing input.txt,v")
+		}
+		expectedWorking, ok := parts["expected.txt"]
+		if !ok {
+			t.Fatal("Missing expected.txt")
+		}
+		expectedRCS, hasExpectedRCS := parts["expected.txt,v"]
+
+		parsed, err := parseRCS(input)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		user := "tester"
+		ops := make([]any, 0, 2)
+		for _, arg := range args {
+			if !strings.HasPrefix(arg, "-") {
 				continue
 			}
-
 			switch {
-			case testName == "json to rcs":
-				testJSONToRCS(t, parts, options)
-			case testName == "rcs to json":
-				testRCSToJSON(t, parts, options)
-			case testName == "rcs to rcs":
-				testCircular(t, parts, options)
-			case testName == "format rcs":
-				testFormatRCS(t, parts, options)
-			case testName == "validate rcs":
-				testValidateRCS(t, parts, options)
-			case testName == "new rcs":
-				testNewRCS(t, parts, options)
-			case testName == "list heads":
-				testListHeads(t, parts, options)
-			case testName == "normalize revisions":
-				testNormalizeRevisions(t, parts, options)
-			case strings.HasPrefix(testName, "parse error:"):
-				testParseError(t, testName, parts, options)
+			case arg == "-q":
+				continue
+			case strings.HasPrefix(arg, "-k"), strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
+				t.Skipf("unsupported co flag in basic co mode: %s", arg)
+			case strings.HasPrefix(arg, "-w"):
+				if arg == "-w" {
+					continue
+				}
+				user = strings.TrimPrefix(arg, "-w")
+			case strings.HasPrefix(arg, "-r"):
+				rev := strings.TrimPrefix(arg, "-r")
+				if strings.Count(rev, ".") > 1 {
+					t.Skipf("unsupported branch checkout in basic co mode: %s", arg)
+				}
+				ops = append(ops, WithRevision(rev))
+			case strings.HasPrefix(arg, "-l"):
+				rev := strings.TrimPrefix(arg, "-l")
+				if rev != "" {
+					ops = append(ops, WithRevision(rev))
+				}
+				ops = append(ops, WithSetLock)
+			case strings.HasPrefix(arg, "-u"):
+				rev := strings.TrimPrefix(arg, "-u")
+				if rev != "" {
+					ops = append(ops, WithRevision(rev))
+				}
+				ops = append(ops, WithClearLock)
 			default:
-				t.Errorf("Unknown test type: %q", testName)
+				t.Skipf("unsupported co arg format in basic co mode: %s", arg)
 			}
+		}
+
+		verdict, err := parsed.Checkout(user, ops...)
+		if err != nil {
+			t.Fatalf("Checkout failed: %v", err)
+		}
+
+		if diff := cmp.Diff(strings.TrimSpace(expectedWorking), strings.TrimSpace(verdict.Content)); diff != "" {
+			t.Fatalf("working file mismatch (-want +got):\n%s", diff)
+		}
+
+		if hasExpectedRCS {
+			if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
+				t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
+			}
+		}
+	})
+}
+
+func parseOptions(content string, options map[string]bool, optionArgs *[]string) {
+	trimmed := strings.TrimSpace(content)
+	if strings.HasPrefix(trimmed, "{") {
+		var parsed struct {
+			Args    []string        `json:"args"`
+			Flags   map[string]bool `json:"flags"`
+			Options []string        `json:"options"`
+		}
+		if err := json.Unmarshal([]byte(trimmed), &parsed); err == nil {
+			if len(parsed.Args) > 0 {
+				*optionArgs = append((*optionArgs)[:0], parsed.Args...)
+			}
+			for k, v := range parsed.Flags {
+				options[k] = v
+			}
+			for _, opt := range parsed.Options {
+				options[opt] = true
+			}
+			return
+		}
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(content))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "* ") {
+			options[strings.TrimPrefix(line, "* ")] = true
 		}
 	}
 }

@@ -1,0 +1,39 @@
+-- description.txt --
+ci -k uses revision from keywords
+
+-- options.conf --
+{"args": ["-q","-k","-u","-m","forced 1.5","-t-","input.txt"] }
+
+-- input.txt --
+$Id: input.txt,v 1.5 2020/01/01 12:00:00 tester Exp $
+Some content.
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.5;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.5
+date	2020.01.01.12.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.5
+log
+@forced 1.5
+@
+text
+@$Id: input.txt,v 1.5 2020/01/01 12:00:00 tester Exp $
+Some content.
+@

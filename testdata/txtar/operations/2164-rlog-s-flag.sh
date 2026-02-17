@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="2164-rlog-s-flag.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+printf 'Initial content\n' > file.txt
+ci -q -i -sRel -t- -minitial -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+co -q -l file.txt
+echo "New content" > file.txt
+ci -q -sProd -mnew -wtester -d'2020-01-02 00:00:00Z' file.txt </dev/null
+
+cp file.txt,v input.txt,v
+
+# Capture output of rlog -sRel
+# rlog outputs "RCS file: file.txt,v" but since we run it on input.txt inside the test runner,
+# the filename might vary or be input.txt,v.
+# The test runner copies input.txt,v to a temp dir.
+# When we run rlog -sRel input.txt, it outputs for input.txt,v.
+# In this script, we run rlog on file.txt.
+# Let's adjust expected output to match what the test runner would produce if it ran on input.txt.
+# Actually, the test runner for rcsdiff/rlog usually runs on the file specified in options.conf.
+# If options.conf has "input.txt", it looks for input.txt,v.
+# The output will say "RCS file: input.txt,v".
+# So we need to sed the output to match "input.txt,v".
+
+rlog -sRel file.txt | sed 's/file.txt/input.txt/g' > expected.out || true
+
+cat > "$OLDPWD/$OUT" <<EOF
+-- description.txt --
+rlog -s flag (filter by state)
+
+-- options.conf --
+{"args": ["-sRel", "input.txt"]}
+
+-- input.txt,v --
+$(cat input.txt,v)
+
+-- tests.txt --
+# rlog
+
+-- expected.stdout --
+$(cat expected.out)
+EOF

@@ -1,0 +1,88 @@
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r2
+@
+text
+@ONE
+TWO
+THREE
+@
+
+
+1.1
+log
+@r1
+@
+text
+@d3 1
+@
+
+-- expected-content.txt --
+ONE
+TWO
+
+-- expected-locked.txt,v --
+head	1.2;
+access;
+symbols;
+locks
+	tester:1.1;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r2
+@
+text
+@ONE
+TWO
+THREE
+@
+
+
+1.1
+log
+@r1
+@
+text
+@d3 1
+@

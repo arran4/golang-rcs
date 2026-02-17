@@ -1,0 +1,102 @@
+-- description.txt --
+rcs -b sets default branch
+
+-- options.conf --
+{"args": ["-b1.1.1.1", "input.txt"]}
+
+-- input.txt --
+Branch content
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+
+1.1.1.1
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.1
+log
+@initial
+@
+text
+@Initial content
+@
+
+
+1.1.1.1
+log
+@branch
+@
+text
+@d1 1
+a1 1
+Branch content
+@
+
+-- tests.txt --
+# rcs
+
+-- expected.txt,v --
+head	1.1;
+branch	1.1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+
+1.1.1.1
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.1
+log
+@initial
+@
+text
+@Initial content
+@
+
+
+1.1.1.1
+log
+@branch
+@
+text
+@d1 1
+a1 1
+Branch content
+@

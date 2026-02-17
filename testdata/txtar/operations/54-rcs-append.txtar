@@ -1,0 +1,62 @@
+-- description.txt --
+rcs append logins
+
+-- options.conf --
+{"args": ["-ajules,martha", "input.txt"] }
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@initial
+@
+text
+@Content
+@
+
+-- tests.txt --
+rcs
+
+-- expected.txt,v --
+head	1.1;
+access
+	jules
+	martha;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@initial
+@
+text
+@Content
+@

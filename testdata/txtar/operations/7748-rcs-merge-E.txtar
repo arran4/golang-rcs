@@ -1,0 +1,66 @@
+-- description.txt --
+rcs merge -E conflict
+
+-- options.conf --
+{"args": ["-q","-E","-r1.1","-r1.2","input.txt"] }
+
+-- input.txt --
+A
+B-local
+C
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r2
+@
+text
+@A
+B-changed
+C
+@
+
+
+1.1
+log
+@r1
+@
+text
+@d2 1
+a2 1
+B
+@
+
+-- tests.txt --
+rcs merge
+
+-- expected.txt --
+A
+<<<<<<< input.txt
+B-local
+=======
+B-changed
+>>>>>>> 1.2
+C

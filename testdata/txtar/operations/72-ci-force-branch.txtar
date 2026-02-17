@@ -1,0 +1,86 @@
+-- description.txt --
+ci -f1.1.1.1 forces creation of branch 1.1.1
+
+-- options.conf --
+{"args": ["-q", "-u", "-f1.1.1.1", "-m", "forced-branch", "-wtester", "-d", "2020-01-02 00:00:00Z", "input.txt"]}
+
+-- input.txt --
+INITIAL
+CONTENT
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@initial
+@
+text
+@INITIAL
+CONTENT
+@
+
+-- tests.txt --
+ci
+
+-- tests.md --
+ci
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@initial
+@
+text
+@INITIAL
+CONTENT
+@
+
+
+1.1.1.1
+log
+@forced-branch
+@
+text
+@d1 1
+a1 1
+BRANCH
+@
