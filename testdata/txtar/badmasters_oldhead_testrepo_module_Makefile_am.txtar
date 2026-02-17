@@ -1,0 +1,130 @@
+-- description.txt --
+Imported from badmasters.tar.gz: oldhead.testrepo/module/Makefile.am,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+1.2
+date	2004.03.26.02.37.04;	author dprice;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2001.03.14.11.27.37;	author dprice;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2006.06.30.13.21.39;	author dprice;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+1.2
+log
+@72b08886805045542b2653782b7f52f0
+@
+text
+@Makefile.am,v content for 1.2
+@
+
+
+1.1
+log
+@da091809da59e576ff757e9779ed1821
+@
+text
+@d1 1
+a1 1
+Makefile.am,v content for 1.1
+@
+
+
+1.1.1.1
+log
+@adec3217e3975f36407dbf470ddaf5e9
+@
+text
+@d1 1
+a1 1
+Makefile.am,v content for 1.1.1.1
+@
+
+
+-- expected.json --
+{
+  "Head": "1.2",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": 1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.2",
+      "Date": "2004.03.26.02.37.04",
+      "Author": "dprice",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "2001.03.14.11.27.37",
+      "Author": "dprice",
+      "State": "Exp",
+      "Branches": [
+        "1.1.1.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Date": "2006.06.30.13.21.39",
+      "Author": "dprice",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.2",
+      "Log": "72b08886805045542b2653782b7f52f0\n",
+      "Text": "Makefile.am,v content for 1.2\n",
+      "PrecedingNewLinesOffset": -1
+    },
+    {
+      "Revision": "1.1",
+      "Log": "da091809da59e576ff757e9779ed1821\n",
+      "Text": "d1 1\na1 1\nMakefile.am,v content for 1.1\n"
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Log": "adec3217e3975f36407dbf470ddaf5e9\n",
+      "Text": "d1 1\na1 1\nMakefile.am,v content for 1.1.1.1\n"
+    }
+  ]
+}

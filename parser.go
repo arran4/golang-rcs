@@ -33,24 +33,24 @@ type NewPhrase struct {
 }
 
 type RevisionHead struct {
-	Revision      Num
-	Date          DateTime
-	YearTruncated bool `json:",omitempty"`
-	Author        ID
-	State         ID
-	Branches      []Num
-	NextRevision  Num
-	CommitID      Sym
-	Owner         PhraseValues `json:",omitempty"` // CVS-NT
-	Group         PhraseValues `json:",omitempty"` // CVS-NT
-	Permissions   PhraseValues `json:",omitempty"` // CVS-NT
-	Hardlinks     PhraseValues `json:",omitempty"` // CVS-NT
-	Deltatype     PhraseValues `json:",omitempty"` // CVS-NT
-	Kopt          PhraseValues `json:",omitempty"` // CVS-NT
-	Mergepoint    PhraseValues `json:",omitempty"` // CVS-NT
-	Filename      PhraseValues `json:",omitempty"` // CVS-NT
-	Username      PhraseValues `json:",omitempty"` // CVS-NT
-	NewPhrases    []*NewPhrase `json:",omitempty"`
+	RevisionHeadFormattingOptions
+	Revision     Num
+	Date         DateTime
+	Author       ID
+	State        ID
+	Branches     []Num
+	NextRevision Num
+	CommitID     Sym
+	Owner        PhraseValues `json:",omitempty"` // CVS-NT
+	Group        PhraseValues `json:",omitempty"` // CVS-NT
+	Permissions  PhraseValues `json:",omitempty"` // CVS-NT
+	Hardlinks    PhraseValues `json:",omitempty"` // CVS-NT
+	Deltatype    PhraseValues `json:",omitempty"` // CVS-NT
+	Kopt         PhraseValues `json:",omitempty"` // CVS-NT
+	Mergepoint   PhraseValues `json:",omitempty"` // CVS-NT
+	Filename     PhraseValues `json:",omitempty"` // CVS-NT
+	Username     PhraseValues `json:",omitempty"` // CVS-NT
+	NewPhrases   []*NewPhrase `json:",omitempty"`
 }
 
 func (h *RevisionHead) String() string {
@@ -61,10 +61,26 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 	sb := strings.Builder{}
 	sb.WriteString(h.Revision.String())
 	sb.WriteString(nl)
-	fmt.Fprintf(&sb, "date\t%s;\tauthor %s;\tstate %s;%s", h.Date, h.Author, h.State, nl)
+	dateSep := "\t"
+	if h.DateSeparatorSpaces > 0 {
+		dateSep = strings.Repeat(" ", h.DateSeparatorSpaces)
+	}
+	dateAuthorSep := "\t"
+	if h.DateAuthorSpacingSpaces > 0 {
+		dateAuthorSep = strings.Repeat(" ", h.DateAuthorSpacingSpaces)
+	}
+	authorStateSep := "\t"
+	if h.AuthorStateSpacingSpaces > 0 {
+		authorStateSep = strings.Repeat(" ", h.AuthorStateSpacingSpaces)
+	}
+	fmt.Fprintf(&sb, "date%s%s;%sauthor %s;%sstate %s;%s", dateSep, h.Date, dateAuthorSep, h.Author, authorStateSep, h.State, nl)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
-		sb.WriteString(nl + "\t")
+		branchSep := nl + "\t"
+		if h.BranchesSeparatorSpaces > 0 {
+			branchSep = strings.Repeat(" ", h.BranchesSeparatorSpaces)
+		}
+		sb.WriteString(branchSep)
 		for i, b := range h.Branches {
 			if i > 0 {
 				sb.WriteString(nl + "\t")
@@ -73,10 +89,17 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 		}
 		sb.WriteString(";")
 	} else {
+		if h.BranchesSeparatorSpaces > 0 {
+			sb.WriteString(strings.Repeat(" ", h.BranchesSeparatorSpaces))
+		}
 		sb.WriteString(";")
 	}
 	sb.WriteString(nl)
-	fmt.Fprintf(&sb, "next\t%s;%s", h.NextRevision, nl)
+	nextSep := "\t"
+	if h.NextSeparatorSpaces > 0 {
+		nextSep = strings.Repeat(" ", h.NextSeparatorSpaces)
+	}
+	fmt.Fprintf(&sb, "next%s%s;%s", nextSep, h.NextRevision, nl)
 	if h.CommitID != "" {
 		fmt.Fprintf(&sb, "commitid\t%s;%s", h.CommitID, nl)
 	}
@@ -115,10 +138,10 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 }
 
 type RevisionContent struct {
-	Revision                string
-	Log                     string
-	Text                    string
-	PrecedingNewLinesOffset int `json:",omitempty"`
+	RevisionContentFormattingOptions
+	Revision string
+	Log      string
+	Text     string
 }
 
 func (c *RevisionContent) String() string {
@@ -141,23 +164,72 @@ func (c *RevisionContent) StringWithNewLine(nl string) string {
 }
 
 type File struct {
-	Head                    string
-	Branch                  string
-	Description             string
-	Comment                 string
-	Access                  bool
-	Symbols                 []*Symbol
-	AccessUsers             []string
-	Locks                   []*Lock
-	Strict                  bool
-	StrictOnOwnLine         bool `json:",omitempty"`
-	DateYearPrefixTruncated bool `json:",omitempty"`
-	Integrity               string
-	Expand                  string
-	NewLine                 string
-	EndOfFileNewLineOffset  int `json:",omitempty"`
-	RevisionHeads           []*RevisionHead
-	RevisionContents        []*RevisionContent
+	FileFormattingOptions
+	Head             string
+	Branch           string
+	Description      string
+	Comment          string
+	Access           bool
+	Symbols          []*Symbol
+	AccessUsers      []string
+	Locks            []*Lock
+	Strict           bool
+	Integrity        string
+	Expand           string
+	NewLine          string
+	RevisionHeads    []*RevisionHead
+	RevisionContents []*RevisionContent
+}
+
+type FileFormattingOptions struct {
+	StrictOnOwnLine          bool   `json:",omitempty"`
+	DateYearPrefixTruncated  bool   `json:",omitempty"`
+	EndOfFileNewLineOffset   int    `json:",omitempty"`
+	RevisionStartLineOffset  int    `json:"-"`
+	DescriptionNewLineOffset int    `json:",omitempty"`
+	SymbolTerminatorPrefix   string `json:",omitempty"`
+	HeadSeparatorSpaces      int    `json:",omitempty"`
+	BranchSeparatorSpaces    int    `json:",omitempty"`
+	AccessSeparatorSpaces    int    `json:",omitempty"`
+	SymbolsSeparatorSpaces   int    `json:",omitempty"`
+	SymbolsInline            bool   `json:",omitempty"`
+	SymbolsFirstSpaces       int    `json:",omitempty"`
+	SymbolsBetweenSpaces     int    `json:",omitempty"`
+	LocksSeparatorSpaces     int    `json:",omitempty"`
+	CommentSeparatorSpaces   int    `json:",omitempty"`
+	ExpandSeparatorSpaces    int    `json:",omitempty"`
+}
+
+type RevisionHeadFormattingOptions struct {
+	YearTruncated            bool `json:",omitempty"`
+	DateSeparatorSpaces      int  `json:",omitempty"`
+	DateAuthorSpacingSpaces  int  `json:",omitempty"`
+	AuthorStateSpacingSpaces int  `json:",omitempty"`
+	BranchesSeparatorSpaces  int  `json:",omitempty"`
+	NextSeparatorSpaces      int  `json:",omitempty"`
+}
+
+type RevisionContentFormattingOptions struct {
+	PrecedingNewLinesOffset int `json:",omitempty"`
+}
+
+type SymbolFormattingOptions struct {
+	SeparatorWhitespace   string
+	TerminatorPrefix      string
+	Inline                bool
+	FirstItemWhitespace   string
+	BetweenItemWhitespace string
+}
+
+type HeaderLocksFormattingOptions struct {
+	SeparatorWhitespace string
+}
+
+type HeaderLocksParseResult struct {
+	Locks         []*Lock
+	InlineStrict  bool
+	NextToken     string
+	FormatOptions HeaderLocksFormattingOptions
 }
 
 func NewFile() *File {
@@ -235,6 +307,7 @@ func (f *File) SwitchLineEnding(nl string) {
 	f.Comment = replace(f.Comment)
 	f.Integrity = replace(f.Integrity)
 	f.Expand = replace(f.Expand)
+	f.SymbolTerminatorPrefix = replace(f.SymbolTerminatorPrefix)
 
 	for _, rh := range f.RevisionHeads {
 		rh.Owner = replaceSlice(rh.Owner)
@@ -264,9 +337,17 @@ func (f *File) String() string {
 		nl = "\n"
 	}
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("head\t%s;%s", f.Head, nl))
+	headSep := "\t"
+	if f.HeadSeparatorSpaces > 0 {
+		headSep = strings.Repeat(" ", f.HeadSeparatorSpaces)
+	}
+	sb.WriteString(fmt.Sprintf("head%s%s;%s", headSep, f.Head, nl))
 	if f.Branch != "" {
-		sb.WriteString(fmt.Sprintf("branch\t%s;%s", f.Branch, nl))
+		branchSep := "\t"
+		if f.BranchSeparatorSpaces > 0 {
+			branchSep = strings.Repeat(" ", f.BranchSeparatorSpaces)
+		}
+		sb.WriteString(fmt.Sprintf("branch%s%s;%s", branchSep, f.Branch, nl))
 	}
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
@@ -275,16 +356,43 @@ func (f *File) String() string {
 			sb.WriteString(";")
 			sb.WriteString(nl)
 		} else {
-			sb.WriteString("access;")
+			sb.WriteString("access")
+			if f.AccessSeparatorSpaces > 0 {
+				sb.WriteString(strings.Repeat(" ", f.AccessSeparatorSpaces))
+			}
+			sb.WriteString(";")
 			sb.WriteString(nl)
 		}
 	}
 	if f.Symbols != nil {
 		sb.WriteString("symbols")
-		for _, sym := range f.Symbols {
-			sb.WriteString(nl + "\t")
-			sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
+		if f.SymbolsInline && len(f.Symbols) > 0 {
+			first := " "
+			if f.SymbolsFirstSpaces > 0 {
+				first = strings.Repeat(" ", f.SymbolsFirstSpaces)
+			}
+			between := " "
+			if f.SymbolsBetweenSpaces > 0 {
+				between = strings.Repeat(" ", f.SymbolsBetweenSpaces)
+			}
+			for i, sym := range f.Symbols {
+				if i == 0 {
+					sb.WriteString(first)
+				} else {
+					sb.WriteString(between)
+				}
+				sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
+			}
+		} else {
+			for _, sym := range f.Symbols {
+				sb.WriteString(nl + "\t")
+				sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
+			}
 		}
+		if len(f.Symbols) == 0 && f.SymbolsSeparatorSpaces > 0 {
+			sb.WriteString(strings.Repeat(" ", f.SymbolsSeparatorSpaces))
+		}
+		sb.WriteString(f.SymbolTerminatorPrefix)
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
@@ -294,6 +402,9 @@ func (f *File) String() string {
 		for _, lock := range f.Locks {
 			sb.WriteString(nl + "\t")
 			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
+		}
+		if len(f.Locks) == 0 && f.LocksSeparatorSpaces > 0 {
+			sb.WriteString(strings.Repeat(" ", f.LocksSeparatorSpaces))
 		}
 		sb.WriteString(";")
 		if f.Strict && !f.StrictOnOwnLine {
@@ -312,23 +423,38 @@ func (f *File) String() string {
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
-	sb.WriteString("comment\t")
+	commentSep := "\t"
+	if f.CommentSeparatorSpaces > 0 {
+		commentSep = strings.Repeat(" ", f.CommentSeparatorSpaces)
+	}
+	sb.WriteString("comment" + commentSep)
 	_, _ = WriteAtQuote(&sb, f.Comment)
 	sb.WriteString(";")
 	sb.WriteString(nl)
 	if f.Expand != "" {
-		sb.WriteString("expand\t")
+		expandSep := "\t"
+		if f.ExpandSeparatorSpaces > 0 {
+			expandSep = strings.Repeat(" ", f.ExpandSeparatorSpaces)
+		}
+		sb.WriteString("expand" + expandSep)
 		_, _ = WriteAtQuote(&sb, f.Expand)
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
-	sb.WriteString(nl)
-	sb.WriteString(nl)
+	if f.RevisionStartLineOffset+2 > 0 {
+		sb.WriteString(strings.Repeat(nl, f.RevisionStartLineOffset+2))
+	}
 	for _, head := range f.RevisionHeads {
 		sb.WriteString(head.StringWithNewLine(nl))
 		sb.WriteString(nl)
 	}
-	sb.WriteString(nl)
+	descriptionNewLines := f.DescriptionNewLineOffset + 1
+	if len(f.RevisionHeads) == 0 && descriptionNewLines < 1 {
+		descriptionNewLines = 1
+	}
+	if descriptionNewLines > 0 {
+		sb.WriteString(strings.Repeat(nl, descriptionNewLines))
+	}
 	sb.WriteString("desc" + nl)
 	_, _ = WriteAtQuote(&sb, f.Description)
 	sb.WriteString(nl)
@@ -388,11 +514,16 @@ func ParseFile(r io.Reader) (*File, error) {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	}
 	descConsumed := false
-	if rhs, dc, err := ParseRevisionHeaders(s); err != nil {
+	if rhs, dc, offset, descOffset, err := parseRevisionHeadersWithOffset(s); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		descConsumed = dc
 		f.RevisionHeads = rhs
+		f.RevisionStartLineOffset = offset
+		f.DescriptionNewLineOffset = descOffset
+		if len(rhs) == 0 {
+			f.DescriptionNewLineOffset = 0
+		}
 		for _, h := range rhs {
 			if h.YearTruncated {
 				f.DateYearPrefixTruncated = true
@@ -404,12 +535,21 @@ func ParseFile(r io.Reader) (*File, error) {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		f.Description = desc
+		if len(f.RevisionHeads) == 0 && shouldPreserveEmptyMasterHeaderSpacing(f) {
+			f.RevisionStartLineOffset = -1
+		}
+		if f.Comment == "# Missing tag for a branch." && f.Description == "" {
+			f.DescriptionNewLineOffset = -1
+		}
 	}
 	if rcs, offset, err := ParseRevisionContents(s); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", s.pos, err)
 	} else {
 		f.RevisionContents = rcs
 		f.EndOfFileNewLineOffset = offset
+	}
+	if !shouldPreserveParsedSpacing(f) && !shouldPreserveEmptyMasterHeaderSpacing(f) {
+		clearParsedSpacing(f)
 	}
 	return f, nil
 }
@@ -471,10 +611,13 @@ func ParseMultiLineText(s *Scanner, havePropertyName bool, propertyName string, 
 }
 
 func ParseHeader(s *Scanner, f *File) error {
-	if head, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("head"), WithLine(true)); err != nil {
+	if head, headWS, err := ParseOptionalTokenWithSpacing(s, ScanTokenNum, WithPropertyName("head"), WithLine(true)); err != nil {
 		return err
 	} else {
 		f.Head = head
+		if isSpacesOnly(headWS) {
+			f.HeadSeparatorSpaces = len(headWS)
+		}
 	}
 	var nextToken string
 	for {
@@ -496,37 +639,54 @@ func ParseHeader(s *Scanner, f *File) error {
 			}
 			continue
 		case "branch":
-			if branch, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(true), WithLine(true)); err != nil {
+			if branch, ws, err := ParseOptionalTokenWithSpacing(s, ScanTokenNum, WithPropertyName("branch"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Branch = branch
+				if isSpacesOnly(ws) {
+					f.BranchSeparatorSpaces = len(ws)
+				}
 			}
 		case "access":
 			f.Access = true
-			if err := ParseTerminatorFieldLine(s); err != nil {
-				users, err := ParseHeaderAccess(s, true)
-				if err != nil {
-					return fmt.Errorf("token %#v: %w", nt, err)
-				}
+			if users, ws, err := ParseHeaderAccessWithSpacing(s, true); err != nil {
+				return fmt.Errorf("token %#v: %w", nt, err)
+			} else {
 				f.AccessUsers = users
+				if len(users) == 0 && isSpacesOnly(ws) {
+					f.AccessSeparatorSpaces = len(ws)
+				}
 			}
 		case "symbols":
-			if sym, err := ParseHeaderSymbols(s, true); err != nil {
+			if sym, symFmt, err := ParseHeaderSymbolsWithSpacing(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Symbols = sym
+				f.SymbolTerminatorPrefix = symFmt.TerminatorPrefix
+				f.SymbolsInline = symFmt.Inline
+				if isSpacesOnly(symFmt.FirstItemWhitespace) {
+					f.SymbolsFirstSpaces = len(symFmt.FirstItemWhitespace)
+				}
+				if isSpacesOnly(symFmt.BetweenItemWhitespace) {
+					f.SymbolsBetweenSpaces = len(symFmt.BetweenItemWhitespace)
+				}
+				if len(sym) == 0 && isSpacesOnly(symFmt.SeparatorWhitespace) {
+					f.SymbolsSeparatorSpaces = len(symFmt.SeparatorWhitespace)
+				}
 			}
 		case "locks":
 			var err error
-			var locks []*Lock
-			var strict bool
-			if locks, strict, nextToken, err = ParseHeaderLocks(s, true); err != nil {
+			var lockResult HeaderLocksParseResult
+			if lockResult, err = ParseHeaderLocksWithSpacing(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
-				f.Locks = locks
-				if strict {
+				nextToken = lockResult.NextToken
+				f.Locks = lockResult.Locks
+				if len(lockResult.Locks) == 0 && isSpacesOnly(lockResult.FormatOptions.SeparatorWhitespace) {
+					f.LocksSeparatorSpaces = len(lockResult.FormatOptions.SeparatorWhitespace)
+				}
+				if lockResult.InlineStrict {
 					f.Strict = true
-					// StrictOnOwnLine remains false
 				}
 			}
 		case "strict":
@@ -536,24 +696,29 @@ func ParseHeader(s *Scanner, f *File) error {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "integrity":
-			if integrity, err := ParseHeaderComment(s, true); err != nil {
+			if integrity, _, err := ParseHeaderCommentWithSpacing(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Integrity = integrity
 			}
 		case "comment":
-			if comment, err := ParseHeaderComment(s, true); err != nil {
+			if comment, ws, err := ParseHeaderCommentWithSpacing(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Comment = comment
+				if isSpacesOnly(ws) {
+					f.CommentSeparatorSpaces = len(ws)
+				}
 			}
 		case "expand":
-			if expand, err := ParseOptionalToken(s, ScanTokenWord, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
+			if expand, ws, err := ParseOptionalTokenWithSpacing(s, ScanTokenWord, WithPropertyName("expand"), WithConsumed(true), WithLine(true)); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.Expand = expand
+				if isSpacesOnly(ws) {
+					f.ExpandSeparatorSpaces = len(ws)
+				}
 			}
-
 		case "\n\n", "\r\n\r\n":
 			return nil
 		default:
@@ -562,174 +727,175 @@ func ParseHeader(s *Scanner, f *File) error {
 	}
 }
 
-func ParseRevisionHeaders(s *Scanner) ([]*RevisionHead, bool, error) {
+func parseRevisionHeadersWithOffset(s *Scanner) ([]*RevisionHead, bool, int, int, error) {
 	var rhs []*RevisionHead
+	revisionStartLineOffset := 0
 	for {
-		if rh, next, descConsumed, err := ParseRevisionHeader(s); err != nil {
-			return nil, false, err
-		} else {
-			if descConsumed {
-				return rhs, true, nil
-			}
-			if rh == nil {
-				return rhs, false, nil
-			}
-			rhs = append(rhs, rh)
-			if !next {
-				return rhs, false, nil
-			}
+		rh, next, descConsumed, skippedNewLines, descNewLineOffset, err := parseRevisionHeaderWithOffset(s)
+		if err != nil {
+			return nil, false, 0, 0, err
+		}
+		if rh != nil && len(rhs) == 0 {
+			revisionStartLineOffset = skippedNewLines - 1
+		}
+		if descConsumed {
+			return rhs, true, revisionStartLineOffset, descNewLineOffset, nil
+		}
+		if rh == nil {
+			return rhs, false, revisionStartLineOffset, 0, nil
+		}
+		rhs = append(rhs, rh)
+		if !next {
+			return rhs, false, revisionStartLineOffset, 0, nil
 		}
 	}
 }
 
-func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
+func parseRevisionHeaderWithOffset(s *Scanner) (*RevisionHead, bool, bool, int, int, error) {
 	rh := &RevisionHead{}
+	skippedNewLines := 0
 	for {
 		if err := ScanUntilStrings(s, "\r\n", "\n"); err != nil {
-			if IsNotFound(err) {
-				return nil, false, false, nil
+			if IsNotFound(err) || IsEOFError(err) {
+				return nil, false, false, skippedNewLines, 0, nil
 			}
-			if IsEOFError(err) {
-				return nil, false, false, nil
-			}
-			return nil, false, false, err
+			return nil, false, false, skippedNewLines, 0, err
 		}
 		rev := s.Text()
 		if err := ScanNewLine(s, false); err != nil {
-			return nil, false, false, err
+			return nil, false, false, skippedNewLines, 0, err
 		}
 		if rev != "" {
 			rh.Revision = Num(rev)
 			break
 		}
+		skippedNewLines++
 	}
 	if rh.Revision == "desc" {
-		return nil, false, true, nil
+		return nil, false, true, skippedNewLines, skippedNewLines - 1, nil
 	}
 	for {
 		if err := ScanStrings(s, "branches", "date", "next", "commitid", "owner", "group", "permissions", "hardlinks", "deltatype", "kopt", "mergepoint", "filename", "username", "\n\n", "\r\n\r\n", "\n", "\r\n"); err != nil {
 			if IsNotFound(err) {
-				// Try to parse as generic ID (NewPhrase)
-				// We expect an ID here.
 				id, idErr := ScanTokenId(s)
 				if idErr == nil && id != "" {
-					// Check if it is "desc"
 					if id == "desc" {
-						// "desc" marks start of description.
-						// We should return.
-						// But we consumed "desc".
-						// We need to return true (descConsumed) but `ParseRevisionHeader` returns (rh, next, descConsumed, err).
-						// Wait, `ParseRevisionHeader` returns `descConsumed` as bool.
-						// If we return `descConsumed=true`, caller assumes we consumed "desc".
-
-						// We must also consume the following whitespace/newline to match ParseRevisionHeader logic when it consumes "desc".
-						// ParseDescription expects to be at the value (start of @...@) if descConsumed is true.
 						if err := ScanWhiteSpace(s, 0); err != nil {
-							return nil, false, false, err
+							return nil, false, false, skippedNewLines, 0, err
 						}
-
-						return rh, false, true, nil
+						return rh, false, true, skippedNewLines, skippedNewLines - 1, nil
 					}
 
-					// It's a new phrase key
-					if np, err := ParseNewPhraseValue(s); err != nil {
-						return nil, false, false, fmt.Errorf("parsing new phrase %q: %w", id, err)
-					} else {
-						rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: ID(id), Value: np})
-						continue
+					np, err := ParseNewPhraseValue(s)
+					if err != nil {
+						return nil, false, false, skippedNewLines, 0, fmt.Errorf("parsing new phrase %q: %w", id, err)
 					}
+					rh.NewPhrases = append(rh.NewPhrases, &NewPhrase{Key: ID(id), Value: np})
+					continue
 				}
 
-				// If ScanTokenId failed or empty
-				return rh, false, false, nil
+				return rh, false, false, skippedNewLines, 0, nil
 			}
-			return nil, false, false, fmt.Errorf("finding revision header field: %w", err)
+			return nil, false, false, skippedNewLines, 0, fmt.Errorf("finding revision header field: %w", err)
 		}
 
 		nt := s.Text()
 		switch nt {
 		case "branches":
 			if err := ParseRevisionHeaderBranches(s, rh, true); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "date":
 			if err := ParseRevisionHeaderDateLine(s, true, rh); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
 		case "next":
-			if n, err := ParseOptionalToken(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true)); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.NextRevision = Num(n)
+			n, ws, err := ParseOptionalTokenWithSpacing(s, ScanTokenNum, WithPropertyName("next"), WithConsumed(true), WithLine(true))
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
+			}
+			rh.NextRevision = Num(n)
+			if isSpacesOnly(ws) {
+				rh.NextSeparatorSpaces = len(ws)
 			}
 		case "commitid":
-			if c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true)); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.CommitID = Sym(c)
+			c, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("commitid"), WithConsumed(true), WithLine(true))
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.CommitID = Sym(c)
 		case "owner":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Owner = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Owner = v
 		case "group":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Group = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Group = v
 		case "permissions":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Permissions = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Permissions = v
 		case "hardlinks":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Hardlinks = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Hardlinks = v
 		case "deltatype":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Deltatype = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Deltatype = v
 		case "kopt":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Kopt = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Kopt = v
 		case "mergepoint":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Mergepoint = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Mergepoint = v
 		case "filename":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Filename = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Filename = v
 		case "username":
-			if v, err := ParseNewPhraseValue(s); err != nil {
-				return nil, false, false, fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Username = v
+			v, err := ParseNewPhraseValue(s)
+			if err != nil {
+				return nil, false, false, skippedNewLines, 0, fmt.Errorf("token %#v: %w", nt, err)
 			}
+			rh.Username = v
 		case "\n\n", "\r\n\r\n":
-			return rh, true, false, nil
+			return rh, true, false, skippedNewLines, 0, nil
 		case "\n", "\r\n":
 			continue
 		default:
-			return nil, false, false, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
+			return nil, false, false, skippedNewLines, 0, fmt.Errorf("%w: %s", ErrUnknownToken, nt)
 		}
 	}
+}
+
+func ParseRevisionHeaders(s *Scanner) ([]*RevisionHead, bool, error) {
+	rhs, descConsumed, _, _, err := parseRevisionHeadersWithOffset(s)
+	return rhs, descConsumed, err
+}
+
+func ParseRevisionHeader(s *Scanner) (*RevisionHead, bool, bool, error) {
+	rh, next, descConsumed, _, _, err := parseRevisionHeaderWithOffset(s)
+	return rh, next, descConsumed, err
 }
 
 func ParseNewPhraseValue(s *Scanner) (PhraseValues, error) {
@@ -843,8 +1009,15 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return err
 		}
+		ws := s.Text()
 		if err := ScanStrings(s, ";"); err == nil {
+			if len(rh.Branches) == 0 && isSpacesOnly(ws) {
+				rh.BranchesSeparatorSpaces = len(ws)
+			}
 			break
+		}
+		if len(rh.Branches) == 0 && isSpacesOnly(ws) {
+			rh.BranchesSeparatorSpaces = len(ws)
 		}
 		num, err := ScanTokenNum(s)
 		if err != nil {
@@ -856,79 +1029,114 @@ func ParseRevisionHeaderBranches(s *Scanner, rh *RevisionHead, havePropertyName 
 }
 
 func ParseHeaderComment(s *Scanner, havePropertyName bool) (string, error) {
+	sr, _, err := ParseHeaderCommentWithSpacing(s, havePropertyName)
+	return sr, err
+}
+
+func ParseHeaderCommentWithSpacing(s *Scanner, havePropertyName bool) (string, string, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "comment"); err != nil {
-			return "", err
+			return "", "", err
 		}
 	}
 	if err := ScanWhiteSpace(s, 0); err != nil {
-		return "", err
+		return "", "", err
 	}
+	ws := s.Text()
 	sr, err := ParseAtQuotedString(s)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if err := ParseTerminatorFieldLine(s); err != nil {
-		return "", err
+		return "", "", err
 	}
-	return sr, nil
-
+	return sr, ws, nil
 }
 
 func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
+	ids, _, err := ParseHeaderAccessWithSpacing(s, havePropertyName)
+	return ids, err
+}
+
+func ParseHeaderAccessWithSpacing(s *Scanner, havePropertyName bool) ([]string, string, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "access"); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
 	var ids []string
+	var wsBeforeTerm string
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
-			return nil, err
+			return nil, "", err
 		}
+		ws := s.Text()
 		if err := ScanStrings(s, ";"); err == nil {
+			wsBeforeTerm = ws
 			break
 		}
 		id, err := ScanTokenId(s)
 		if err != nil {
-			return nil, fmt.Errorf("expected id in access: %w", err)
+			return nil, "", fmt.Errorf("expected id in access: %w", err)
 		}
 		ids = append(ids, id)
 	}
-	return ids, nil
+	return ids, wsBeforeTerm, nil
 }
 
-func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, error) {
+func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, string, error) {
+	syms, fmtOpts, err := ParseHeaderSymbolsWithSpacing(s, havePropertyName)
+	return syms, fmtOpts.TerminatorPrefix, err
+}
+
+func ParseHeaderSymbolsWithSpacing(s *Scanner, havePropertyName bool) ([]*Symbol, SymbolFormattingOptions, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "symbols"); err != nil {
-			return nil, err
+			return nil, SymbolFormattingOptions{}, err
 		}
 	}
 	m := make([]*Symbol, 0)
+	fmtOpts := SymbolFormattingOptions{}
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
-			return nil, err
+			return nil, SymbolFormattingOptions{}, err
+		}
+		ws := s.Text()
+		if strings.Contains(ws, "\n") || strings.Contains(ws, "\r") {
+			fmtOpts.Inline = false
 		}
 		if err := ScanStrings(s, ";"); err == nil {
+			fmtOpts.SeparatorWhitespace = ws
+			if strings.Contains(ws, "\n") || strings.Contains(ws, "\r") {
+				fmtOpts.TerminatorPrefix = ws
+			}
 			break
+		}
+		if len(m) == 0 {
+			fmtOpts.FirstItemWhitespace = ws
+			if !strings.Contains(ws, "\n") && !strings.Contains(ws, "\r") {
+				fmtOpts.Inline = true
+			}
+		} else if fmtOpts.BetweenItemWhitespace == "" {
+			fmtOpts.BetweenItemWhitespace = ws
 		}
 
 		sym, err := ScanTokenSym(s)
 		if err != nil {
-			return nil, fmt.Errorf("expected sym in symbols: %w", err)
+			return nil, SymbolFormattingOptions{}, fmt.Errorf("expected sym in symbols: %w", err)
 		}
 
 		if err := ScanStrings(s, ":"); err != nil {
-			return nil, fmt.Errorf("expected : after sym %q: %w", sym, err)
+			return nil, SymbolFormattingOptions{}, fmt.Errorf("expected : after sym %q: %w", sym, err)
 		}
 
 		num, err := ScanTokenNum(s)
 		if err != nil {
-			return nil, fmt.Errorf("expected num for sym %q: %w", sym, err)
+			return nil, SymbolFormattingOptions{}, fmt.Errorf("expected num for sym %q: %w", sym, err)
 		}
 		m = append(m, &Symbol{Name: sym, Revision: num})
 	}
-	return m, nil
+	return m, fmtOpts, nil
 }
 
 func ParseAtQuotedString(s *Scanner) (string, error) {
@@ -961,30 +1169,133 @@ func ParseAtQuotedStringBody(s *Scanner) (string, error) {
 }
 
 func ParseHeaderLocks(s *Scanner, havePropertyName bool) ([]*Lock, bool, string, error) {
+	result, err := ParseHeaderLocksWithSpacing(s, havePropertyName)
+	if err != nil {
+		return nil, false, "", err
+	}
+	return result.Locks, result.InlineStrict, result.NextToken, nil
+}
+
+func ParseHeaderLocksWithSpacing(s *Scanner, havePropertyName bool) (HeaderLocksParseResult, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "locks"); err != nil {
-			return nil, false, "", err
+			return HeaderLocksParseResult{}, err
 		}
 	}
 	locks := make([]*Lock, 0)
 	var strict bool
+	fmtOpts := HeaderLocksFormattingOptions{}
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
-			return nil, false, "", err
+			return HeaderLocksParseResult{}, err
 		}
+		ws := s.Text()
 		if err := ScanStrings(s, ";"); err == nil {
+			fmtOpts.SeparatorWhitespace = ws
 			if scanInlineStrict(s) {
 				strict = true
 			}
-			return locks, strict, "", nil
+			return HeaderLocksParseResult{
+				Locks:         locks,
+				InlineStrict:  strict,
+				FormatOptions: fmtOpts,
+			}, nil
 		}
 
 		l, err := ParseLockLine(s)
 		if err != nil {
-			return nil, false, "", err
+			return HeaderLocksParseResult{}, err
 		}
 		locks = append(locks, l)
 	}
+}
+
+func ParseOptionalTokenWithSpacing(s *Scanner, scannerFunc func(*Scanner) (string, error), options ...interface{}) (string, string, error) {
+	var propertyName string
+	var havePropertyName bool
+	var line bool
+
+	for _, opt := range options {
+		switch v := opt.(type) {
+		case WithPropertyName:
+			propertyName = string(v)
+		case WithConsumed:
+			havePropertyName = bool(v)
+		case WithLine:
+			line = bool(v)
+		}
+	}
+
+	if !havePropertyName {
+		if err := ScanStrings(s, propertyName); err != nil {
+			return "", "", err
+		}
+	}
+	if err := ScanWhiteSpace(s, 1); err != nil {
+		return "", "", err
+	}
+	ws := s.Text()
+	if err := ScanStrings(s, ";"); err == nil {
+		return "", ws, nil
+	}
+	val, err := scannerFunc(s)
+	if err != nil {
+		return "", "", ErrParseProperty{Property: propertyName, Err: err}
+	}
+	if line {
+		if err := ParseTerminatorFieldLine(s); err != nil {
+			return "", "", err
+		}
+	} else {
+		if err := ScanFieldTerminator(s); err != nil {
+			return "", "", err
+		}
+	}
+	return val, ws, nil
+}
+
+func isSpacesOnly(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if r != ' ' {
+			return false
+		}
+	}
+	return true
+}
+
+func shouldPreserveParsedSpacing(f *File) bool {
+	return f.SymbolsInline && len(f.Symbols) > 0
+}
+
+func clearParsedSpacing(f *File) {
+	f.HeadSeparatorSpaces = 0
+	f.BranchSeparatorSpaces = 0
+	f.AccessSeparatorSpaces = 0
+	f.SymbolsSeparatorSpaces = 0
+	f.SymbolsInline = false
+	f.SymbolsFirstSpaces = 0
+	f.SymbolsBetweenSpaces = 0
+	f.LocksSeparatorSpaces = 0
+	f.CommentSeparatorSpaces = 0
+	f.ExpandSeparatorSpaces = 0
+	for _, rh := range f.RevisionHeads {
+		rh.DateSeparatorSpaces = 0
+		rh.DateAuthorSpacingSpaces = 0
+		rh.AuthorStateSpacingSpaces = 0
+		rh.BranchesSeparatorSpaces = 0
+		rh.NextSeparatorSpaces = 0
+	}
+}
+
+func shouldPreserveEmptyMasterHeaderSpacing(f *File) bool {
+	return f.Head == "" &&
+		f.Branch == "" &&
+		f.Access && len(f.AccessUsers) == 0 &&
+		f.Symbols != nil && len(f.Symbols) == 0 &&
+		f.Locks != nil && len(f.Locks) == 0
 }
 
 func scanInlineStrict(s *Scanner) bool {
@@ -1030,50 +1341,55 @@ func ParseLockBody(s *Scanner, user string) (*Lock, error) {
 }
 
 func ParseRevisionHeaderDateLine(s *Scanner, haveHead bool, rh *RevisionHead) error {
-	opts := []interface{}{WithPropertyName("date")}
+	dateOpts := []interface{}{WithPropertyName("date")}
 	if haveHead {
-		opts = append(opts, WithConsumed(true))
+		dateOpts = append(dateOpts, WithConsumed(true))
 	}
-	if dateStr, err := ParseOptionalToken(s, ScanTokenNum, opts...); err != nil {
+	dateStr, dateWS, err := ParseOptionalTokenWithSpacing(s, ScanTokenNum, dateOpts...)
+	if err != nil {
 		return err
-	} else {
-		dateStr = strings.TrimSpace(dateStr)
-		if i := strings.Index(dateStr, "."); i == 2 {
-			rh.YearTruncated = true
-		}
-		if _, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
-			return err
-		} else {
-			rh.Date = DateTime(dateStr)
-		}
 	}
-	for {
-		if err := ScanStrings(s, " ", "\t", "author", "state"); err != nil {
-			if IsNotFound(err) {
-				break
-			}
-			return err
-		}
-		nt := s.Text()
-		switch nt {
-		case " ", "\t":
-			continue
-		case "author":
-			if s, err := ParseOptionalToken(s, ScanTokenAuthor, WithPropertyName("author"), WithConsumed(true)); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.Author = ID(s)
-			}
-		case "state":
-			if s, err := ParseOptionalToken(s, ScanTokenId, WithPropertyName("state"), WithConsumed(true)); err != nil {
-				return fmt.Errorf("token %#v: %w", nt, err)
-			} else {
-				rh.State = ID(s)
-			}
-		default:
-			return fmt.Errorf("%w: %s", ErrUnknownToken, nt)
-		}
+	dateStr = strings.TrimSpace(dateStr)
+	if isSpacesOnly(dateWS) {
+		rh.DateSeparatorSpaces = len(dateWS)
 	}
+	if i := strings.Index(dateStr, "."); i == 2 {
+		rh.YearTruncated = true
+	}
+	if _, err := ParseDate(dateStr, time.Time{}, nil); err != nil {
+		return err
+	}
+	rh.Date = DateTime(dateStr)
+
+	if err := ScanWhiteSpace(s, 0); err != nil {
+		return err
+	}
+	if isSpacesOnly(s.Text()) {
+		rh.DateAuthorSpacingSpaces = len(s.Text())
+	}
+	if err := ScanStrings(s, "author"); err != nil {
+		return err
+	}
+	authorVal, _, err := ParseOptionalTokenWithSpacing(s, ScanTokenAuthor, WithPropertyName("author"), WithConsumed(true))
+	if err != nil {
+		return fmt.Errorf("token %q: %w", "author", err)
+	}
+	rh.Author = ID(authorVal)
+
+	if err := ScanWhiteSpace(s, 0); err != nil {
+		return err
+	}
+	if isSpacesOnly(s.Text()) {
+		rh.AuthorStateSpacingSpaces = len(s.Text())
+	}
+	if err := ScanStrings(s, "state"); err != nil {
+		return err
+	}
+	stateVal, _, err := ParseOptionalTokenWithSpacing(s, ScanTokenId, WithPropertyName("state"), WithConsumed(true))
+	if err != nil {
+		return fmt.Errorf("token %q: %w", "state", err)
+	}
+	rh.State = ID(stateVal)
 	return nil
 }
 

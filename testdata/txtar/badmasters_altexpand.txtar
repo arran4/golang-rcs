@@ -1,18 +1,11 @@
 -- description.txt --
-Test newline offset handling.
-The input,v and expected,v are inconsistent (input preserves spacing, expected normalizes).
-We use 'ignore all white space' to pass the RCS-to-RCS test, while ensuring JSON correctly captures input formatting.
-
--- options.conf --
-* unix line endings
-* force unix line endings
-* ignore all white space
+Imported from badmasters.tar.gz: altexpand,v
 
 -- tests.txt --
 rcs to json
 rcs to rcs
 
--- input,v --
+-- input.rcs --
 head     1.1;
 branch   1.1.1;
 access   ;
@@ -47,8 +40,6 @@ text
 @
 
 
-
-
 1.1.1.1
 log
 @03a6ecc1dbc74cfaacfeb8b1f09b8998
@@ -58,18 +49,23 @@ text
 a1 1
 projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
 @
-
 -- expected.json --
 {
-  "Head": "1.1",
+  "EndOfFileNewLineOffset": -1,
   "HeadSeparatorSpaces": 5,
-  "Branch": "1.1.1",
   "BranchSeparatorSpaces": 3,
+  "AccessSeparatorSpaces": 3,
+  "SymbolsInline": true,
+  "SymbolsFirstSpaces": 2,
+  "SymbolsBetweenSpaces": 1,
+  "LocksSeparatorSpaces": 4,
+  "CommentSeparatorSpaces": 2,
+  "ExpandSeparatorSpaces": 3,
+  "Head": "1.1",
+  "Branch": "1.1.1",
   "Description": "",
   "Comment": "# Master with an expand field that's data, not a token.",
-  "CommentSeparatorSpaces": 2,
   "Access": true,
-  "AccessSeparatorSpaces": 3,
   "Symbols": [
     {
       "Name": "rc1",
@@ -80,110 +76,55 @@ projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
       "Revision": "1.1.1"
     }
   ],
-  "SymbolsInline": true,
-  "SymbolsFirstSpaces": 2,
-  "SymbolsBetweenSpaces": 1,
   "AccessUsers": null,
   "Locks": [],
-  "LocksSeparatorSpaces": 4,
   "Strict": true,
   "Integrity": "",
   "Expand": "b",
-  "ExpandSeparatorSpaces": 3,
   "NewLine": "\n",
   "RevisionHeads": [
     {
-      "Revision": "1.1",
-      "Date": "2004.09.07.08.24.09",
       "DateSeparatorSpaces": 5,
       "DateAuthorSpacingSpaces": 2,
-      "Author": "cisers",
       "AuthorStateSpacingSpaces": 2,
+      "BranchesSeparatorSpaces": 1,
+      "NextSeparatorSpaces": 5,
+      "Revision": "1.1",
+      "Date": "2004.09.07.08.24.09",
+      "Author": "cisers",
       "State": "Exp",
       "Branches": [
         "1.1.1.1"
       ],
-      "BranchesSeparatorSpaces": 1,
       "NextRevision": "",
-      "NextSeparatorSpaces": 5,
       "CommitID": ""
     },
     {
-      "Revision": "1.1.1.1",
-      "Date": "2004.09.07.08.24.09",
       "DateSeparatorSpaces": 5,
       "DateAuthorSpacingSpaces": 2,
-      "Author": "cisers",
       "AuthorStateSpacingSpaces": 2,
+      "BranchesSeparatorSpaces": 1,
+      "NextSeparatorSpaces": 5,
+      "Revision": "1.1.1.1",
+      "Date": "2004.09.07.08.24.09",
+      "Author": "cisers",
       "State": "Exp",
       "Branches": [],
-      "BranchesSeparatorSpaces": 1,
       "NextRevision": "",
-      "NextSeparatorSpaces": 5,
       "CommitID": ""
     }
   ],
   "RevisionContents": [
     {
+      "PrecedingNewLinesOffset": 1,
       "Revision": "1.1",
       "Log": "da28248b4ec75efbe0ba7461142ed60d\n",
-      "Text": "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n",
-      "PrecedingNewLinesOffset": 1
+      "Text": "projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1\n"
     },
     {
       "Revision": "1.1.1.1",
       "Log": "03a6ecc1dbc74cfaacfeb8b1f09b8998\n",
-      "Text": "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n",
-      "PrecedingNewLinesOffset": 2
+      "Text": "d1 1\na1 1\nprojectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1\n"
     }
   ]
 }
--- expected,v --
-head	1.1;
-branch	1.1.1;
-access;
-symbols
-	rc1:1.1.1.1
-	ic:1.1.1;
-locks; strict;
-comment	@# Master with an expand field that's data, not a token.@;
-expand	@b@;
-
-
-1.1
-date	2004.09.07.08.24.09;	author cisers;	state Exp;
-branches
-	1.1.1.1;
-next	;
-
-1.1.1.1
-date	2004.09.07.08.24.09;	author cisers;	state Exp;
-branches;
-next	;
-
-
-desc
-@@
-
-
-
-1.1
-log
-@da28248b4ec75efbe0ba7461142ed60d
-@
-text
-@projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1
-@
-
-
-
-
-1.1.1.1
-log
-@03a6ecc1dbc74cfaacfeb8b1f09b8998
-@
-text
-@d1 1
-a1 1
-projectx/doc/jms-1_0_2b-spec.pdf,v content for 1.1.1.1
-@

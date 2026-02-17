@@ -1,0 +1,177 @@
+-- description.txt --
+Imported from badmasters.tar.gz: vendor.testrepo/FILE1,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.2;
+access;
+symbols
+	lost-repo-state:1.1.1.2
+	vend_1_1:1.1.1.2
+	vend_1_0:1.1.1.1
+	vend:1.1.1;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2014.12.20.18.31.31;	author loz;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2014.12.20.18.31.25;	author loz;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2014.12.20.18.31.25;	author loz;	state Exp;
+branches;
+next	1.1.1.2;
+
+1.1.1.2
+date	2014.12.20.18.31.27;	author loz;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@c3
+@
+text
+@3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+1
+@
+
+
+1.1.1.1
+log
+@v1
+@
+text
+@@
+
+
+1.1.1.2
+log
+@v2
+@
+text
+@d1 1
+a1 1
+2
+@
+
+-- expected.json --
+{
+  "Head": "1.2",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "lost-repo-state",
+      "Revision": "1.1.1.2"
+    },
+    {
+      "Name": "vend_1_1",
+      "Revision": "1.1.1.2"
+    },
+    {
+      "Name": "vend_1_0",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "vend",
+      "Revision": "1.1.1"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "RevisionHeads": [
+    {
+      "Revision": "1.2",
+      "Date": "2014.12.20.18.31.31",
+      "Author": "loz",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "2014.12.20.18.31.25",
+      "Author": "loz",
+      "State": "Exp",
+      "Branches": [
+        "1.1.1.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Date": "2014.12.20.18.31.25",
+      "Author": "loz",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1.1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.2",
+      "Date": "2014.12.20.18.31.27",
+      "Author": "loz",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.2",
+      "Log": "c3\n",
+      "Text": "3\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "d1 1\na1 1\n1\n"
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Log": "v1\n",
+      "Text": ""
+    },
+    {
+      "Revision": "1.1.1.2",
+      "Log": "v2\n",
+      "Text": "d1 1\na1 1\n2\n"
+    }
+  ]
+}

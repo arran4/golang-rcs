@@ -1,23 +1,24 @@
 -- description.txt --
-Test nil fields handling.
-
--- options.conf --
-* unix line endings
-* force unix line endings
+Symbols terminator on its own indented line.
 
 -- tests.txt --
 rcs to json
 rcs to rcs
 
--- input,v --
-head 1.1;
-comment @c@;
+-- input.rcs --
+head	1.1;
+access;
+symbols
+	rel:1.1
+	;
+locks; strict;
+comment	@# @;
 
 
 1.1
-date 2022.01.01.00.00.00; author a; state s;
+date	2022.01.01.00.00.00;	author user;	state Exp;
 branches;
-next ;
+next	;
 
 
 desc
@@ -35,12 +36,17 @@ text
   "Head": "1.1",
   "Branch": "",
   "Description": "",
-  "Comment": "c",
-  "Access": false,
-  "Symbols": null,
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "rel",
+      "Revision": "1.1"
+    }
+  ],
   "AccessUsers": null,
-  "Locks": null,
-  "Strict": false,
+  "Locks": [],
+  "Strict": true,
   "Integrity": "",
   "Expand": "",
   "NewLine": "\n",
@@ -48,8 +54,8 @@ text
     {
       "Revision": "1.1",
       "Date": "2022.01.01.00.00.00",
-      "Author": "a",
-      "State": "s",
+      "Author": "user",
+      "State": "Exp",
       "Branches": [],
       "NextRevision": "",
       "CommitID": ""
@@ -61,25 +67,6 @@ text
       "Log": "",
       "Text": ""
     }
-  ]
+  ],
+  "SymbolTerminatorPrefix": "\n\t"
 }
--- expected,v --
-head	1.1;
-comment	@c@;
-
-
-1.1
-date	2022.01.01.00.00.00;	author a;	state s;
-branches;
-next	;
-
-
-desc
-@@
-
-
-1.1
-log
-@@
-text
-@@

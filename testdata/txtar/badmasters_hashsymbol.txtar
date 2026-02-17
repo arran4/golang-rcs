@@ -1,0 +1,192 @@
+-- description.txt --
+Imported from badmasters.tar.gz: hashsymbol,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.1;
+branch	1.1.1;
+access;
+symbols
+	amiga-version#621:1.1.1.1
+	amiga-release:1.1.1
+	netbsd-0-9-patch-001:1.1.1.1
+	netbsd-0-9-RELEASE:1.1.1.1
+	netbsd-0-9-BETA:1.1.1.1
+	netbsd-0-9-ALPHA2:1.1.1.1
+	netbsd-0-9-ALPHA:1.1.1.1
+	netbsd-0-9:1.1.1.1.0.2
+	netbsd-0-9-base:1.1.1.1
+	amiga_version_390:1.1.1.1
+	mw_amiga_machdep_merge:1.1.1;
+locks; strict;
+comment	@# Reduced master from NetBSD containing pound-sign in a symbol name@;
+
+
+1.1
+date	93.07.05.19.19.40;	author mw;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	93.07.05.19.19.41;	author mw;	state Exp;
+branches;
+next	1.1.1.2;
+
+1.1.1.2
+date	94.02.02.00.24.26;	author mycroft;	state dead;
+branches;
+next	;
+
+
+desc
+@@
+
+
+
+1.1
+log
+@da28248b4ec75efbe0ba7461142ed60d
+@
+text
+@hashsymbol content for 1.1
+@
+
+
+1.1.1.1
+log
+@f8a1b63b883ce97d3c94a35c52e5f57a
+@
+text
+@d1 1
+a1 1
+hashsymbol content for 1.1.1.1
+@
+
+
+1.1.1.2
+log
+@de54d576de51109167df624abae26024
+@
+text
+@d1 1
+a1 1
+hashsymbol content for 1.1.1.2
+@
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "1.1.1",
+  "Description": "",
+  "Comment": "# Reduced master from NetBSD containing pound-sign in a symbol name",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "amiga-version#621",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "amiga-release",
+      "Revision": "1.1.1"
+    },
+    {
+      "Name": "netbsd-0-9-patch-001",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "netbsd-0-9-RELEASE",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "netbsd-0-9-BETA",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "netbsd-0-9-ALPHA2",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "netbsd-0-9-ALPHA",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "netbsd-0-9",
+      "Revision": "1.1.1.1.0.2"
+    },
+    {
+      "Name": "netbsd-0-9-base",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "amiga_version_390",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "mw_amiga_machdep_merge",
+      "Revision": "1.1.1"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "DateYearPrefixTruncated": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": -1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "93.07.05.19.19.40",
+      "YearTruncated": true,
+      "Author": "mw",
+      "State": "Exp",
+      "Branches": [
+        "1.1.1.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Date": "93.07.05.19.19.41",
+      "YearTruncated": true,
+      "Author": "mw",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1.1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.2",
+      "Date": "94.02.02.00.24.26",
+      "YearTruncated": true,
+      "Author": "mycroft",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "da28248b4ec75efbe0ba7461142ed60d\n",
+      "Text": "hashsymbol content for 1.1\n",
+      "PrecedingNewLinesOffset": 1
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Log": "f8a1b63b883ce97d3c94a35c52e5f57a\n",
+      "Text": "d1 1\na1 1\nhashsymbol content for 1.1.1.1\n"
+    },
+    {
+      "Revision": "1.1.1.2",
+      "Log": "de54d576de51109167df624abae26024\n",
+      "Text": "d1 1\na1 1\nhashsymbol content for 1.1.1.2\n"
+    }
+  ]
+}

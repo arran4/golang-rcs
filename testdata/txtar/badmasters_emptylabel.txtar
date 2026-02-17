@@ -1,0 +1,700 @@
+-- description.txt --
+Imported from badmasters.tar.gz: emptylabel,v
+
+-- tests.txt --
+rcs to json
+
+-- input.rcs --
+head     4.14;
+branch   ;
+access   ;
+symbols  ;
+locks    payne:4.4.2.1;
+comment  @# Reduced version of an old repo with an empty branch label.@;
+
+
+4.14
+date     89.10.17.10.20.31;  author jpayne;  state Exp;
+branches ;
+next     4.12;
+
+4.12
+date     89.02.13.09.46.15;  author jpayne;  state Exp;
+branches ;
+next     4.11;
+
+4.11
+date     89.01.18.15.11.10;  author jpayne;  state Exp;
+branches ;
+next     4.10;
+
+4.10
+date     88.10.21.14.22.54;  author jpayne;  state Exp;
+branches ;
+next     4.9;
+
+4.9
+date     88.03.14.19.13.38;  author jpayne;  state Exp;
+branches ;
+next     4.8;
+
+4.8
+date     87.10.16.15.53.08;  author jpayne;  state Exp;
+branches 4.8.1.1;
+next     4.7;
+
+4.7
+date     87.07.16.11.11.47;  author jpayne;  state Exp;
+branches ;
+next     4.6;
+
+4.6
+date     86.07.24.12.57.08;  author jpayne;  state Exp;
+branches 4.6.1.1;
+next     4.5;
+
+4.5
+date     86.03.27.20.40.14;  author payne;  state Exp;
+branches ;
+next     4.4;
+
+4.4
+date     86.02.13.02.09.39;  author payne;  state Exp;
+branches 4.4.1.1 4.4.2.0;
+next     4.3;
+
+4.3
+date     86.02.13.01.54.59;  author payne;  state Exp;
+branches ;
+next     ;
+
+4.4.1.1
+date     86.02.14.20.09.52;  author payne;  state Exp;
+branches ;
+next     4.4.1.2;
+
+4.4.1.2
+date     86.02.18.23.06.57;  author payne;  state Exp;
+branches ;
+next     ;
+
+4.4.2.0
+date     86.02.28.17.00.49;  author payne;  state Exp;
+branches ;
+next     4.4.2.1;
+
+4.4.2.1
+date     86.03.18.00.08.32;  author payne;  state Exp;
+branches ;
+next     ;
+
+4.6.1.1
+date     86.08.26.19.20.49;  author jpayne;  state Exp;
+branches ;
+next     4.6.1.2;
+
+4.6.1.2
+date     86.09.24.10.50.01;  author jpayne;  state Exp;
+branches ;
+next     4.6.1.3;
+
+4.6.1.3
+date     86.12.22.14.29.26;  author jpayne;  state Exp;
+branches ;
+next     4.6.1.4;
+
+4.6.1.4
+date     87.01.21.19.06.27;  author jpayne;  state Exp;
+branches ;
+next     4.6.1.5;
+
+4.6.1.5
+date     87.04.18.12.22.56;  author jpayne;  state Exp;
+branches ;
+next     ;
+
+4.8.1.1
+date     88.01.18.13.12.48;  author jpayne;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+4.14
+log
+@33c465c01a5c07b7aa0ce37b738ef8bb
+@
+text
+@<stdin> content for 4.14
+@
+
+
+4.12
+log
+@0b7655f86c86c8d69fa029318149a87f
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.12
+@
+
+
+4.11
+log
+@39e522b48439c1f4516cea4bc7d59b05
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.11
+@
+
+
+4.10
+log
+@826d927e821d5edf01364e5270e93a07
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.10
+@
+
+
+4.9
+log
+@3172c1272eca6673c9c9a2afc714a8be
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.9
+@
+
+
+4.8
+log
+@bd7f93f44b42ec950eade9da9896618a
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.8
+@
+
+
+4.8.1.1
+log
+@28f2c4e3bf199240438aff6b42024f93
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.8.1.1
+@
+
+
+4.7
+log
+@879470b13c3d249462fb192259f9f29d
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.7
+@
+
+
+4.6
+log
+@4b85c1b396c476b34f8fc6cdeb37b8cc
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.6
+@
+
+
+4.6.1.1
+log
+@4460a3ba5fb368526eeaffbe05424e13
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.6.1.1
+@
+
+
+4.6.1.2
+log
+@70afec12ccf7f0b445bf8abe5da28cdb
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.6.1.2
+@
+
+
+4.6.1.3
+log
+@6462eb5b28bf7e8172234e887c8d00ff
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.6.1.3
+@
+
+
+4.6.1.4
+log
+@a5b28e18add194240b37facda2d00792
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.6.1.4
+@
+
+
+4.6.1.5
+log
+@372f09a98fd8a20ccb539ec2573cc288
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.6.1.5
+@
+
+
+4.5
+log
+@e5f8068c61cbe9a981a3be64dbb3cc89
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.5
+@
+
+
+4.4
+log
+@980c83abde578257c9507386b1d475a9
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.4
+@
+
+
+4.4.2.0
+log
+@a7b220702d56e8b9357d75474ad3972a
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.4.2.0
+@
+
+
+4.4.2.1
+log
+@fae9dffed82da76c47408dec6df3e817
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.4.2.1
+@
+
+
+4.4.1.1
+log
+@47c464e5bbb9df2fd7c95a4c155f2fc6
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.4.1.1
+@
+
+
+4.4.1.2
+log
+@68b329da9893e34099c7d8ad5cb9c940
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.4.1.2
+@
+
+
+4.3
+log
+@3b1088ad1b2f68ff9d46494e7106739a
+@
+text
+@d1 1
+a1 1
+<stdin> content for 4.3
+@
+-- expected.json --
+{
+  "Head": "4.14",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# Reduced version of an old repo with an empty branch label.",
+  "Access": true,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [
+    {
+      "User": "payne",
+      "Revision": "4.4.2.1"
+    }
+  ],
+  "Strict": false,
+  "DateYearPrefixTruncated": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": -1,
+  "RevisionHeads": [
+    {
+      "Revision": "4.14",
+      "Date": "89.10.17.10.20.31",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.12",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.12",
+      "Date": "89.02.13.09.46.15",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.11",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.11",
+      "Date": "89.01.18.15.11.10",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.10",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.10",
+      "Date": "88.10.21.14.22.54",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.9",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.9",
+      "Date": "88.03.14.19.13.38",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.8",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.8",
+      "Date": "87.10.16.15.53.08",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [
+        "4.8.1.1"
+      ],
+      "NextRevision": "4.7",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.7",
+      "Date": "87.07.16.11.11.47",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.6",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.6",
+      "Date": "86.07.24.12.57.08",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [
+        "4.6.1.1"
+      ],
+      "NextRevision": "4.5",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.5",
+      "Date": "86.03.27.20.40.14",
+      "YearTruncated": true,
+      "Author": "payne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.4",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.4",
+      "Date": "86.02.13.02.09.39",
+      "YearTruncated": true,
+      "Author": "payne",
+      "State": "Exp",
+      "Branches": [
+        "4.4.1.1",
+        "4.4.2.0"
+      ],
+      "NextRevision": "4.3",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.3",
+      "Date": "86.02.13.01.54.59",
+      "YearTruncated": true,
+      "Author": "payne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.4.1.1",
+      "Date": "86.02.14.20.09.52",
+      "YearTruncated": true,
+      "Author": "payne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.4.1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.4.1.2",
+      "Date": "86.02.18.23.06.57",
+      "YearTruncated": true,
+      "Author": "payne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.4.2.0",
+      "Date": "86.02.28.17.00.49",
+      "YearTruncated": true,
+      "Author": "payne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.4.2.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.4.2.1",
+      "Date": "86.03.18.00.08.32",
+      "YearTruncated": true,
+      "Author": "payne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.6.1.1",
+      "Date": "86.08.26.19.20.49",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.6.1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.6.1.2",
+      "Date": "86.09.24.10.50.01",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.6.1.3",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.6.1.3",
+      "Date": "86.12.22.14.29.26",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.6.1.4",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.6.1.4",
+      "Date": "87.01.21.19.06.27",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "4.6.1.5",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.6.1.5",
+      "Date": "87.04.18.12.22.56",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "4.8.1.1",
+      "Date": "88.01.18.13.12.48",
+      "YearTruncated": true,
+      "Author": "jpayne",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "4.14",
+      "Log": "33c465c01a5c07b7aa0ce37b738ef8bb\n",
+      "Text": "\u003cstdin\u003e content for 4.14\n"
+    },
+    {
+      "Revision": "4.12",
+      "Log": "0b7655f86c86c8d69fa029318149a87f\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.12\n"
+    },
+    {
+      "Revision": "4.11",
+      "Log": "39e522b48439c1f4516cea4bc7d59b05\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.11\n"
+    },
+    {
+      "Revision": "4.10",
+      "Log": "826d927e821d5edf01364e5270e93a07\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.10\n"
+    },
+    {
+      "Revision": "4.9",
+      "Log": "3172c1272eca6673c9c9a2afc714a8be\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.9\n"
+    },
+    {
+      "Revision": "4.8",
+      "Log": "bd7f93f44b42ec950eade9da9896618a\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.8\n"
+    },
+    {
+      "Revision": "4.8.1.1",
+      "Log": "28f2c4e3bf199240438aff6b42024f93\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.8.1.1\n"
+    },
+    {
+      "Revision": "4.7",
+      "Log": "879470b13c3d249462fb192259f9f29d\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.7\n"
+    },
+    {
+      "Revision": "4.6",
+      "Log": "4b85c1b396c476b34f8fc6cdeb37b8cc\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.6\n"
+    },
+    {
+      "Revision": "4.6.1.1",
+      "Log": "4460a3ba5fb368526eeaffbe05424e13\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.6.1.1\n"
+    },
+    {
+      "Revision": "4.6.1.2",
+      "Log": "70afec12ccf7f0b445bf8abe5da28cdb\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.6.1.2\n"
+    },
+    {
+      "Revision": "4.6.1.3",
+      "Log": "6462eb5b28bf7e8172234e887c8d00ff\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.6.1.3\n"
+    },
+    {
+      "Revision": "4.6.1.4",
+      "Log": "a5b28e18add194240b37facda2d00792\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.6.1.4\n"
+    },
+    {
+      "Revision": "4.6.1.5",
+      "Log": "372f09a98fd8a20ccb539ec2573cc288\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.6.1.5\n"
+    },
+    {
+      "Revision": "4.5",
+      "Log": "e5f8068c61cbe9a981a3be64dbb3cc89\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.5\n"
+    },
+    {
+      "Revision": "4.4",
+      "Log": "980c83abde578257c9507386b1d475a9\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.4\n"
+    },
+    {
+      "Revision": "4.4.2.0",
+      "Log": "a7b220702d56e8b9357d75474ad3972a\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.4.2.0\n"
+    },
+    {
+      "Revision": "4.4.2.1",
+      "Log": "fae9dffed82da76c47408dec6df3e817\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.4.2.1\n"
+    },
+    {
+      "Revision": "4.4.1.1",
+      "Log": "47c464e5bbb9df2fd7c95a4c155f2fc6\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.4.1.1\n"
+    },
+    {
+      "Revision": "4.4.1.2",
+      "Log": "68b329da9893e34099c7d8ad5cb9c940\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.4.1.2\n"
+    },
+    {
+      "Revision": "4.3",
+      "Log": "3b1088ad1b2f68ff9d46494e7106739a\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 4.3\n"
+    }
+  ]
+}

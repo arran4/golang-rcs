@@ -1,0 +1,238 @@
+-- description.txt --
+Imported from badmasters.tar.gz: t9602.testrepo/module/sub1/subsubB/default,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.3;
+access;
+symbols
+	B_SPLIT:1.3.0.2
+	B_MIXED:1.2.0.2
+	T_MIXED:1.2
+	B_FROM_INITIALS:1.1.1.1.0.2
+	T_ALL_INITIAL_FILES:1.1.1.1
+	vendortag:1.1.1.1
+	vendorbranch:1.1.1;
+locks; strict;
+comment	@# @;
+
+
+1.3
+date	2003.06.03.04.29.14;	author jrandom;	state Exp;
+branches
+	1.3.2.1;
+next	1.2;
+
+1.2
+date	2003.05.23.00.17.53;	author jrandom;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2003.05.22.23.20.19;	author jrandom;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2003.05.22.23.20.19;	author jrandom;	state Exp;
+branches;
+next	;
+
+1.3.2.1
+date	2003.06.03.04.33.13;	author jrandom;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.3
+log
+@A trunk change to sub1/subsubB/default.  This was committed about an
+hour after an earlier change that affected most files on branch
+B_SPLIT.  This file is not on that branch yet, but after this commit,
+we'll branch to B_SPLIT, albeit rooted in a revision that didn't exist
+at the time the rest of B_SPLIT was created.
+@
+text
+@This is sub1/subsubB/default.
+
+Every directory in the `proj' project has a file named `default'.
+
+This line was added in the second commit (affecting all 7 files).
+
+This bit was committed on trunk about an hour after an earlier change
+to everyone else on branch B_SPLIT.  Afterwards, we'll finally branch
+this file to B_SPLIT, but rooted in a revision that didn't exist at
+the time the rest of B_SPLIT was created.
+@
+
+
+1.3.2.1
+log
+@This change affects sub3/default and sub1/subsubB/default, on branch
+B_SPLIT.  Note that the latter file did not even exist on this branch
+until after some other files had had revisions committed on B_SPLIT.
+@
+text
+@a10 4
+
+This change affects sub3/default and sub1/subsubB/default, on branch
+B_SPLIT.  Note that the latter file did not even exist on this branch
+until after some other files had had revisions committed on B_SPLIT.
+@
+
+
+1.2
+log
+@Second commit to proj, affecting all 7 files.
+@
+text
+@d6 5
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 2
+@
+
+
+1.1.1.1
+log
+@Initial import.
+@
+text
+@@
+-- expected.json --
+{
+  "Head": "1.3",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "B_SPLIT",
+      "Revision": "1.3.0.2"
+    },
+    {
+      "Name": "B_MIXED",
+      "Revision": "1.2.0.2"
+    },
+    {
+      "Name": "T_MIXED",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "B_FROM_INITIALS",
+      "Revision": "1.1.1.1.0.2"
+    },
+    {
+      "Name": "T_ALL_INITIAL_FILES",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "vendortag",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "vendorbranch",
+      "Revision": "1.1.1"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": -1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.3",
+      "Date": "2003.06.03.04.29.14",
+      "Author": "jrandom",
+      "State": "Exp",
+      "Branches": [
+        "1.3.2.1"
+      ],
+      "NextRevision": "1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.2",
+      "Date": "2003.05.23.00.17.53",
+      "Author": "jrandom",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "2003.05.22.23.20.19",
+      "Author": "jrandom",
+      "State": "Exp",
+      "Branches": [
+        "1.1.1.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Date": "2003.05.22.23.20.19",
+      "Author": "jrandom",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.3.2.1",
+      "Date": "2003.06.03.04.33.13",
+      "Author": "jrandom",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.3",
+      "Log": "A trunk change to sub1/subsubB/default.  This was committed about an\nhour after an earlier change that affected most files on branch\nB_SPLIT.  This file is not on that branch yet, but after this commit,\nwe'll branch to B_SPLIT, albeit rooted in a revision that didn't exist\nat the time the rest of B_SPLIT was created.\n",
+      "Text": "This is sub1/subsubB/default.\n\nEvery directory in the `proj' project has a file named `default'.\n\nThis line was added in the second commit (affecting all 7 files).\n\nThis bit was committed on trunk about an hour after an earlier change\nto everyone else on branch B_SPLIT.  Afterwards, we'll finally branch\nthis file to B_SPLIT, but rooted in a revision that didn't exist at\nthe time the rest of B_SPLIT was created.\n"
+    },
+    {
+      "Revision": "1.3.2.1",
+      "Log": "This change affects sub3/default and sub1/subsubB/default, on branch\nB_SPLIT.  Note that the latter file did not even exist on this branch\nuntil after some other files had had revisions committed on B_SPLIT.\n",
+      "Text": "a10 4\n\nThis change affects sub3/default and sub1/subsubB/default, on branch\nB_SPLIT.  Note that the latter file did not even exist on this branch\nuntil after some other files had had revisions committed on B_SPLIT.\n"
+    },
+    {
+      "Revision": "1.2",
+      "Log": "Second commit to proj, affecting all 7 files.\n",
+      "Text": "d6 5\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "d4 2\n"
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Log": "Initial import.\n",
+      "Text": ""
+    }
+  ]
+}

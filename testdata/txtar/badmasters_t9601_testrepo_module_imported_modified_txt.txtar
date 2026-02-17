@@ -1,0 +1,140 @@
+-- description.txt --
+Imported from badmasters.tar.gz: t9601.testrepo/module/imported-modified.txt,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.2;
+access;
+symbols
+	vtag-1:1.1.1.1
+	vbranchA:1.1.1;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2004.02.09.15.43.14;	author kfogel;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.02.09.15.43.13;	author kfogel;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2004.02.09.15.43.13;	author kfogel;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Commit on HEAD.
+@
+text
+@This is a modification of imported-modified.txt on HEAD.
+It should supersede the version from the vendor branch.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+a2 1
+This is vtag-1 (on vbranchA) of imported-modified.txt.
+@
+
+
+1.1.1.1
+log
+@Import (vbranchA, vtag-1).
+@
+text
+@@
+
+
+-- expected.json --
+{
+  "Head": "1.2",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "vtag-1",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "vbranchA",
+      "Revision": "1.1.1"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": 1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.2",
+      "Date": "2004.02.09.15.43.14",
+      "Author": "kfogel",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "2004.02.09.15.43.13",
+      "Author": "kfogel",
+      "State": "Exp",
+      "Branches": [
+        "1.1.1.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Date": "2004.02.09.15.43.13",
+      "Author": "kfogel",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.2",
+      "Log": "Commit on HEAD.\n",
+      "Text": "This is a modification of imported-modified.txt on HEAD.\nIt should supersede the version from the vendor branch.\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "d1 2\na2 1\nThis is vtag-1 (on vbranchA) of imported-modified.txt.\n"
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Log": "Import (vbranchA, vtag-1).\n",
+      "Text": ""
+    }
+  ]
+}

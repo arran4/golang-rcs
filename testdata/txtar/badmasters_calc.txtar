@@ -1,0 +1,212 @@
+-- description.txt --
+Imported from badmasters.tar.gz: calc,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.2;
+access;
+symbols
+	4-4-6:1.2
+	4-4-5:1.2
+	4-4-4:1.2
+	4-4-3:1.2
+	4-4-2:1.2
+	4-4-1:1.2
+	4-4-0:1.2;
+locks; strict;
+comment	@# Test old-fashioned format of tags.@;
+
+
+1.2
+date	2002.10.06.03.23.17;	author esr;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.10.06.03.15.18;	author esr;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Switch to DocBook XML.
+@
+text
+@# Calculate old-text percentage
+
+# Where to find the text
+files=jargon.xml
+
+# These are the relevant sizes for Edition One.  These are computed
+# from `oldstuff', which is Steele-1983 with some unused entries and
+# front matter and the thumbnail bios stripped out.
+#
+oldwds=28919	# 31433
+oldents=239
+
+#
+# First, get total wordage of TNHD ms
+#
+# This used to be done from the two texinfo masters rather than the
+# generated ASCII, otherwise we'd lose the intros and credit list and
+# some other TeX-only material.  Had the side effect that some of the
+# markup constructs and comments are counted as extra words, but
+# that's fair because we count the Scribe markup in the relevant
+# text of Steele-1983 in its wordage.
+#
+# Now that the masters are in XML-DocBook, we just look at the masters.
+# These include all the book material.  The word count is inflated a bit by
+# the online-only section, but on the other hand XML markup will generate
+# a lot fewer spurious word tokens than the TeX did (no more @@p{}!), 
+# so this is probably fair.
+#
+set - `cat $files | tr '~{}' '[ *]' | wc -w`
+newwords=$1
+
+# Next, get entry count of current version
+#
+# This is straightforward.  We just count lines that begin with a
+# headword macro
+#
+set - `cat $files | egrep '^<glossentry>' | wc`
+newentries=$1
+
+# Old-book percentage
+
+echo "New entries:      $newentries"
+echo "New words:        $newwords"
+bc <<EOT
+scale=5
+t=($oldwds/$newwords)
+e=($oldents/$newentries)
+c=(e + t) / 2 * .7
+"Entry ratio:          "
+e
+"Text ratio:           "
+t
+"Old stuff:            "
+c
+"Guy Steele's share:       "
+(c * .40)
+"Don Woods's share:        "
+(c * .20)
+"Richard Frankel's share:  "
+(c * .12)
+"Mark Crispin's share:     "
+(c * .10)
+"Richard Stallman's share: "
+(c * .10)
+"Geoff Goodfellow's share: "
+(c * .08)
+EOT
+
+exit
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d3 3
+a5 1
+#
+d16 1
+a16 1
+# This has to be done from the two texinfo masters rather than the
+d18 1
+a18 1
+# some other TeX-only material.  Has the side effect that some of the
+d23 7
+a29 1
+set - `cat jargon.tex jargonbook.tex lexicon?.tex contents.tex names.tex | tr '~{}' '[ *]' | wc -w`
+d37 1
+a37 1
+set - `cat lexicon?.tex | egrep '^@@hdt*{' | wc`
+@
+-- expected.json --
+{
+  "Head": "1.2",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# Test old-fashioned format of tags.",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "4-4-6",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "4-4-5",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "4-4-4",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "4-4-3",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "4-4-2",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "4-4-1",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "4-4-0",
+      "Revision": "1.2"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": -1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.2",
+      "Date": "2002.10.06.03.23.17",
+      "Author": "esr",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "2002.10.06.03.15.18",
+      "Author": "esr",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.2",
+      "Log": "Switch to DocBook XML.\n",
+      "Text": "# Calculate old-text percentage\n\n# Where to find the text\nfiles=jargon.xml\n\n# These are the relevant sizes for Edition One.  These are computed\n# from `oldstuff', which is Steele-1983 with some unused entries and\n# front matter and the thumbnail bios stripped out.\n#\noldwds=28919\t# 31433\noldents=239\n\n#\n# First, get total wordage of TNHD ms\n#\n# This used to be done from the two texinfo masters rather than the\n# generated ASCII, otherwise we'd lose the intros and credit list and\n# some other TeX-only material.  Had the side effect that some of the\n# markup constructs and comments are counted as extra words, but\n# that's fair because we count the Scribe markup in the relevant\n# text of Steele-1983 in its wordage.\n#\n# Now that the masters are in XML-DocBook, we just look at the masters.\n# These include all the book material.  The word count is inflated a bit by\n# the online-only section, but on the other hand XML markup will generate\n# a lot fewer spurious word tokens than the TeX did (no more @p{}!), \n# so this is probably fair.\n#\nset - `cat $files | tr '~{}' '[ *]' | wc -w`\nnewwords=$1\n\n# Next, get entry count of current version\n#\n# This is straightforward.  We just count lines that begin with a\n# headword macro\n#\nset - `cat $files | egrep '^\u003cglossentry\u003e' | wc`\nnewentries=$1\n\n# Old-book percentage\n\necho \"New entries:      $newentries\"\necho \"New words:        $newwords\"\nbc \u003c\u003cEOT\nscale=5\nt=($oldwds/$newwords)\ne=($oldents/$newentries)\nc=(e + t) / 2 * .7\n\"Entry ratio:          \"\ne\n\"Text ratio:           \"\nt\n\"Old stuff:            \"\nc\n\"Guy Steele's share:       \"\n(c * .40)\n\"Don Woods's share:        \"\n(c * .20)\n\"Richard Frankel's share:  \"\n(c * .12)\n\"Mark Crispin's share:     \"\n(c * .10)\n\"Richard Stallman's share: \"\n(c * .10)\n\"Geoff Goodfellow's share: \"\n(c * .08)\nEOT\n\nexit\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "Initial revision\n",
+      "Text": "d3 3\na5 1\n#\nd16 1\na16 1\n# This has to be done from the two texinfo masters rather than the\nd18 1\na18 1\n# some other TeX-only material.  Has the side effect that some of the\nd23 7\na29 1\nset - `cat jargon.tex jargonbook.tex lexicon?.tex contents.tex names.tex | tr '~{}' '[ *]' | wc -w`\nd37 1\na37 1\nset - `cat lexicon?.tex | egrep '^@hdt*{' | wc`\n"
+    }
+  ]
+}

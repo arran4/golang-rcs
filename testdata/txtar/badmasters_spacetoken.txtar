@@ -1,0 +1,263 @@
+-- description.txt --
+Imported from badmasters.tar.gz: spacetoken,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.7;
+access;
+symbols
+	RELEASE_4_5_1_0_BRANCH:1.7.0.4
+	PS5_01Branch:1.7.0.2
+	;
+locks; strict;
+comment	@# master with spaces in an author ID.@;
+
+
+1.7
+date	2000.03.08.17.41.44;	author djweber;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2000.02.29.15.51.23;	author djweber;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2000.01.11.19.00.09;	author Simson L. Garfinkel;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2000.01.04.17.16.45;	author simsong;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	99.09.16.21.05.59;	author simsong;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	99.09.15.21.49.33;	author simsong;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	99.09.15.20.19.58;	author simsong;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.7
+log
+@53a57475d13e0434a3f93c2177d76e7d
+@
+text
+@<stdin> content for 1.7
+@
+
+
+1.6
+log
+@f4f17a2b072dc64b9ea65f30ecc28b89
+@
+text
+@d1 1
+a1 1
+<stdin> content for 1.6
+@
+
+
+1.5
+log
+@181c97ccb164cb042ffc0d1cee084f65
+@
+text
+@d1 1
+a1 1
+<stdin> content for 1.5
+@
+
+
+1.4
+log
+@f2f43598425351e9f8ad38fef569861d
+@
+text
+@d1 1
+a1 1
+<stdin> content for 1.4
+@
+
+
+1.3
+log
+@26fa2610f05c19743f7375b561b57d87
+@
+text
+@d1 1
+a1 1
+<stdin> content for 1.3
+@
+
+
+1.2
+log
+@94230eacb45f8246299aab70a9e2d92d
+@
+text
+@d1 1
+a1 1
+<stdin> content for 1.2
+@
+
+
+1.1
+log
+@b2a21b96e761608ee046498471074495
+@
+text
+@d1 1
+a1 1
+<stdin> content for 1.1
+@
+
+-- expected.json --
+{
+  "Head": "1.7",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# master with spaces in an author ID.",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "RELEASE_4_5_1_0_BRANCH",
+      "Revision": "1.7.0.4"
+    },
+    {
+      "Name": "PS5_01Branch",
+      "Revision": "1.7.0.2"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "DateYearPrefixTruncated": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "RevisionHeads": [
+    {
+      "Revision": "1.7",
+      "Date": "2000.03.08.17.41.44",
+      "Author": "djweber",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.6",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.6",
+      "Date": "2000.02.29.15.51.23",
+      "Author": "djweber",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.5",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.5",
+      "Date": "2000.01.11.19.00.09",
+      "Author": "Simson L. Garfinkel",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.4",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.4",
+      "Date": "2000.01.04.17.16.45",
+      "Author": "simsong",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.3",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.3",
+      "Date": "99.09.16.21.05.59",
+      "YearTruncated": true,
+      "Author": "simsong",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.2",
+      "Date": "99.09.15.21.49.33",
+      "YearTruncated": true,
+      "Author": "simsong",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "99.09.15.20.19.58",
+      "YearTruncated": true,
+      "Author": "simsong",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.7",
+      "Log": "53a57475d13e0434a3f93c2177d76e7d\n",
+      "Text": "\u003cstdin\u003e content for 1.7\n"
+    },
+    {
+      "Revision": "1.6",
+      "Log": "f4f17a2b072dc64b9ea65f30ecc28b89\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 1.6\n"
+    },
+    {
+      "Revision": "1.5",
+      "Log": "181c97ccb164cb042ffc0d1cee084f65\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 1.5\n"
+    },
+    {
+      "Revision": "1.4",
+      "Log": "f2f43598425351e9f8ad38fef569861d\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 1.4\n"
+    },
+    {
+      "Revision": "1.3",
+      "Log": "26fa2610f05c19743f7375b561b57d87\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 1.3\n"
+    },
+    {
+      "Revision": "1.2",
+      "Log": "94230eacb45f8246299aab70a9e2d92d\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 1.2\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "b2a21b96e761608ee046498471074495\n",
+      "Text": "d1 1\na1 1\n\u003cstdin\u003e content for 1.1\n"
+    }
+  ],
+  "SymbolTerminatorPrefix": "\n\t"
+}
