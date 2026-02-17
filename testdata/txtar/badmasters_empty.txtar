@@ -1,0 +1,37 @@
+-- description.txt --
+Imported from badmasters.tar.gz: empty,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head     ;
+access   ;
+symbols  ;
+locks    ; strict;
+comment  @# Pathological master without trunk from glide3x repository.@;
+
+
+desc
+@@
+
+
+-- expected.json --
+{
+  "Head": "",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# Pathological master without trunk from glide3x repository.",
+  "Access": true,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": 1,
+  "RevisionHeads": null,
+  "RevisionContents": null
+}

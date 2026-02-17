@@ -1,0 +1,1109 @@
+-- description.txt --
+Imported from badmasters.tar.gz: QED.testrepo/module/QEXCHMAP.xml,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.3;
+access;
+symbols
+	RELEASE-V2013-01-14288:1.1.2.1.4.2.70.2
+	RELEASE-V2014-09-14268:1.1.2.1.4.4
+	RELEASE-V2014-09:1.1.2.1.4.4.0.12
+	RELEASE-V2014-04:1.1.2.1.4.4.0.8
+	RELEASE-V2013-01-14090:1.1.2.1.4.2.70.2
+	RELEASE-V2014-01:1.1.2.1.4.4.0.10
+	RELEASE-V2013-11:1.1.2.1.4.4.0.6
+	RELEASE-V2013-01-13318:1.1.2.1.4.2.70.2
+	RELEASE-V2013-10:1.1.2.1.4.4.0.4
+	RELEASE-V2013-01-13220:1.1.2.1.4.2.70.2
+	RELEASE-V2012-06:1.1.2.1.4.2.0.72
+	RELEASE-V2013-01-13183:1.1.2.1.4.2.70.2
+	RELEASE-V2013-07:1.1.2.1.4.4.0.2
+	RELEASE-V2013-01-13144:1.1.2.1.4.2.70.2
+	RELEASE-V2013-01-13064:1.1.2.1.4.2.70.1
+	RELEASE-V2013-01-13061:1.1.2.1.4.2
+	RELEASE-V2013-01:1.1.2.1.4.2.0.70
+	RELEASE-V2012-08:1.1.2.1.4.2.0.68
+	RELEASE-V2012-01:1.1.2.1.4.2.0.66
+	RELEASE-V2011-11:1.1.2.1.4.2.0.64
+	V2011-10-11308-QT3toQT4:1.1.2.1.4.2.0.62
+	RELEASE-V2011-10:1.1.2.1.4.2.0.60
+	RELEASE-V2011-07:1.1.2.1.4.2.0.58
+	TRAQS-BLOCKING:1.1.2.1.4.2.0.56
+	RELEASE-V2011-03-11093:1.1.2.1.4.2.0.54
+	RELEASE-V2011-03:1.1.2.1.4.2.0.52
+	RELEASE-V2-R14-11090:1.1.2.1.4.2.0.50
+	RELEASE-V2-R14-11083:1.1.2.1.4.2.0.48
+	RELEASE-V2-R14-11080:1.1.2.1.4.2.0.46
+	RELEASE-V2-R14-11076:1.1.2.1.4.2.0.44
+	RELEASE-V2-R14-11073:1.1.2.1.4.2.0.42
+	qedform-dev-branch:1.3.0.2
+	qedpoi-dev:1.1.2.1.4.2.0.40
+	RELEASE-V2-R14-11066:1.1.2.1.4.2.0.38
+	RELEASE-V2-R14-11049:1.1.2.1.4.2.0.36
+	RELEASE-V2-R14-11045:1.1.2.1.4.2.0.34
+	RELEASE-V2-R14-11031:1.1.2.1.4.2.0.32
+	QCONFIG-DB-TEST:1.1.2.1.4.2.0.30
+	RELEASE-V2-R14-11025:1.1.2.1.4.2.0.28
+	RELEASE-V2-R14-11021:1.1.2.1.4.2.0.26
+	RELEASE-V2-R14-11017:1.1.2.1.4.2.0.24
+	RELEASE-V2-R14-11014:1.1.2.1.4.2.0.22
+	RELEASE-V2-R14-11007:1.1.2.1.4.2.0.20
+	QCOMBO_MNEMONIC_TEST:1.1.2.1.4.2.0.18
+	RELEASE-V2-R14-10354:1.1.2.1.4.2.0.16
+	RELEASE-V2-R14-10343:1.1.2.1.4.2.0.14
+	RELEASE-V2-R14-10342:1.1.2.1.4.2.0.12
+	RELEASE-V2-R14-50C:1.1.2.1.4.1
+	RELEASE-V2-R14-10340:1.1.2.1.4.2.0.10
+	RELEASE-V2-R14-10335:1.1.2.1.4.2.0.8
+	RELEASE-V2-R14-10326:1.1.2.1.4.2.0.6
+	RELEASE-V2-R14-10315:1.1.2.1.4.2.0.4
+	RELEASE-V2-R14-10313:1.1.2.1.4.2.0.2
+	RELEASE-V2-R14-10299:1.1.2.1.4.1.0.70
+	RELEASE-V2-R14-10298:1.1.2.1.4.1.0.68
+	RELEASE-V2-R14-10296:1.1.2.1.4.1.0.66
+	RELEASE-V2-R14-10295:1.1.2.1.4.1.0.64
+	RELEASE-V2-R14-10291:1.1.2.1.4.1.0.62
+	RELEASE-V2-R14-10286:1.1.2.1.4.1.0.60
+	RELEASE-V2-R14-10285:1.1.2.1.4.1.0.58
+	RELEASE-V2-R14-10279:1.1.2.1.4.1.0.52
+	RELEASE-V2-R14-10273:1.1.2.1.4.1.0.56
+	RELEASE-V2-R14-51-10271:1.1.2.1.4.1.0.54
+	RELEASE-V2-R14-51-branch:1.1.2.1.4.1.0.50
+	RELEASE-V2-R14-10269:1.1.2.1.4.1.0.48
+	RELEASE-V2-R14-10267:1.1.2.1.4.1.0.46
+	RELEASE-V2-R14-10263:1.1.2.1.4.1.0.44
+	RELEASE-V2-R14-10253:1.1.2.1.4.1.0.42
+	RELEASE-V2-R14-10242:1.1.2.1.4.1.0.40
+	RELEASE-V2-R14-10238:1.1.2.1.4.1.0.38
+	RELEASE-V2-R14-10237:1.1.2.1.4.1.0.36
+	RELEASE-V2-R14-10236:1.1.2.1.4.1.0.34
+	RELEASE-V2-R14-10232:1.1.2.1.4.1.0.32
+	RELEASE-V2-R14-10231:1.1.2.1.4.1.0.30
+	RELEASE-V2-R14-10225:1.1.2.1.4.1.0.28
+	RELEASE-V2-R14-50-branch:1.1.2.1.4.1.0.26
+	RELEASE-V2-R14-10219:1.1.2.1.4.1.0.24
+	RELEASE-V2-R14-10218:1.1.2.1.4.1.0.22
+	RELEASE-V2-R14-10217:1.1.2.1.4.1.0.20
+	RELEASE-V2-R14-10216:1.1.2.1.4.1.0.18
+	RELEASE-V2-R14-10211:1.1.2.1.4.1.0.16
+	RELEASE-V2-R14-10210:1.1.2.1.4.1.0.14
+	RELEASE-V2-R14-10208:1.1.2.1.4.1.0.12
+	RELEASE-V2-R14-10203:1.1.2.1.4.1.0.10
+	RELEASE-V2-R14-10202:1.1.2.1.4.1.0.8
+	RELEASE-V2-R14-10197:1.1.2.1.4.1.0.6
+	RELEASE-V2-R14-10196:1.1.2.1.4.1.0.4
+	RELEASE-V2-R14-10169:1.1.2.1.4.1.0.2
+	RELEASE-V2-R14-48:1.1.2.1
+	ICS-PRE-MERGE-9:1.2
+	HBIT-QT4_5:1.2.0.6
+	RELEASE-V2-R14-45:1.1.2.1.0.16
+	ICS-PRE-MERGE-8:1.2
+	RELEASE-V2-R14-44:1.1.2.1.0.14
+	HBIT-CUSTOM-WIDGETS:1.2.0.4
+	HBIT-QT4:1.2.0.2
+	HBIT:1.1.2.1.0.12
+	RELEASE-V2-R14-43:1.1.2.1.0.10
+	RELEASE-V2-R14-42-branch:1.1.2.1.0.8
+	RELEASE-V2-R14-43-pre1:1.1.2.1.0.6
+	export2clientdv:1.1.2.1
+	RELEASE-V2-R14:1.1.2.1.0.4
+	RELEASE-V2-R12:1.1.2.1.0.2
+	RELEASE-V2-R11:1.1.0.2;
+locks; strict;
+comment	@# @;
+
+
+1.3
+date	2010.04.05.16.47.10;	author potesta;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2007.07.12.16.56.34;	author qedcma;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2007.07.02.15.08.53;	author campanel;	state dead;
+branches
+	1.1.2.1;
+next	;
+
+1.1.2.1
+date	2007.07.02.15.08.53;	author campanel;	state Exp;
+branches
+	1.1.2.1.4.1;
+next	;
+
+1.1.2.1.4.1
+date	2010.02.01.19.20.29;	author potesta;	state Exp;
+branches
+	1.1.2.1.4.1.50.1
+	1.1.2.1.4.1.54.1;
+next	1.1.2.1.4.2;
+
+1.1.2.1.4.2
+date	2010.10.28.18.32.58;	author caputo;	state Exp;
+branches
+	1.1.2.1.4.2.70.1;
+next	1.1.2.1.4.3;
+commitid	kVY79EOCzPZETeUu;
+
+1.1.2.1.4.3
+date	2013.03.04.23.05.38;	author potesta;	state Exp;
+branches;
+next	1.1.2.1.4.4;
+commitid	t09I3LNikX7iPwGw;
+
+1.1.2.1.4.4
+date	2013.03.05.22.05.16;	author potesta;	state Exp;
+branches;
+next	;
+commitid	HfXQoP1JbNQzsEGw;
+
+1.1.2.1.4.1.50.1
+date	2010.12.01.21.08.52;	author caputo;	state Exp;
+branches;
+next	;
+commitid	HLknmbctG8knFCYu;
+
+1.1.2.1.4.1.54.1
+date	2010.12.01.21.10.06;	author caputo;	state Exp;
+branches;
+next	;
+commitid	ZeBlwshZ8yfOFCYu;
+
+1.1.2.1.4.2.70.1
+date	2013.03.05.21.54.03;	author caputo;	state Exp;
+branches;
+next	1.1.2.1.4.2.70.2;
+commitid	SWlB5OkWlGdFoEGw;
+
+1.1.2.1.4.2.70.2
+date	2013.03.07.21.09.31;	author caputo;	state Exp;
+branches;
+next	;
+commitid	wPuUv9skTuHi5UGw;
+
+
+desc
+@@
+
+
+1.3
+log
+@Ticket #2977.
+@
+text
+@<configuration contentsFile="QED/QEXCHMAP.xml" user="QED" name="QEXCHMAP" >
+    <EnableFunctions>
+        <columnView>yes</columnView>
+        <editMenu>yes</editMenu>
+        <exportDialog>yes</exportDialog>
+        <filterDialog>yes</filterDialog>
+        <footerRow>no</footerRow>
+        <formView>yes</formView>
+        <importDialog>yes</importDialog>
+        <openBtn>yes</openBtn>
+        <postBtn>no</postBtn>
+        <printBtn>yes</printBtn>
+        <Q2CutPaste>yes</Q2CutPaste>
+        <saveBtn>yes</saveBtn>
+        <saveAsBtn>yes</saveAsBtn>
+        <viewDialog>yes</viewDialog>
+    </EnableFunctions>
+    <EditFunctions>
+        <copyCutCell>yes</copyCutCell>
+        <copyCutRow>yes</copyCutRow>
+        <fillReplace>yes</fillReplace>
+        <trimRows>yes</trimRows>
+    </EditFunctions>
+    <ExecutionParameters>
+        <fontName>-monotype-arial-medium-r-normal-*-15-*-*-*-*-*-iso8859-1</fontName>
+        <displayMode>QblGrid::GRID_MODE</displayMode>
+        <formName>Q2XMapExchForm</formName>
+        <generateUserKey>yes</generateUserKey>
+        <height>600</height>
+        <importName>none</importName>
+        <initialSortQ2dd/>
+        <loadFile>/usr2/qedsys/qedExchangeXmap</loadFile>
+        <logLevel>0</logLevel>
+        <longName>Exchange Cross Reference Map</longName>
+        <defaultQ2ddId>QEXCHMAP-99</defaultQ2ddId>
+        <resizePolicy>RESIZE_DYNAMIC</resizePolicy>
+        <userKey/>
+        <searchColumn/>
+        <searchValue/>
+        <viewName>QEXCHMAP</viewName>
+        <visibleRows>13</visibleRows>
+        <width>890</width>
+    </ExecutionParameters>
+    <MessagingOptions>
+        <as>qbl</as>
+        <createFile>QEXCHMAP</createFile>
+        <hostName/>
+        <port>0</port>
+    </MessagingOptions>
+    <MessageActionButton>
+        <actionName/>
+        <dataOption>none</dataOption>
+        <iconName>none</iconName>
+        <msgCode/>
+        <tooltip/>
+    </MessageActionButton>
+		<ColorSelections 
+			gridActiveViewTabFgColor="black"
+			gridActiveViewTabBgColor="white"
+			gridInactiveViewTabFgColor="black"
+			gridInactiveViewTabBgColor="#ECE9D8"
+			gridActiveTreeTextFgColor="black"
+			gridInactiveTreeTextFgColor="#999999"
+			gridProgressBarFgColor="#21409A"
+			gridProgressBarBgColor="#A3B1DA"
+			gridTreeHeaderBgColor="#ECE9D8"
+			gridTreeAreaBgColor="#ECE9D8"
+		>
+        <gridBackgroundColor>GhostWhite</gridBackgroundColor>
+        <gridForegroundColor>black</gridForegroundColor>
+        <gridHeaderBgColor>#EFEBDE</gridHeaderBgColor>
+        <gridHeaderFgColor>black</gridHeaderFgColor>
+        <gridSelectBgColor>#99CCFF</gridSelectBgColor>
+        <gridSelectFgColor>black</gridSelectFgColor>
+    </ColorSelections>
+		<FontSelections
+			gridHeaderFont="-monotype-arial-bold-r-normal-*-12-*-*-*-*-*-iso8859-1"
+			gridProgressBarFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+			gridTreeFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+			gridViewTabFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+		/>
+</configuration>
+@
+
+
+1.2
+log
+@Ticket #931 - Weekly merge No. 3
+@
+text
+@d25 1
+d77 1
+a77 1
+			gridHeaderFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1
+log
+@file QEXCHMAP.xml was initially added on branch RELEASE-V2-R11.
+@
+text
+@d1 81
+@
+
+
+1.1.2.1
+log
+@New config, view, form for Exchange crossmap.  Ticket #940
+@
+text
+@a0 81
+<configuration contentsFile="QED/QEXCHMAP.xml" user="QED" name="QEXCHMAP" >
+    <EnableFunctions>
+        <columnView>yes</columnView>
+        <editMenu>yes</editMenu>
+        <exportDialog>yes</exportDialog>
+        <filterDialog>yes</filterDialog>
+        <footerRow>no</footerRow>
+        <formView>yes</formView>
+        <importDialog>yes</importDialog>
+        <openBtn>yes</openBtn>
+        <postBtn>no</postBtn>
+        <printBtn>yes</printBtn>
+        <Q2CutPaste>yes</Q2CutPaste>
+        <saveBtn>yes</saveBtn>
+        <saveAsBtn>yes</saveAsBtn>
+        <viewDialog>yes</viewDialog>
+    </EnableFunctions>
+    <EditFunctions>
+        <copyCutCell>yes</copyCutCell>
+        <copyCutRow>yes</copyCutRow>
+        <fillReplace>yes</fillReplace>
+        <trimRows>yes</trimRows>
+    </EditFunctions>
+    <ExecutionParameters>
+        <displayMode>QblGrid::GRID_MODE</displayMode>
+        <formName>Q2XMapExchForm</formName>
+        <generateUserKey>yes</generateUserKey>
+        <height>600</height>
+        <importName>none</importName>
+        <initialSortQ2dd/>
+        <loadFile>/usr2/qedsys/qedExchangeXmap</loadFile>
+        <logLevel>0</logLevel>
+        <longName>Exchange Cross Reference Map</longName>
+        <defaultQ2ddId>QEXCHMAP-99</defaultQ2ddId>
+        <resizePolicy>RESIZE_DYNAMIC</resizePolicy>
+        <userKey/>
+        <searchColumn/>
+        <searchValue/>
+        <viewName>QEXCHMAP</viewName>
+        <visibleRows>13</visibleRows>
+        <width>890</width>
+    </ExecutionParameters>
+    <MessagingOptions>
+        <as>qbl</as>
+        <createFile>QEXCHMAP</createFile>
+        <hostName/>
+        <port>0</port>
+    </MessagingOptions>
+    <MessageActionButton>
+        <actionName/>
+        <dataOption>none</dataOption>
+        <iconName>none</iconName>
+        <msgCode/>
+        <tooltip/>
+    </MessageActionButton>
+		<ColorSelections 
+			gridActiveViewTabFgColor="black"
+			gridActiveViewTabBgColor="white"
+			gridInactiveViewTabFgColor="black"
+			gridInactiveViewTabBgColor="#ECE9D8"
+			gridActiveTreeTextFgColor="black"
+			gridInactiveTreeTextFgColor="#999999"
+			gridProgressBarFgColor="#21409A"
+			gridProgressBarBgColor="#A3B1DA"
+			gridTreeHeaderBgColor="#ECE9D8"
+			gridTreeAreaBgColor="#ECE9D8"
+		>
+        <gridBackgroundColor>GhostWhite</gridBackgroundColor>
+        <gridForegroundColor>black</gridForegroundColor>
+        <gridHeaderBgColor>#EFEBDE</gridHeaderBgColor>
+        <gridHeaderFgColor>black</gridHeaderFgColor>
+        <gridSelectBgColor>#99CCFF</gridSelectBgColor>
+        <gridSelectFgColor>black</gridSelectFgColor>
+    </ColorSelections>
+		<FontSelections
+			gridHeaderFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+			gridProgressBarFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+			gridTreeFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+			gridViewTabFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+		/>
+</configuration>
+@
+
+
+1.1.2.1.4.1
+log
+@Ticket #2895. Change grid column label fonts to bold and body to arial medium
+normal 15 using new fontName attribute.
+~
+@
+text
+@a24 1
+        <fontName>-monotype-arial-medium-r-normal-*-15-*-*-*-*-*-iso8859-1</fontName>
+d76 1
+a76 1
+			gridHeaderFont="-monotype-arial-bold-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1.2.1.4.1.54.1
+log
+@Ticket #1945 - reverse grid config font changes, pending further review
+@
+text
+@d25 1
+d77 1
+a77 1
+			gridHeaderFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1.2.1.4.1.50.1
+log
+@Ticket #1945 - reverse grid config font changes, pending further review
+@
+text
+@d25 1
+d77 1
+a77 1
+			gridHeaderFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1.2.1.4.2
+log
+@Ticket #1945 - reverse grid config font changes, pending further review
+@
+text
+@d25 1
+d77 1
+a77 1
+			gridHeaderFont="-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1.2.1.4.2.70.1
+log
+@Ticket #5071 - merge grid config font changes to release
+@
+text
+@d76 1
+a76 1
+			gridHeaderFont="-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1.2.1.4.2.70.2
+log
+@Ticket #5071, #4852 - merge into release
+@
+text
+@d79 1
+a79 1
+			gridViewTabFont="-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1.2.1.4.3
+log
+@Ticket #5071: Change all grid column-label font weights to bold from medium
+leaving all other font attributes unchanged.
+@
+text
+@d76 1
+a76 1
+			gridHeaderFont="-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+1.1.2.1.4.4
+log
+@Ticket #5071: Change all grid tab font weights to bold from medium
+leaving all other font attributes unchanged. Also various changes to the
+hard-close performance evaluation engine.
+@
+text
+@d79 1
+a79 1
+			gridViewTabFont="-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1"
+@
+
+
+-- expected.json --
+{
+  "Head": "1.3",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "RELEASE-V2013-01-14288",
+      "Revision": "1.1.2.1.4.2.70.2"
+    },
+    {
+      "Name": "RELEASE-V2014-09-14268",
+      "Revision": "1.1.2.1.4.4"
+    },
+    {
+      "Name": "RELEASE-V2014-09",
+      "Revision": "1.1.2.1.4.4.0.12"
+    },
+    {
+      "Name": "RELEASE-V2014-04",
+      "Revision": "1.1.2.1.4.4.0.8"
+    },
+    {
+      "Name": "RELEASE-V2013-01-14090",
+      "Revision": "1.1.2.1.4.2.70.2"
+    },
+    {
+      "Name": "RELEASE-V2014-01",
+      "Revision": "1.1.2.1.4.4.0.10"
+    },
+    {
+      "Name": "RELEASE-V2013-11",
+      "Revision": "1.1.2.1.4.4.0.6"
+    },
+    {
+      "Name": "RELEASE-V2013-01-13318",
+      "Revision": "1.1.2.1.4.2.70.2"
+    },
+    {
+      "Name": "RELEASE-V2013-10",
+      "Revision": "1.1.2.1.4.4.0.4"
+    },
+    {
+      "Name": "RELEASE-V2013-01-13220",
+      "Revision": "1.1.2.1.4.2.70.2"
+    },
+    {
+      "Name": "RELEASE-V2012-06",
+      "Revision": "1.1.2.1.4.2.0.72"
+    },
+    {
+      "Name": "RELEASE-V2013-01-13183",
+      "Revision": "1.1.2.1.4.2.70.2"
+    },
+    {
+      "Name": "RELEASE-V2013-07",
+      "Revision": "1.1.2.1.4.4.0.2"
+    },
+    {
+      "Name": "RELEASE-V2013-01-13144",
+      "Revision": "1.1.2.1.4.2.70.2"
+    },
+    {
+      "Name": "RELEASE-V2013-01-13064",
+      "Revision": "1.1.2.1.4.2.70.1"
+    },
+    {
+      "Name": "RELEASE-V2013-01-13061",
+      "Revision": "1.1.2.1.4.2"
+    },
+    {
+      "Name": "RELEASE-V2013-01",
+      "Revision": "1.1.2.1.4.2.0.70"
+    },
+    {
+      "Name": "RELEASE-V2012-08",
+      "Revision": "1.1.2.1.4.2.0.68"
+    },
+    {
+      "Name": "RELEASE-V2012-01",
+      "Revision": "1.1.2.1.4.2.0.66"
+    },
+    {
+      "Name": "RELEASE-V2011-11",
+      "Revision": "1.1.2.1.4.2.0.64"
+    },
+    {
+      "Name": "V2011-10-11308-QT3toQT4",
+      "Revision": "1.1.2.1.4.2.0.62"
+    },
+    {
+      "Name": "RELEASE-V2011-10",
+      "Revision": "1.1.2.1.4.2.0.60"
+    },
+    {
+      "Name": "RELEASE-V2011-07",
+      "Revision": "1.1.2.1.4.2.0.58"
+    },
+    {
+      "Name": "TRAQS-BLOCKING",
+      "Revision": "1.1.2.1.4.2.0.56"
+    },
+    {
+      "Name": "RELEASE-V2011-03-11093",
+      "Revision": "1.1.2.1.4.2.0.54"
+    },
+    {
+      "Name": "RELEASE-V2011-03",
+      "Revision": "1.1.2.1.4.2.0.52"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11090",
+      "Revision": "1.1.2.1.4.2.0.50"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11083",
+      "Revision": "1.1.2.1.4.2.0.48"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11080",
+      "Revision": "1.1.2.1.4.2.0.46"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11076",
+      "Revision": "1.1.2.1.4.2.0.44"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11073",
+      "Revision": "1.1.2.1.4.2.0.42"
+    },
+    {
+      "Name": "qedform-dev-branch",
+      "Revision": "1.3.0.2"
+    },
+    {
+      "Name": "qedpoi-dev",
+      "Revision": "1.1.2.1.4.2.0.40"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11066",
+      "Revision": "1.1.2.1.4.2.0.38"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11049",
+      "Revision": "1.1.2.1.4.2.0.36"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11045",
+      "Revision": "1.1.2.1.4.2.0.34"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11031",
+      "Revision": "1.1.2.1.4.2.0.32"
+    },
+    {
+      "Name": "QCONFIG-DB-TEST",
+      "Revision": "1.1.2.1.4.2.0.30"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11025",
+      "Revision": "1.1.2.1.4.2.0.28"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11021",
+      "Revision": "1.1.2.1.4.2.0.26"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11017",
+      "Revision": "1.1.2.1.4.2.0.24"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11014",
+      "Revision": "1.1.2.1.4.2.0.22"
+    },
+    {
+      "Name": "RELEASE-V2-R14-11007",
+      "Revision": "1.1.2.1.4.2.0.20"
+    },
+    {
+      "Name": "QCOMBO_MNEMONIC_TEST",
+      "Revision": "1.1.2.1.4.2.0.18"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10354",
+      "Revision": "1.1.2.1.4.2.0.16"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10343",
+      "Revision": "1.1.2.1.4.2.0.14"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10342",
+      "Revision": "1.1.2.1.4.2.0.12"
+    },
+    {
+      "Name": "RELEASE-V2-R14-50C",
+      "Revision": "1.1.2.1.4.1"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10340",
+      "Revision": "1.1.2.1.4.2.0.10"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10335",
+      "Revision": "1.1.2.1.4.2.0.8"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10326",
+      "Revision": "1.1.2.1.4.2.0.6"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10315",
+      "Revision": "1.1.2.1.4.2.0.4"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10313",
+      "Revision": "1.1.2.1.4.2.0.2"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10299",
+      "Revision": "1.1.2.1.4.1.0.70"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10298",
+      "Revision": "1.1.2.1.4.1.0.68"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10296",
+      "Revision": "1.1.2.1.4.1.0.66"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10295",
+      "Revision": "1.1.2.1.4.1.0.64"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10291",
+      "Revision": "1.1.2.1.4.1.0.62"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10286",
+      "Revision": "1.1.2.1.4.1.0.60"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10285",
+      "Revision": "1.1.2.1.4.1.0.58"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10279",
+      "Revision": "1.1.2.1.4.1.0.52"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10273",
+      "Revision": "1.1.2.1.4.1.0.56"
+    },
+    {
+      "Name": "RELEASE-V2-R14-51-10271",
+      "Revision": "1.1.2.1.4.1.0.54"
+    },
+    {
+      "Name": "RELEASE-V2-R14-51-branch",
+      "Revision": "1.1.2.1.4.1.0.50"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10269",
+      "Revision": "1.1.2.1.4.1.0.48"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10267",
+      "Revision": "1.1.2.1.4.1.0.46"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10263",
+      "Revision": "1.1.2.1.4.1.0.44"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10253",
+      "Revision": "1.1.2.1.4.1.0.42"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10242",
+      "Revision": "1.1.2.1.4.1.0.40"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10238",
+      "Revision": "1.1.2.1.4.1.0.38"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10237",
+      "Revision": "1.1.2.1.4.1.0.36"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10236",
+      "Revision": "1.1.2.1.4.1.0.34"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10232",
+      "Revision": "1.1.2.1.4.1.0.32"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10231",
+      "Revision": "1.1.2.1.4.1.0.30"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10225",
+      "Revision": "1.1.2.1.4.1.0.28"
+    },
+    {
+      "Name": "RELEASE-V2-R14-50-branch",
+      "Revision": "1.1.2.1.4.1.0.26"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10219",
+      "Revision": "1.1.2.1.4.1.0.24"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10218",
+      "Revision": "1.1.2.1.4.1.0.22"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10217",
+      "Revision": "1.1.2.1.4.1.0.20"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10216",
+      "Revision": "1.1.2.1.4.1.0.18"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10211",
+      "Revision": "1.1.2.1.4.1.0.16"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10210",
+      "Revision": "1.1.2.1.4.1.0.14"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10208",
+      "Revision": "1.1.2.1.4.1.0.12"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10203",
+      "Revision": "1.1.2.1.4.1.0.10"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10202",
+      "Revision": "1.1.2.1.4.1.0.8"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10197",
+      "Revision": "1.1.2.1.4.1.0.6"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10196",
+      "Revision": "1.1.2.1.4.1.0.4"
+    },
+    {
+      "Name": "RELEASE-V2-R14-10169",
+      "Revision": "1.1.2.1.4.1.0.2"
+    },
+    {
+      "Name": "RELEASE-V2-R14-48",
+      "Revision": "1.1.2.1"
+    },
+    {
+      "Name": "ICS-PRE-MERGE-9",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "HBIT-QT4_5",
+      "Revision": "1.2.0.6"
+    },
+    {
+      "Name": "RELEASE-V2-R14-45",
+      "Revision": "1.1.2.1.0.16"
+    },
+    {
+      "Name": "ICS-PRE-MERGE-8",
+      "Revision": "1.2"
+    },
+    {
+      "Name": "RELEASE-V2-R14-44",
+      "Revision": "1.1.2.1.0.14"
+    },
+    {
+      "Name": "HBIT-CUSTOM-WIDGETS",
+      "Revision": "1.2.0.4"
+    },
+    {
+      "Name": "HBIT-QT4",
+      "Revision": "1.2.0.2"
+    },
+    {
+      "Name": "HBIT",
+      "Revision": "1.1.2.1.0.12"
+    },
+    {
+      "Name": "RELEASE-V2-R14-43",
+      "Revision": "1.1.2.1.0.10"
+    },
+    {
+      "Name": "RELEASE-V2-R14-42-branch",
+      "Revision": "1.1.2.1.0.8"
+    },
+    {
+      "Name": "RELEASE-V2-R14-43-pre1",
+      "Revision": "1.1.2.1.0.6"
+    },
+    {
+      "Name": "export2clientdv",
+      "Revision": "1.1.2.1"
+    },
+    {
+      "Name": "RELEASE-V2-R14",
+      "Revision": "1.1.2.1.0.4"
+    },
+    {
+      "Name": "RELEASE-V2-R12",
+      "Revision": "1.1.2.1.0.2"
+    },
+    {
+      "Name": "RELEASE-V2-R11",
+      "Revision": "1.1.0.2"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": 1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.3",
+      "Date": "2010.04.05.16.47.10",
+      "Author": "potesta",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.2",
+      "Date": "2007.07.12.16.56.34",
+      "Author": "qedcma",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "2007.07.02.15.08.53",
+      "Author": "campanel",
+      "State": "dead",
+      "Branches": [
+        "1.1.2.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.2.1",
+      "Date": "2007.07.02.15.08.53",
+      "Author": "campanel",
+      "State": "Exp",
+      "Branches": [
+        "1.1.2.1.4.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.2.1.4.1",
+      "Date": "2010.02.01.19.20.29",
+      "Author": "potesta",
+      "State": "Exp",
+      "Branches": [
+        "1.1.2.1.4.1.50.1",
+        "1.1.2.1.4.1.54.1"
+      ],
+      "NextRevision": "1.1.2.1.4.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.2.1.4.2",
+      "Date": "2010.10.28.18.32.58",
+      "Author": "caputo",
+      "State": "Exp",
+      "Branches": [
+        "1.1.2.1.4.2.70.1"
+      ],
+      "NextRevision": "1.1.2.1.4.3",
+      "CommitID": "kVY79EOCzPZETeUu"
+    },
+    {
+      "Revision": "1.1.2.1.4.3",
+      "Date": "2013.03.04.23.05.38",
+      "Author": "potesta",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1.2.1.4.4",
+      "CommitID": "t09I3LNikX7iPwGw"
+    },
+    {
+      "Revision": "1.1.2.1.4.4",
+      "Date": "2013.03.05.22.05.16",
+      "Author": "potesta",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": "HfXQoP1JbNQzsEGw"
+    },
+    {
+      "Revision": "1.1.2.1.4.1.50.1",
+      "Date": "2010.12.01.21.08.52",
+      "Author": "caputo",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": "HLknmbctG8knFCYu"
+    },
+    {
+      "Revision": "1.1.2.1.4.1.54.1",
+      "Date": "2010.12.01.21.10.06",
+      "Author": "caputo",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": "ZeBlwshZ8yfOFCYu"
+    },
+    {
+      "Revision": "1.1.2.1.4.2.70.1",
+      "Date": "2013.03.05.21.54.03",
+      "Author": "caputo",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "1.1.2.1.4.2.70.2",
+      "CommitID": "SWlB5OkWlGdFoEGw"
+    },
+    {
+      "Revision": "1.1.2.1.4.2.70.2",
+      "Date": "2013.03.07.21.09.31",
+      "Author": "caputo",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": "wPuUv9skTuHi5UGw"
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.3",
+      "Log": "Ticket #2977.\n",
+      "Text": "\u003cconfiguration contentsFile=\"QED/QEXCHMAP.xml\" user=\"QED\" name=\"QEXCHMAP\" \u003e\n    \u003cEnableFunctions\u003e\n        \u003ccolumnView\u003eyes\u003c/columnView\u003e\n        \u003ceditMenu\u003eyes\u003c/editMenu\u003e\n        \u003cexportDialog\u003eyes\u003c/exportDialog\u003e\n        \u003cfilterDialog\u003eyes\u003c/filterDialog\u003e\n        \u003cfooterRow\u003eno\u003c/footerRow\u003e\n        \u003cformView\u003eyes\u003c/formView\u003e\n        \u003cimportDialog\u003eyes\u003c/importDialog\u003e\n        \u003copenBtn\u003eyes\u003c/openBtn\u003e\n        \u003cpostBtn\u003eno\u003c/postBtn\u003e\n        \u003cprintBtn\u003eyes\u003c/printBtn\u003e\n        \u003cQ2CutPaste\u003eyes\u003c/Q2CutPaste\u003e\n        \u003csaveBtn\u003eyes\u003c/saveBtn\u003e\n        \u003csaveAsBtn\u003eyes\u003c/saveAsBtn\u003e\n        \u003cviewDialog\u003eyes\u003c/viewDialog\u003e\n    \u003c/EnableFunctions\u003e\n    \u003cEditFunctions\u003e\n        \u003ccopyCutCell\u003eyes\u003c/copyCutCell\u003e\n        \u003ccopyCutRow\u003eyes\u003c/copyCutRow\u003e\n        \u003cfillReplace\u003eyes\u003c/fillReplace\u003e\n        \u003ctrimRows\u003eyes\u003c/trimRows\u003e\n    \u003c/EditFunctions\u003e\n    \u003cExecutionParameters\u003e\n        \u003cfontName\u003e-monotype-arial-medium-r-normal-*-15-*-*-*-*-*-iso8859-1\u003c/fontName\u003e\n        \u003cdisplayMode\u003eQblGrid::GRID_MODE\u003c/displayMode\u003e\n        \u003cformName\u003eQ2XMapExchForm\u003c/formName\u003e\n        \u003cgenerateUserKey\u003eyes\u003c/generateUserKey\u003e\n        \u003cheight\u003e600\u003c/height\u003e\n        \u003cimportName\u003enone\u003c/importName\u003e\n        \u003cinitialSortQ2dd/\u003e\n        \u003cloadFile\u003e/usr2/qedsys/qedExchangeXmap\u003c/loadFile\u003e\n        \u003clogLevel\u003e0\u003c/logLevel\u003e\n        \u003clongName\u003eExchange Cross Reference Map\u003c/longName\u003e\n        \u003cdefaultQ2ddId\u003eQEXCHMAP-99\u003c/defaultQ2ddId\u003e\n        \u003cresizePolicy\u003eRESIZE_DYNAMIC\u003c/resizePolicy\u003e\n        \u003cuserKey/\u003e\n        \u003csearchColumn/\u003e\n        \u003csearchValue/\u003e\n        \u003cviewName\u003eQEXCHMAP\u003c/viewName\u003e\n        \u003cvisibleRows\u003e13\u003c/visibleRows\u003e\n        \u003cwidth\u003e890\u003c/width\u003e\n    \u003c/ExecutionParameters\u003e\n    \u003cMessagingOptions\u003e\n        \u003cas\u003eqbl\u003c/as\u003e\n        \u003ccreateFile\u003eQEXCHMAP\u003c/createFile\u003e\n        \u003chostName/\u003e\n        \u003cport\u003e0\u003c/port\u003e\n    \u003c/MessagingOptions\u003e\n    \u003cMessageActionButton\u003e\n        \u003cactionName/\u003e\n        \u003cdataOption\u003enone\u003c/dataOption\u003e\n        \u003ciconName\u003enone\u003c/iconName\u003e\n        \u003cmsgCode/\u003e\n        \u003ctooltip/\u003e\n    \u003c/MessageActionButton\u003e\n\t\t\u003cColorSelections \n\t\t\tgridActiveViewTabFgColor=\"black\"\n\t\t\tgridActiveViewTabBgColor=\"white\"\n\t\t\tgridInactiveViewTabFgColor=\"black\"\n\t\t\tgridInactiveViewTabBgColor=\"#ECE9D8\"\n\t\t\tgridActiveTreeTextFgColor=\"black\"\n\t\t\tgridInactiveTreeTextFgColor=\"#999999\"\n\t\t\tgridProgressBarFgColor=\"#21409A\"\n\t\t\tgridProgressBarBgColor=\"#A3B1DA\"\n\t\t\tgridTreeHeaderBgColor=\"#ECE9D8\"\n\t\t\tgridTreeAreaBgColor=\"#ECE9D8\"\n\t\t\u003e\n        \u003cgridBackgroundColor\u003eGhostWhite\u003c/gridBackgroundColor\u003e\n        \u003cgridForegroundColor\u003eblack\u003c/gridForegroundColor\u003e\n        \u003cgridHeaderBgColor\u003e#EFEBDE\u003c/gridHeaderBgColor\u003e\n        \u003cgridHeaderFgColor\u003eblack\u003c/gridHeaderFgColor\u003e\n        \u003cgridSelectBgColor\u003e#99CCFF\u003c/gridSelectBgColor\u003e\n        \u003cgridSelectFgColor\u003eblack\u003c/gridSelectFgColor\u003e\n    \u003c/ColorSelections\u003e\n\t\t\u003cFontSelections\n\t\t\tgridHeaderFont=\"-monotype-arial-bold-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t\tgridProgressBarFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t\tgridTreeFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t\tgridViewTabFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t/\u003e\n\u003c/configuration\u003e\n"
+    },
+    {
+      "Revision": "1.2",
+      "Log": "Ticket #931 - Weekly merge No. 3\n",
+      "Text": "d25 1\nd77 1\na77 1\n\t\t\tgridHeaderFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "file QEXCHMAP.xml was initially added on branch RELEASE-V2-R11.\n",
+      "Text": "d1 81\n"
+    },
+    {
+      "Revision": "1.1.2.1",
+      "Log": "New config, view, form for Exchange crossmap.  Ticket #940\n",
+      "Text": "a0 81\n\u003cconfiguration contentsFile=\"QED/QEXCHMAP.xml\" user=\"QED\" name=\"QEXCHMAP\" \u003e\n    \u003cEnableFunctions\u003e\n        \u003ccolumnView\u003eyes\u003c/columnView\u003e\n        \u003ceditMenu\u003eyes\u003c/editMenu\u003e\n        \u003cexportDialog\u003eyes\u003c/exportDialog\u003e\n        \u003cfilterDialog\u003eyes\u003c/filterDialog\u003e\n        \u003cfooterRow\u003eno\u003c/footerRow\u003e\n        \u003cformView\u003eyes\u003c/formView\u003e\n        \u003cimportDialog\u003eyes\u003c/importDialog\u003e\n        \u003copenBtn\u003eyes\u003c/openBtn\u003e\n        \u003cpostBtn\u003eno\u003c/postBtn\u003e\n        \u003cprintBtn\u003eyes\u003c/printBtn\u003e\n        \u003cQ2CutPaste\u003eyes\u003c/Q2CutPaste\u003e\n        \u003csaveBtn\u003eyes\u003c/saveBtn\u003e\n        \u003csaveAsBtn\u003eyes\u003c/saveAsBtn\u003e\n        \u003cviewDialog\u003eyes\u003c/viewDialog\u003e\n    \u003c/EnableFunctions\u003e\n    \u003cEditFunctions\u003e\n        \u003ccopyCutCell\u003eyes\u003c/copyCutCell\u003e\n        \u003ccopyCutRow\u003eyes\u003c/copyCutRow\u003e\n        \u003cfillReplace\u003eyes\u003c/fillReplace\u003e\n        \u003ctrimRows\u003eyes\u003c/trimRows\u003e\n    \u003c/EditFunctions\u003e\n    \u003cExecutionParameters\u003e\n        \u003cdisplayMode\u003eQblGrid::GRID_MODE\u003c/displayMode\u003e\n        \u003cformName\u003eQ2XMapExchForm\u003c/formName\u003e\n        \u003cgenerateUserKey\u003eyes\u003c/generateUserKey\u003e\n        \u003cheight\u003e600\u003c/height\u003e\n        \u003cimportName\u003enone\u003c/importName\u003e\n        \u003cinitialSortQ2dd/\u003e\n        \u003cloadFile\u003e/usr2/qedsys/qedExchangeXmap\u003c/loadFile\u003e\n        \u003clogLevel\u003e0\u003c/logLevel\u003e\n        \u003clongName\u003eExchange Cross Reference Map\u003c/longName\u003e\n        \u003cdefaultQ2ddId\u003eQEXCHMAP-99\u003c/defaultQ2ddId\u003e\n        \u003cresizePolicy\u003eRESIZE_DYNAMIC\u003c/resizePolicy\u003e\n        \u003cuserKey/\u003e\n        \u003csearchColumn/\u003e\n        \u003csearchValue/\u003e\n        \u003cviewName\u003eQEXCHMAP\u003c/viewName\u003e\n        \u003cvisibleRows\u003e13\u003c/visibleRows\u003e\n        \u003cwidth\u003e890\u003c/width\u003e\n    \u003c/ExecutionParameters\u003e\n    \u003cMessagingOptions\u003e\n        \u003cas\u003eqbl\u003c/as\u003e\n        \u003ccreateFile\u003eQEXCHMAP\u003c/createFile\u003e\n        \u003chostName/\u003e\n        \u003cport\u003e0\u003c/port\u003e\n    \u003c/MessagingOptions\u003e\n    \u003cMessageActionButton\u003e\n        \u003cactionName/\u003e\n        \u003cdataOption\u003enone\u003c/dataOption\u003e\n        \u003ciconName\u003enone\u003c/iconName\u003e\n        \u003cmsgCode/\u003e\n        \u003ctooltip/\u003e\n    \u003c/MessageActionButton\u003e\n\t\t\u003cColorSelections \n\t\t\tgridActiveViewTabFgColor=\"black\"\n\t\t\tgridActiveViewTabBgColor=\"white\"\n\t\t\tgridInactiveViewTabFgColor=\"black\"\n\t\t\tgridInactiveViewTabBgColor=\"#ECE9D8\"\n\t\t\tgridActiveTreeTextFgColor=\"black\"\n\t\t\tgridInactiveTreeTextFgColor=\"#999999\"\n\t\t\tgridProgressBarFgColor=\"#21409A\"\n\t\t\tgridProgressBarBgColor=\"#A3B1DA\"\n\t\t\tgridTreeHeaderBgColor=\"#ECE9D8\"\n\t\t\tgridTreeAreaBgColor=\"#ECE9D8\"\n\t\t\u003e\n        \u003cgridBackgroundColor\u003eGhostWhite\u003c/gridBackgroundColor\u003e\n        \u003cgridForegroundColor\u003eblack\u003c/gridForegroundColor\u003e\n        \u003cgridHeaderBgColor\u003e#EFEBDE\u003c/gridHeaderBgColor\u003e\n        \u003cgridHeaderFgColor\u003eblack\u003c/gridHeaderFgColor\u003e\n        \u003cgridSelectBgColor\u003e#99CCFF\u003c/gridSelectBgColor\u003e\n        \u003cgridSelectFgColor\u003eblack\u003c/gridSelectFgColor\u003e\n    \u003c/ColorSelections\u003e\n\t\t\u003cFontSelections\n\t\t\tgridHeaderFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t\tgridProgressBarFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t\tgridTreeFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t\tgridViewTabFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n\t\t/\u003e\n\u003c/configuration\u003e\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.1",
+      "Log": "Ticket #2895. Change grid column label fonts to bold and body to arial medium\nnormal 15 using new fontName attribute.\n~\n",
+      "Text": "a24 1\n        \u003cfontName\u003e-monotype-arial-medium-r-normal-*-15-*-*-*-*-*-iso8859-1\u003c/fontName\u003e\nd76 1\na76 1\n\t\t\tgridHeaderFont=\"-monotype-arial-bold-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.1.54.1",
+      "Log": "Ticket #1945 - reverse grid config font changes, pending further review\n",
+      "Text": "d25 1\nd77 1\na77 1\n\t\t\tgridHeaderFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.1.50.1",
+      "Log": "Ticket #1945 - reverse grid config font changes, pending further review\n",
+      "Text": "d25 1\nd77 1\na77 1\n\t\t\tgridHeaderFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.2",
+      "Log": "Ticket #1945 - reverse grid config font changes, pending further review\n",
+      "Text": "d25 1\nd77 1\na77 1\n\t\t\tgridHeaderFont=\"-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.2.70.1",
+      "Log": "Ticket #5071 - merge grid config font changes to release\n",
+      "Text": "d76 1\na76 1\n\t\t\tgridHeaderFont=\"-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.2.70.2",
+      "Log": "Ticket #5071, #4852 - merge into release\n",
+      "Text": "d79 1\na79 1\n\t\t\tgridViewTabFont=\"-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.3",
+      "Log": "Ticket #5071: Change all grid column-label font weights to bold from medium\nleaving all other font attributes unchanged.\n",
+      "Text": "d76 1\na76 1\n\t\t\tgridHeaderFont=\"-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    },
+    {
+      "Revision": "1.1.2.1.4.4",
+      "Log": "Ticket #5071: Change all grid tab font weights to bold from medium\nleaving all other font attributes unchanged. Also various changes to the\nhard-close performance evaluation engine.\n",
+      "Text": "d79 1\na79 1\n\t\t\tgridViewTabFont=\"-adobe-helvetica-bold-r-normal-*-12-*-*-*-*-*-iso8859-1\"\n"
+    }
+  ]
+}

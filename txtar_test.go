@@ -392,6 +392,7 @@ func parseRCS(content string) (*File, error) {
 
 func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 	ignoreWhitespace := options["ignore white space"]
+	ignoreAllWhitespace := options["ignore all white space"]
 
 	normExpected := strings.TrimSpace(expected)
 	normGot := strings.TrimSpace(got)
@@ -407,15 +408,27 @@ func checkRCS(t *testing.T, expected, got string, options map[string]bool) {
 	// The user request suggests 'unix line endings' ensures the object has \n.
 	// So got should be correct.
 
-	if ignoreWhitespace {
+	if ignoreAllWhitespace {
+		normExpected = stripAllWhitespace(normExpected)
+		normGot = stripAllWhitespace(normGot)
+	} else if ignoreWhitespace {
 		normExpected = strings.Join(strings.Fields(normExpected), " ")
 		normGot = strings.Join(strings.Fields(normGot), " ")
 	}
 
 	if diff := cmp.Diff(normExpected, normGot); diff != "" {
 		t.Errorf("RCS mismatch (-want +got):\n%s", diff)
-		if !ignoreWhitespace {
+		if !(ignoreWhitespace || ignoreAllWhitespace) {
 			t.Logf("Got RCS:\n%q", got)
 		}
 	}
+}
+
+func stripAllWhitespace(s string) string {
+	return strings.Map(func(r rune) rune {
+		if r == ' ' || r == '\n' || r == '\r' || r == '\t' {
+			return -1
+		}
+		return r
+	}, s)
 }

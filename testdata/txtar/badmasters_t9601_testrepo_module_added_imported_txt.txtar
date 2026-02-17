@@ -1,0 +1,110 @@
+-- description.txt --
+Imported from badmasters.tar.gz: t9601.testrepo/module/added-imported.txt,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.1;
+access;
+symbols
+	vtag-4:1.1.1.1
+	vbranchA:1.1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2004.02.09.15.43.15;	author kfogel;	state Exp;
+branches
+	1.1.1.1;
+next	;
+
+1.1.1.1
+date	2004.02.09.15.43.16;	author kfogel;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Add a file to the working copy.
+@
+text
+@Adding this file, before importing it with different contents.
+@
+
+
+1.1.1.1
+log
+@Import (vbranchA, vtag-4).
+@
+text
+@d1 1
+a1 1
+This is vtag-4 (on vbranchA) of added-then-imported.txt.
+@
+
+-- expected.json --
+{
+  "Head": "1.1",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# ",
+  "Access": true,
+  "Symbols": [
+    {
+      "Name": "vtag-4",
+      "Revision": "1.1.1.1"
+    },
+    {
+      "Name": "vbranchA",
+      "Revision": "1.1.1"
+    }
+  ],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "RevisionHeads": [
+    {
+      "Revision": "1.1",
+      "Date": "2004.02.09.15.43.15",
+      "Author": "kfogel",
+      "State": "Exp",
+      "Branches": [
+        "1.1.1.1"
+      ],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Date": "2004.02.09.15.43.16",
+      "Author": "kfogel",
+      "State": "Exp",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.1",
+      "Log": "Add a file to the working copy.\n",
+      "Text": "Adding this file, before importing it with different contents.\n"
+    },
+    {
+      "Revision": "1.1.1.1",
+      "Log": "Import (vbranchA, vtag-4).\n",
+      "Text": "d1 1\na1 1\nThis is vtag-4 (on vbranchA) of added-then-imported.txt.\n"
+    }
+  ]
+}

@@ -1,0 +1,256 @@
+-- description.txt --
+Imported from badmasters.tar.gz: deadbranch,v
+
+-- tests.txt --
+rcs to json
+rcs to rcs
+
+-- input.rcs --
+head	1.7;
+access;
+symbols;
+locks; strict;
+comment	@# Master from NetBSD with a branch entirely of dead revisions@;
+
+1.5
+date	97.04.06.08.41.11;	author cgd;	state dead;
+branches;
+next	1.4;
+
+1.4
+date	97.01.24.01.53.00;	author cgd;	state dead;
+branches
+	1.4.2.1;
+next	1.3;
+
+1.3
+date	97.01.16.01.20.24;	author cgd;	state dead;
+branches;
+next	1.2;
+
+1.2
+date	96.11.06.23.09.13;	author cgd;	state dead;
+branches;
+next	1.1;
+
+1.1
+date	95.11.23.02.41.18;	author cgd;	state dead;
+branches;
+next	;
+
+1.4.2.1
+date	97.06.01.04.14.17;	author cgd;	state dead;
+branches;
+next	1.4.2.2;
+
+1.4.2.2
+date	97.07.22.05.37.40;	author cgd;	state dead;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.5
+log
+@4a486f01d33c531a71545e0fa34fc4e3
+@
+text
+@sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.5
+@
+
+
+1.4
+log
+@67e343d3c0df8fd8230b555776ef6aa5
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4
+@
+
+
+1.4.2.1
+log
+@5873d8ab9a7d4adce9ee8f8e70cfd164
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4.2.1
+@
+
+
+1.4.2.2
+log
+@67c541812e46c3924d0b70dab4015ce1
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4.2.2
+@
+
+
+1.3
+log
+@d10b914da055c3e88c3f2d497211d6f0
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.3
+@
+
+
+1.2
+log
+@02c3c00d1b01b59dc1df89a22fd85ed7
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.2
+@
+
+
+1.1
+log
+@9a8494f26b19ec9b6d911864f788627f
+@
+text
+@d1 1
+a1 1
+sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.1
+@
+-- expected.json --
+{
+  "Head": "1.7",
+  "Branch": "",
+  "Description": "",
+  "Comment": "# Master from NetBSD with a branch entirely of dead revisions",
+  "Access": true,
+  "Symbols": [],
+  "AccessUsers": null,
+  "Locks": [],
+  "Strict": true,
+  "DateYearPrefixTruncated": true,
+  "Integrity": "",
+  "Expand": "",
+  "NewLine": "\n",
+  "EndOfFileNewLineOffset": -1,
+  "RevisionHeads": [
+    {
+      "Revision": "1.5",
+      "Date": "97.04.06.08.41.11",
+      "YearTruncated": true,
+      "Author": "cgd",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "1.4",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.4",
+      "Date": "97.01.24.01.53.00",
+      "YearTruncated": true,
+      "Author": "cgd",
+      "State": "dead",
+      "Branches": [
+        "1.4.2.1"
+      ],
+      "NextRevision": "1.3",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.3",
+      "Date": "97.01.16.01.20.24",
+      "YearTruncated": true,
+      "Author": "cgd",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "1.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.2",
+      "Date": "96.11.06.23.09.13",
+      "YearTruncated": true,
+      "Author": "cgd",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "1.1",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.1",
+      "Date": "95.11.23.02.41.18",
+      "YearTruncated": true,
+      "Author": "cgd",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.4.2.1",
+      "Date": "97.06.01.04.14.17",
+      "YearTruncated": true,
+      "Author": "cgd",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "1.4.2.2",
+      "CommitID": ""
+    },
+    {
+      "Revision": "1.4.2.2",
+      "Date": "97.07.22.05.37.40",
+      "YearTruncated": true,
+      "Author": "cgd",
+      "State": "dead",
+      "Branches": [],
+      "NextRevision": "",
+      "CommitID": ""
+    }
+  ],
+  "RevisionContents": [
+    {
+      "Revision": "1.5",
+      "Log": "4a486f01d33c531a71545e0fa34fc4e3\n",
+      "Text": "sys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.5\n"
+    },
+    {
+      "Revision": "1.4",
+      "Log": "67e343d3c0df8fd8230b555776ef6aa5\n",
+      "Text": "d1 1\na1 1\nsys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4\n"
+    },
+    {
+      "Revision": "1.4.2.1",
+      "Log": "5873d8ab9a7d4adce9ee8f8e70cfd164\n",
+      "Text": "d1 1\na1 1\nsys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4.2.1\n"
+    },
+    {
+      "Revision": "1.4.2.2",
+      "Log": "67c541812e46c3924d0b70dab4015ce1\n",
+      "Text": "d1 1\na1 1\nsys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.4.2.2\n"
+    },
+    {
+      "Revision": "1.3",
+      "Log": "d10b914da055c3e88c3f2d497211d6f0\n",
+      "Text": "d1 1\na1 1\nsys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.3\n"
+    },
+    {
+      "Revision": "1.2",
+      "Log": "02c3c00d1b01b59dc1df89a22fd85ed7\n",
+      "Text": "d1 1\na1 1\nsys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.2\n"
+    },
+    {
+      "Revision": "1.1",
+      "Log": "9a8494f26b19ec9b6d911864f788627f\n",
+      "Text": "d1 1\na1 1\nsys/arch/alpha/stand/installboot.old/Attic/Makefile,v content for 1.1\n"
+    }
+  ]
+}
