@@ -1,0 +1,51 @@
+-- description.txt --
+log message list
+
+-- options.conf --
+{"args": ["list"]}
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+
+desc
+@@
+
+
+1.2
+log
+@second message
+@
+text
+@Second content
+@
+
+
+1.1
+log
+@first message
+@
+text
+@First content
+@
+
+-- tests.txt --
+log message list
+
+-- expected.stdout --
+File: input.txt,v
+Revision: 1.2
+Message: second message
+
+Revision: 1.1
+Message: first message

@@ -6,6 +6,7 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"strings"
 	"testing"
@@ -171,10 +172,111 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
+		case strings.HasPrefix(testName, "log message "):
+			testLogMessage(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("log message", func(t *testing.T) {
+		input, ok := parts["input.txt,v"]
+		if !ok {
+			t.Fatal("Missing input.txt,v")
+		}
+
+		parsed, err := parseRCS(input)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		if len(args) == 0 {
+			t.Fatal("No args provided for log message test")
+		}
+
+		cmd := args[0]
+		switch cmd {
+		case "change":
+			rev := ""
+			msg := ""
+			for i := 1; i < len(args); i++ {
+				if args[i] == "-rev" && i+1 < len(args) {
+					rev = args[i+1]
+					i++
+				} else if args[i] == "-m" && i+1 < len(args) {
+					msg = args[i+1]
+					i++
+				}
+			}
+			if rev == "" {
+				t.Fatal("Revision not specified")
+			}
+			if err := parsed.SetLog(rev, msg); err != nil {
+				t.Fatalf("SetLog error: %v", err)
+			}
+			// Verify output against expected.txt,v
+			expectedRCS, ok := parts["expected.txt,v"]
+			if !ok {
+				t.Fatal("Missing expected.txt,v")
+			}
+			checkRCS(t, expectedRCS, parsed.String(), options)
+
+		case "print":
+			rev := ""
+			for i := 1; i < len(args); i++ {
+				if args[i] == "-rev" && i+1 < len(args) {
+					rev = args[i+1]
+					i++
+				}
+			}
+			if rev == "" {
+				t.Fatal("Revision not specified")
+			}
+			log, err := parsed.GetLog(rev)
+			if err != nil {
+				t.Fatalf("GetLog error: %v", err)
+			}
+
+			filename := "input.txt,v"
+			gotOut := fmt.Sprintf("File: %s\nRevision: %s\nMessage:\n%s\n", filename, rev, log)
+
+			expectedOut, ok := parts["expected.stdout"]
+			if !ok {
+				expectedOut, ok = parts["expected.txt"]
+				if !ok {
+					t.Fatal("Missing expected output (expected.stdout or expected.txt)")
+				}
+			}
+			if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+				t.Errorf("Output mismatch (-want +got):\n%s", diff)
+			}
+
+		case "list":
+			filename := "input.txt,v"
+			sb := strings.Builder{}
+			sb.WriteString(fmt.Sprintf("File: %s\n", filename))
+			for _, rc := range parsed.RevisionContents {
+				sb.WriteString(fmt.Sprintf("Revision: %s\nMessage: %s\n", rc.Revision, rc.Log))
+			}
+			gotOut := sb.String()
+
+			expectedOut, ok := parts["expected.stdout"]
+			if !ok {
+				expectedOut, ok = parts["expected.txt"]
+				if !ok {
+					t.Fatal("Missing expected output")
+				}
+			}
+			if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+				t.Errorf("Output mismatch (-want +got):\n%s", diff)
+			}
+
+		default:
+			t.Fatalf("Unknown log message subcommand: %s", cmd)
+		}
+	})
 }
 
 func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {

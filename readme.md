@@ -343,6 +343,64 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
+### `gorcs log`
+
+A tool to manage and inspect revision log messages in RCS files.
+
+**Usage:**
+
+```shell
+gorcs log message <subcommand> [flags] [file ...]
+```
+
+#### `gorcs log message change`
+
+Updates the log message for a specific revision.
+
+**Usage:**
+
+```shell
+gorcs log message change -rev <revision> -m <message> [file ...]
+```
+
+**Example:**
+
+```shell
+gorcs log message change -rev 1.2 -m "Fixed critical bug" file.txt,v
+```
+
+#### `gorcs log message print`
+
+Prints the log message for a specific revision.
+
+**Usage:**
+
+```shell
+gorcs log message print -rev <revision> [file ...]
+```
+
+**Example:**
+
+```shell
+gorcs log message print -rev 1.2 file.txt,v
+```
+
+#### `gorcs log message list`
+
+Lists all log messages in the specified files.
+
+**Usage:**
+
+```shell
+gorcs log message list [file ...]
+```
+
+**Example:**
+
+```shell
+gorcs log message list file.txt,v
+```
+
 ## License
 
 MIT.
