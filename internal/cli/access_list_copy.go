@@ -12,7 +12,9 @@ func AccessListCopy(fromFile string, toFiles ...string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open from file %s: %w", fromFile, err)
 	}
-	defer fromF.Close()
+	defer func() {
+		_ = fromF.Close()
+	}()
 
 	fromRCS, err := rcs.ParseFile(fromF)
 	if err != nil {
@@ -35,7 +37,9 @@ func copyAccessListTo(fromRCS *rcs.File, toFile string) error {
 	}
 
 	toRCS, err := rcs.ParseFile(f)
-	f.Close()
+	if closeErr := f.Close(); closeErr != nil {
+		return fmt.Errorf("failed to close file %s: %w", toFile, closeErr)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to parse file %s: %w", toFile, err)
 	}
