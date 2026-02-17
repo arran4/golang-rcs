@@ -137,13 +137,22 @@ Contains metadata about a specific revision.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `Revision` | `Num` | The revision number (e.g., "1.1"). Alias for `string`. |
-| `Date` | `DateTime` | The date and time string of the revision. Use `.DateTime()` to parse to `time.Time`. |
-| `Author` | `ID` | The username of the author. Alias for `string`. |
-| `State` | `ID` | The state of the revision (e.g., "Exp"). Alias for `string`. |
+| `Revision` | `Num` | The revision number (e.g., "1.1"). |
+| `Date` | `DateTime` | The date and time string of the revision. |
+| `Author` | `ID` | The username of the author. |
+| `State` | `ID` | The state of the revision (e.g., "Exp"). |
 | `Branches` | `[]Num` | List of branches starting from this revision. |
 | `NextRevision` | `Num` | The revision number of the next revision in the sequence. |
-| `CommitID` | `Sym` | The Commit ID of the revision (if present). Alias for `string`. |
+| `CommitID` | `Sym` | The Commit ID of the revision (if present). |
+
+### Custom Types
+
+The library uses several custom types which are aliases for `string`. They are provided to improve code readability and sometimes offer utility methods.
+
+*   **`Num`**: Represents a revision number (e.g., "1.1", "1.2.3.4").
+*   **`ID`**: Represents an identifier, such as an author name or state.
+*   **`Sym`**: Represents a symbolic name or commit ID.
+*   **`DateTime`**: Represents a raw RCS date string (e.g., "2022.03.23.13.18.09"). It provides a method `.DateTime()` which returns `(time.Time, error)` to parse the string into a standard Go `time.Time` object.
 
 ### `RevisionContent`
 Contains the log message and text content for a revision.
