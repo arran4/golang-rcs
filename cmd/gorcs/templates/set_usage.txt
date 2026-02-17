@@ -1,0 +1,13 @@
+Usage: gorcs branches default set [flags...] [files...]
+
+name: default branch name/revision to set
+
+Subcommands:
+    help         Print this help message
+    usage        Print this usage message
+
+Flags:
+    --name string    
+
+Positional Arguments:
+    files      List of working files to process

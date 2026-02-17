@@ -152,7 +152,9 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			}
 			testParseError(t, fullLine, parts, options)
 		case testName == "rcs":
-			testRCS(t, parts, options)
+			testRCS(t, parts, options, optionArgs)
+		case strings.HasPrefix(testName, "rcs "):
+			testRCS(t, parts, options, optionArgs)
 		case testName == "rcs merge":
 			testRCSMerge(t, parts, options)
 		case testName == "rcs merge":
@@ -183,8 +185,47 @@ func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool)
 	t.Skip("rcsdiff test type not implemented yet")
 }
 
-func testRCS(t *testing.T, parts map[string]string, options map[string]bool) {
-	t.Skip("rcs test type not implemented yet")
+func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []string) {
+	t.Run("rcs", func(t *testing.T) {
+		input, ok := parts["input.txt,v"]
+		if !ok {
+			t.Skip("rcs test type currently supports only input.txt,v fixtures")
+		}
+		expectedRCS, ok := parts["expected.txt,v"]
+		if !ok {
+			t.Skip("rcs test type currently supports only expected.txt,v fixtures")
+		}
+
+		branchName := ""
+		for i := 0; i < len(args); i++ {
+			if strings.HasPrefix(args[i], "-b") {
+				branchName = strings.TrimPrefix(args[i], "-b")
+				break
+			}
+			if i+3 < len(args) && args[i] == "branches" && args[i+1] == "default" && args[i+2] == "set" {
+				branchName = args[i+3]
+				break
+			}
+		}
+		if branchName == "" {
+			t.Skip("unsupported rcs operation fixture")
+		}
+
+		parsed, err := parseRCS(input)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		parts := strings.Split(branchName, ".")
+		if len(parts)%2 == 0 && len(parts) > 0 {
+			branchName = strings.Join(parts[:len(parts)-1], ".")
+		}
+		parsed.Branch = branchName
+
+		if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
+			t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
 
 func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool) {
@@ -272,13 +313,18 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string)
 	trimmed := strings.TrimSpace(content)
 	if strings.HasPrefix(trimmed, "{") {
 		var parsed struct {
-			Args    []string        `json:"args"`
-			Flags   map[string]bool `json:"flags"`
-			Options []string        `json:"options"`
+			Args            []string        `json:"args"`
+			TransformedArgs []string        `json:"transformed_args"`
+			Flags           map[string]bool `json:"flags"`
+			Options         []string        `json:"options"`
 		}
 		if err := json.Unmarshal([]byte(trimmed), &parsed); err == nil {
-			if len(parsed.Args) > 0 {
-				*optionArgs = append((*optionArgs)[:0], parsed.Args...)
+			selectedArgs := parsed.Args
+			if len(parsed.TransformedArgs) > 0 {
+				selectedArgs = parsed.TransformedArgs
+			}
+			if len(selectedArgs) > 0 {
+				*optionArgs = append((*optionArgs)[:0], selectedArgs...)
 			}
 			for k, v := range parsed.Flags {
 				options[k] = v
