@@ -167,6 +167,22 @@ Contains the log message and text content for a revision.
 
 This repository includes a utility program `gorcs` with subcommands.
 
+### `gorcs branches default set`
+
+Sets the default branch header in one or more RCS files. Provide the branch revision (for example `1.1.1.1`), and `gorcs` stores the default branch form (`1.1.1`).
+
+**Usage:**
+
+```shell
+gorcs branches default set <name> [file1 file2 ...]
+```
+
+**Example:**
+
+```shell
+gorcs branches default set 1.1.1.1 file.txt
+```
+
 ### `gorcs list-heads`
 
 A simple tool to list revisions in specified RCS files.

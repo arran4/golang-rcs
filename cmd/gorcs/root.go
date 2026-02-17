@@ -75,6 +75,9 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 	c.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "  Commands:")
+	fmt.Fprintf(os.Stderr, "    %s\n", "branches")
+	fmt.Fprintf(os.Stderr, "    %s\n", "branches default")
+	fmt.Fprintf(os.Stderr, "    %s\n", "branches default set")
 	fmt.Fprintf(os.Stderr, "    %s\n", "format")
 	fmt.Fprintf(os.Stderr, "    %s\n", "from-json")
 	fmt.Fprintf(os.Stderr, "    %s\n", "list-heads")
@@ -97,6 +100,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	c.BoolVar(&c.Mmap, "mmap", false, "Use mmap for reading files")
 	c.BoolVar(&c.Mmap, "m", false, "Use mmap for reading files")
 
+	c.Commands["branches"] = c.NewBranches()
 	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()
 	c.Commands["list-heads"] = c.NewListHeads()

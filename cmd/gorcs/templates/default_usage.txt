@@ -1,0 +1,8 @@
+Usage: gorcs branches default <subcommand>
+
+Subcommands:
+{{if .Recursive}}
+    branches default set                     
+{{else}}
+    set        
+{{end}}
