@@ -108,7 +108,7 @@ func (c *State) NewStateGet() *StateGet {
 	}
 	set.Usage = v.Usage
 
-    set.StringVar(&v.rev, "rev", "", "Revision to get state of")
+	set.StringVar(&v.rev, "rev", "", "Revision to get state of")
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
