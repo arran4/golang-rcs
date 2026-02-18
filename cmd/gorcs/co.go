@@ -51,6 +51,8 @@ func (c *Co) UsageRecursive() {
 }
 
 func (c *Co) Execute(args []string) error {
+	// TODO: This manual parsing loop should be replaced by gosubc generation when possible.
+	// Currently required for specialized -k and -l/-u flag parsing.
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -131,6 +133,7 @@ func (c *Co) Execute(args []string) error {
 					} else if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
 						modeStr = args[i+1]
 						i++
+						continue
 					}
 				} else {
 					modeStr = strings.TrimPrefix(trimmed, "k")
