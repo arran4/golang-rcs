@@ -1,0 +1,1 @@
+Usage: gorcs log message list [files...]

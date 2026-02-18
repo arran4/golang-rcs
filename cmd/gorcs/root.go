@@ -117,6 +117,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	c.Commands["validate"] = c.NewValidate()
 	c.Commands["init"] = c.NewInit()
 	c.Commands["access-list"] = c.NewAccessList()
+	c.Commands["log"] = c.NewLog()
 	c.Commands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
 			for _, arg := range args {

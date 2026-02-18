@@ -6,6 +6,7 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"strings"
 	"testing"
@@ -173,10 +174,128 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
+		case strings.HasPrefix(testName, "log message"):
+			testLogMessage(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("log message", func(t *testing.T) {
+		if len(args) == 0 {
+			t.Fatal("Missing subcommand for log message")
+		}
+		subCmd := args[0]
+		remainingArgs := args[1:]
+
+		var revision string
+		var message string
+		var files []string
+
+		for i := 0; i < len(remainingArgs); i++ {
+			arg := remainingArgs[i]
+			if arg == "-rev" && i+1 < len(remainingArgs) {
+				revision = remainingArgs[i+1]
+				i++
+			} else if arg == "-m" && i+1 < len(remainingArgs) {
+				message = remainingArgs[i+1]
+				i++
+			} else if !strings.HasPrefix(arg, "-") {
+				files = append(files, arg)
+			}
+		}
+
+		if len(files) == 0 {
+			if _, ok := parts["input.txt,v"]; ok {
+				files = append(files, "input.txt,v")
+			} else if _, ok := parts["input.rcs"]; ok {
+				files = append(files, "input.rcs")
+			}
+		}
+
+		if len(files) == 0 {
+			t.Fatal("No files specified")
+		}
+
+		for _, file := range files {
+			content, ok := parts[file]
+			if !ok {
+				if content, ok = parts[file+",v"]; !ok {
+					t.Fatalf("Missing file part: %s", file)
+				}
+			}
+
+			parsedFile, err := parseRCS(content)
+			if err != nil {
+				t.Fatalf("parseRCS failed: %v", err)
+			}
+
+			switch subCmd {
+			case "change":
+				if revision == "" || message == "" {
+					t.Fatal("change requires -rev and -m")
+				}
+				if err := parsedFile.ChangeLogMessage(revision, message); err != nil {
+					t.Fatalf("ChangeLogMessage failed: %v", err)
+				}
+				expectedContent, ok := parts["expected.txt,v"]
+				if !ok {
+					t.Fatalf("Missing expected.txt,v")
+				}
+				checkRCS(t, expectedContent, parsedFile.String(), options)
+
+			case "print":
+				if revision == "" {
+					t.Fatal("print requires -rev")
+				}
+				msg, err := parsedFile.GetLogMessage(revision)
+				if err != nil {
+					t.Fatalf("GetLogMessage failed: %v", err)
+				}
+				expectedOut, ok := parts["expected.out"]
+				if !ok {
+					t.Fatalf("Missing expected.out")
+				}
+				var sb strings.Builder
+				fmt.Fprintf(&sb, "File: %s Revision: %s\n%s\n", file, revision, msg)
+				gotOut := sb.String()
+
+				if options["force unix line endings"] {
+					expectedOut = strings.ReplaceAll(expectedOut, "\r\n", "\n")
+				}
+				if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+					t.Errorf("Log message print mismatch (-want +got):\n%s", diff)
+				}
+
+			case "list":
+				logs := parsedFile.ListLogMessages()
+				expectedOut, ok := parts["expected.out"]
+				if !ok {
+					t.Fatalf("Missing expected.out")
+				}
+				var sb strings.Builder
+				fmt.Fprintf(&sb, "File: %s\n", file)
+				for _, l := range logs {
+					fmt.Fprintf(&sb, "Revision: %s\n%s\n", l.Revision, l.Log)
+				}
+				fmt.Fprintln(&sb)
+
+				gotOut := sb.String()
+
+				if options["force unix line endings"] {
+					expectedOut = strings.ReplaceAll(expectedOut, "\r\n", "\n")
+				}
+				if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+					t.Errorf("Log message list mismatch (-want +got):\n%s", diff)
+				}
+
+			default:
+				t.Fatalf("Unknown subcommand: %s", subCmd)
+			}
+		}
+	})
 }
 
 func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {

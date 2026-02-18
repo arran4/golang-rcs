@@ -1,0 +1,7 @@
+Usage: gorcs log message change -rev <revision> -m <message> [files...]
+
+Flags:
+  -rev string
+        Revision to change (required)
+  -m string
+        New log message (required)
