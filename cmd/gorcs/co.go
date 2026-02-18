@@ -131,7 +131,6 @@ func (c *Co) Execute(args []string) error {
 					} else if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
 						modeStr = args[i+1]
 						i++
-						continue
 					}
 				} else {
 					modeStr = strings.TrimPrefix(trimmed, "k")
