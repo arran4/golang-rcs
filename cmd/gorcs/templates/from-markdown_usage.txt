@@ -7,7 +7,7 @@ Subcommands:
 Flags:
     --output, -o string   Output file path
     --force, -f           Force overwrite output
-    --mmap, -m            Use mmap for reading files
+    --use-mmap
 
 Positional Arguments:
     files      List of files to process or - for stdin

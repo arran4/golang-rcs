@@ -44,7 +44,12 @@ func (c *Init) UsageRecursive() {
 }
 
 func (c *Init) Execute(args []string) error {
-	remainingArgs := make([]string, 0, len(args))
+	if len(args) > 0 {
+		if cmd, ok := c.SubCommands[args[0]]; ok {
+			return cmd.Execute(args[1:])
+		}
+	}
+	var remainingArgs []string
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		if arg == "--" {
@@ -61,59 +66,63 @@ func (c *Init) Execute(args []string) error {
 				value = parts[1]
 				hasValue = true
 			}
-			trimmed := strings.TrimLeft(name, "-")
-			switch {
-			case trimmed == "help" || trimmed == "h":
-				c.Usage()
-				return nil
-			case trimmed == "t" || strings.HasPrefix(trimmed, "t"):
-				val := ""
-				if trimmed == "t" {
-					if hasValue {
-						val = value
-					} else if i+1 < len(args) {
-						val = args[i+1]
+			trimmedName := strings.TrimLeft(name, "-")
+			switch trimmedName {
+
+			case "description", "t":
+				if !hasValue {
+					if i+1 < len(args) {
+						value = args[i+1]
 						i++
 					} else {
-						return fmt.Errorf("flag -t requires a value")
+						return fmt.Errorf("flag %s requires a value", name)
 					}
-				} else {
-					val = strings.TrimPrefix(trimmed, "t")
 				}
-
-				if strings.HasPrefix(val, "-") {
-					c.description = strings.TrimPrefix(val, "-")
-				} else {
-					b, err := os.ReadFile(val)
-					if err != nil {
-						return fmt.Errorf("read description file %s: %w", val, err)
-					}
-					c.description = string(b)
-				}
+				c.description = value
+			case "help", "h":
+				c.Usage()
+				return nil
 			default:
 				return fmt.Errorf("unknown flag: %s", name)
 			}
-			continue
+		} else {
+			remainingArgs = append(remainingArgs, arg)
 		}
-		remainingArgs = append(remainingArgs, arg)
 	}
-	c.files = remainingArgs
+	// Handle vararg files
+	{
+		varArgStart := 0
+		if varArgStart > len(remainingArgs) {
+			varArgStart = len(remainingArgs)
+		}
+		varArgs := remainingArgs[varArgStart:]
+		c.files = varArgs
+	}
 
 	if c.CommandAction != nil {
 		if err := c.CommandAction(c); err != nil {
 			return fmt.Errorf("init failed: %w", err)
 		}
-		return nil
+	} else {
+		c.Usage()
 	}
-	c.Usage()
+
 	return nil
 }
 
 func (c *RootCmd) NewInit() *Init {
 	set := flag.NewFlagSet("init", flag.ContinueOnError)
-	v := &Init{RootCmd: c, Flags: set, SubCommands: make(map[string]Cmd)}
+	v := &Init{
+		RootCmd:     c,
+		Flags:       set,
+		SubCommands: make(map[string]Cmd),
+	}
+
+	set.StringVar(&v.description, "t", "", "description of the file")
 	set.Usage = v.Usage
+
 	v.CommandAction = func(c *Init) error {
+
 		err := cli.Init(c.description, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
@@ -124,11 +133,39 @@ func (c *RootCmd) NewInit() *Init {
 				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
 				return nil
 			}
-			return err
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
+			}
+			return fmt.Errorf("init failed: %w", err)
 		}
 		return nil
 	}
-	v.SubCommands["help"] = &InternalCommand{Exec: func(args []string) error { v.Usage(); return nil }, UsageFunc: v.Usage}
-	v.SubCommands["usage"] = &InternalCommand{Exec: func(args []string) error { v.Usage(); return nil }, UsageFunc: v.Usage}
+
+	v.SubCommands["help"] = &InternalCommand{
+		Exec: func(args []string) error {
+			for _, arg := range args {
+				if arg == "-deep" {
+					v.UsageRecursive()
+					return nil
+				}
+			}
+			v.Usage()
+			return nil
+		},
+		UsageFunc: v.Usage,
+	}
+	v.SubCommands["usage"] = &InternalCommand{
+		Exec: func(args []string) error {
+			for _, arg := range args {
+				if arg == "-deep" {
+					v.UsageRecursive()
+					return nil
+				}
+			}
+			v.Usage()
+			return nil
+		},
+		UsageFunc: v.Usage,
+	}
 	return v
 }

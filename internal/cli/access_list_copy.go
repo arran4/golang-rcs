@@ -6,7 +6,12 @@ import (
 	"os"
 )
 
-// AccessListCopy copies the access list from one RCS file to others.
+// AccessListCopy is a subcommand `gorcs access-list copy`
+//
+// Flags:
+//
+//	fromFile: -from Source RCS file to copy access list from
+//	toFiles: ... List of target files
 func AccessListCopy(fromFile string, toFiles ...string) error {
 	fromF, err := OpenFile(fromFile, false)
 	if err != nil {
@@ -55,7 +60,12 @@ func copyAccessListTo(fromRCS *rcs.File, toFile string) error {
 	return nil
 }
 
-// AccessListAppend appends the access list from one RCS file to others.
+// AccessListAppend is a subcommand `gorcs access-list append`
+//
+// Flags:
+//
+//	fromFile: -from Source RCS file to append access list from
+//	toFiles: ... List of target files
 func AccessListAppend(fromFile string, toFiles ...string) error {
 	fromF, err := OpenFile(fromFile, false)
 	if err != nil {

@@ -13,37 +13,36 @@ import (
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*Set)(nil)
+var _ Cmd = (*List)(nil)
 
-type Set struct {
-	*Default
+type List struct {
+	*Message
 	Flags         *flag.FlagSet
-	name          string
 	files         []string
 	SubCommands   map[string]Cmd
-	CommandAction func(c *Set) error
+	CommandAction func(c *List) error
 }
 
-type UsageDataSet struct {
-	*Set
+type UsageDataList struct {
+	*List
 	Recursive bool
 }
 
-func (c *Set) Usage() {
-	err := executeUsage(os.Stderr, "set_usage.txt", UsageDataSet{c, false})
+func (c *List) Usage() {
+	err := executeUsage(os.Stderr, "list_usage.txt", UsageDataList{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Set) UsageRecursive() {
-	err := executeUsage(os.Stderr, "set_usage.txt", UsageDataSet{c, true})
+func (c *List) UsageRecursive() {
+	err := executeUsage(os.Stderr, "list_usage.txt", UsageDataList{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Set) Execute(args []string) error {
+func (c *List) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -58,27 +57,8 @@ func (c *Set) Execute(args []string) error {
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
-			value := ""
-			hasValue := false
-			if strings.Contains(arg, "=") {
-				parts := strings.SplitN(arg, "=", 2)
-				name = parts[0]
-				value = parts[1]
-				hasValue = true
-			}
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
-
-			case "name":
-				if !hasValue {
-					if i+1 < len(args) {
-						value = args[i+1]
-						i++
-					} else {
-						return fmt.Errorf("flag %s requires a value", name)
-					}
-				}
-				c.name = value
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -101,7 +81,7 @@ func (c *Set) Execute(args []string) error {
 
 	if c.CommandAction != nil {
 		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("set failed: %w", err)
+			return fmt.Errorf("list failed: %w", err)
 		}
 	} else {
 		c.Usage()
@@ -110,20 +90,18 @@ func (c *Set) Execute(args []string) error {
 	return nil
 }
 
-func (c *Default) NewSet() *Set {
-	set := flag.NewFlagSet("set", flag.ContinueOnError)
-	v := &Set{
-		Default:     c,
+func (c *Message) NewList() *List {
+	set := flag.NewFlagSet("list", flag.ContinueOnError)
+	v := &List{
+		Message:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
-
-	set.StringVar(&v.name, "name", "", "default branch name/revision to set")
 	set.Usage = v.Usage
 
-	v.CommandAction = func(c *Set) error {
+	v.CommandAction = func(c *List) error {
 
-		err := cli.BranchesDefaultSet(c.name, c.files...)
+		err := cli.LogMessageList(c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
@@ -136,7 +114,7 @@ func (c *Default) NewSet() *Set {
 			if e, ok := err.(*cmd.ErrExitCode); ok {
 				return e
 			}
-			return fmt.Errorf("set failed: %w", err)
+			return fmt.Errorf("list failed: %w", err)
 		}
 		return nil
 	}

@@ -9,35 +9,35 @@ import (
 	"strings"
 )
 
-var _ Cmd = (*Default)(nil)
+var _ Cmd = (*Message)(nil)
 
-type Default struct {
-	*Branches
+type Message struct {
+	*Log
 	Flags         *flag.FlagSet
 	SubCommands   map[string]Cmd
-	CommandAction func(c *Default) error
+	CommandAction func(c *Message) error
 }
 
-type UsageDataDefault struct {
-	*Default
+type UsageDataMessage struct {
+	*Message
 	Recursive bool
 }
 
-func (c *Default) Usage() {
-	err := executeUsage(os.Stderr, "default_usage.txt", UsageDataDefault{c, false})
+func (c *Message) Usage() {
+	err := executeUsage(os.Stderr, "message_usage.txt", UsageDataMessage{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Default) UsageRecursive() {
-	err := executeUsage(os.Stderr, "default_usage.txt", UsageDataDefault{c, true})
+func (c *Message) UsageRecursive() {
+	err := executeUsage(os.Stderr, "message_usage.txt", UsageDataMessage{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Default) Execute(args []string) error {
+func (c *Message) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -66,16 +66,20 @@ func (c *Default) Execute(args []string) error {
 	return nil
 }
 
-func (c *Branches) NewDefault() *Default {
-	set := flag.NewFlagSet("default", flag.ContinueOnError)
-	v := &Default{
-		Branches:    c,
+func (c *Log) NewMessage() *Message {
+	set := flag.NewFlagSet("message", flag.ContinueOnError)
+	v := &Message{
+		Log:         c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
 	set.Usage = v.Usage
 
-	v.SubCommands["set"] = v.NewSet()
+	v.SubCommands["change"] = v.NewChange()
+
+	v.SubCommands["list"] = v.NewList()
+
+	v.SubCommands["print"] = v.NewPrint()
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

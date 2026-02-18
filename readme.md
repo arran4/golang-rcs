@@ -438,6 +438,59 @@ gorcs access-list append -from <source_file,v> <target_file1,v> [target_file2,v 
 gorcs access-list append -from new_users.txt,v file1.txt,v
 ```
 
+### `gorcs log message change`
+
+Changes the log message for a specific revision in one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs log message change -rev <revision> -m <message> [file1,v ...]
+```
+
+- `-rev`: The revision number to update.
+- `-m`: The new log message.
+
+**Example:**
+
+```shell
+gorcs log message change -rev 1.2 -m "Updated commit message" file.v
+```
+
+### `gorcs log message print`
+
+Prints the log message for a specific revision in one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs log message print -rev <revision> [file1,v ...]
+```
+
+- `-rev`: The revision number to query.
+
+**Example:**
+
+```shell
+gorcs log message print -rev 1.2 file.v
+```
+
+### `gorcs log message list`
+
+Lists all log messages for one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs log message list [file1,v ...]
+```
+
+**Example:**
+
+```shell
+gorcs log message list file.v
+```
+
 ## License
 
 MIT.

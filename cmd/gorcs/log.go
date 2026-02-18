@@ -9,35 +9,35 @@ import (
 	"strings"
 )
 
-var _ Cmd = (*Default)(nil)
+var _ Cmd = (*Log)(nil)
 
-type Default struct {
-	*Branches
+type Log struct {
+	*RootCmd
 	Flags         *flag.FlagSet
 	SubCommands   map[string]Cmd
-	CommandAction func(c *Default) error
+	CommandAction func(c *Log) error
 }
 
-type UsageDataDefault struct {
-	*Default
+type UsageDataLog struct {
+	*Log
 	Recursive bool
 }
 
-func (c *Default) Usage() {
-	err := executeUsage(os.Stderr, "default_usage.txt", UsageDataDefault{c, false})
+func (c *Log) Usage() {
+	err := executeUsage(os.Stderr, "log_usage.txt", UsageDataLog{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Default) UsageRecursive() {
-	err := executeUsage(os.Stderr, "default_usage.txt", UsageDataDefault{c, true})
+func (c *Log) UsageRecursive() {
+	err := executeUsage(os.Stderr, "log_usage.txt", UsageDataLog{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Default) Execute(args []string) error {
+func (c *Log) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -66,16 +66,16 @@ func (c *Default) Execute(args []string) error {
 	return nil
 }
 
-func (c *Branches) NewDefault() *Default {
-	set := flag.NewFlagSet("default", flag.ContinueOnError)
-	v := &Default{
-		Branches:    c,
+func (c *RootCmd) NewLog() *Log {
+	set := flag.NewFlagSet("log", flag.ContinueOnError)
+	v := &Log{
+		RootCmd:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
 	set.Usage = v.Usage
 
-	v.SubCommands["set"] = v.NewSet()
+	v.SubCommands["message"] = v.NewMessage()
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

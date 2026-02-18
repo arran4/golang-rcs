@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"errors"
@@ -14,40 +13,37 @@ import (
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*Format)(nil)
+var _ Cmd = (*Print)(nil)
 
-type Format struct {
-	*RootCmd
-	Flags              *flag.FlagSet
-	output             string
-	force              bool
-	keepTruncatedYears bool
-	useMmap            bool
-	files              []string
-	SubCommands        map[string]Cmd
-	CommandAction      func(c *Format) error
+type Print struct {
+	*Message
+	Flags         *flag.FlagSet
+	revision      string
+	files         []string
+	SubCommands   map[string]Cmd
+	CommandAction func(c *Print) error
 }
 
-type UsageDataFormat struct {
-	*Format
+type UsageDataPrint struct {
+	*Print
 	Recursive bool
 }
 
-func (c *Format) Usage() {
-	err := executeUsage(os.Stderr, "format_usage.txt", UsageDataFormat{c, false})
+func (c *Print) Usage() {
+	err := executeUsage(os.Stderr, "print_usage.txt", UsageDataPrint{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Format) UsageRecursive() {
-	err := executeUsage(os.Stderr, "format_usage.txt", UsageDataFormat{c, true})
+func (c *Print) UsageRecursive() {
+	err := executeUsage(os.Stderr, "print_usage.txt", UsageDataPrint{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Format) Execute(args []string) error {
+func (c *Print) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -73,7 +69,7 @@ func (c *Format) Execute(args []string) error {
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 
-			case "output", "o":
+			case "revision", "rev":
 				if !hasValue {
 					if i+1 < len(args) {
 						value = args[i+1]
@@ -82,40 +78,7 @@ func (c *Format) Execute(args []string) error {
 						return fmt.Errorf("flag %s requires a value", name)
 					}
 				}
-				c.output = value
-
-			case "force", "f":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.force = b
-				} else {
-					c.force = true
-				}
-
-			case "keepTruncatedYears", "keep-truncated-years":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.keepTruncatedYears = b
-				} else {
-					c.keepTruncatedYears = true
-				}
-
-			case "useMmap", "use-mmap":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.useMmap = b
-				} else {
-					c.useMmap = true
-				}
+				c.revision = value
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -138,7 +101,7 @@ func (c *Format) Execute(args []string) error {
 
 	if c.CommandAction != nil {
 		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("format failed: %w", err)
+			return fmt.Errorf("print failed: %w", err)
 		}
 	} else {
 		c.Usage()
@@ -147,28 +110,20 @@ func (c *Format) Execute(args []string) error {
 	return nil
 }
 
-func (c *RootCmd) NewFormat() *Format {
-	set := flag.NewFlagSet("format", flag.ContinueOnError)
-	v := &Format{
-		RootCmd:     c,
+func (c *Message) NewPrint() *Print {
+	set := flag.NewFlagSet("print", flag.ContinueOnError)
+	v := &Print{
+		Message:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.output, "output", "", "Output file path")
-	set.StringVar(&v.output, "o", "", "Output file path")
-
-	set.BoolVar(&v.force, "force", false, "Force overwrite output")
-	set.BoolVar(&v.force, "f", false, "Force overwrite output")
-
-	set.BoolVar(&v.keepTruncatedYears, "keep-truncated-years", false, "TODO: Add usage text")
-
-	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
+	set.StringVar(&v.revision, "rev", "", "revision to print")
 	set.Usage = v.Usage
 
-	v.CommandAction = func(c *Format) error {
+	v.CommandAction = func(c *Print) error {
 
-		err := cli.Format(c.output, c.force, c.keepTruncatedYears, c.useMmap, c.files...)
+		err := cli.LogMessagePrint(c.revision, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
@@ -181,7 +136,7 @@ func (c *RootCmd) NewFormat() *Format {
 			if e, ok := err.(*cmd.ErrExitCode); ok {
 				return e
 			}
-			return fmt.Errorf("format failed: %w", err)
+			return fmt.Errorf("print failed: %w", err)
 		}
 		return nil
 	}

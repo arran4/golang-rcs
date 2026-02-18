@@ -1,0 +1,57 @@
+-- description.txt --
+gorcs log message list
+
+-- options.conf --
+{"args": ["list", "input.txt,v"]}
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@second revision
+@
+text
+@Second content
+@
+
+
+1.1
+log
+@initial revision
+@
+text
+@Initial content
+@
+
+-- tests.txt --
+log message list
+
+-- expected.out --
+File: input.txt,v
+Revision: 1.2
+second revision
+
+Revision: 1.1
+initial revision

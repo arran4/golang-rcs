@@ -9,3 +9,20 @@ var ErrPrintHelp = errors.New("print help")
 
 // ErrHelp tells the user to use help.
 var ErrHelp = errors.New("help requested")
+
+// ErrExitCode Mostly used as a pass through, it's caught, but if the sub error is nil and it's not wrapped in another error, it counts as no error.
+type ErrExitCode struct {
+	Err  error
+	Code int
+}
+
+func (e *ErrExitCode) Error() string {
+	if e.Err == nil {
+		return ""
+	}
+	return e.Err.Error()
+}
+
+func (e *ErrExitCode) Unwrap() error {
+	return e.Err
+}

@@ -1,0 +1,5 @@
+Usage: gorcs log message print -rev <revision> [files...]
+
+Flags:
+  -rev string
+        Revision to print (required)

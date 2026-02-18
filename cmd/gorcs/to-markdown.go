@@ -92,7 +92,6 @@ func (c *ToMarkdown) Execute(args []string) error {
 				} else {
 					c.force = true
 				}
-
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -137,7 +136,6 @@ func (c *RootCmd) NewToMarkdown() *ToMarkdown {
 
 	set.BoolVar(&v.force, "force", false, "Force overwrite output")
 	set.BoolVar(&v.force, "f", false, "Force overwrite output")
-
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *ToMarkdown) error {
@@ -151,6 +149,9 @@ func (c *RootCmd) NewToMarkdown() *ToMarkdown {
 			if errors.Is(err, cmd.ErrHelp) {
 				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
 				return nil
+			}
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
 			}
 			return fmt.Errorf("to-markdown failed: %w", err)
 		}
