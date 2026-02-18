@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
+	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -16,11 +18,12 @@ var _ Cmd = (*NormalizeRevisions)(nil)
 
 type NormalizeRevisions struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	padCommits  bool
-	useMmap     bool
-	files       []string
-	SubCommands map[string]Cmd
+	Flags         *flag.FlagSet
+	padCommits    bool
+	useMmap       bool
+	files         []string
+	SubCommands   map[string]Cmd
+	CommandAction func(c *NormalizeRevisions) error
 }
 
 type UsageDataNormalizeRevisions struct {
@@ -55,7 +58,7 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") {
+		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
 			value := ""
 			hasValue := false
@@ -68,7 +71,7 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 
-			case "padCommits", "pad-commits":
+			case "padCommits", "pad-commits", "p":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
 					if err != nil {
@@ -109,8 +112,12 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.NormalizeRevisions(c.padCommits, c.useMmap, c.files...); err != nil {
-		return fmt.Errorf("normalize-revisions failed: %w", err)
+	if c.CommandAction != nil {
+		if err := c.CommandAction(c); err != nil {
+			return fmt.Errorf("normalize-revisions failed: %w", err)
+		}
+	} else {
+		c.Usage()
 	}
 
 	return nil
@@ -124,10 +131,31 @@ func (c *RootCmd) NewNormalizeRevisions() *NormalizeRevisions {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.BoolVar(&v.padCommits, "pad-commits", false, "TODO: Add usage text")
+	set.BoolVar(&v.padCommits, "pad-commits", false, "pad commits with empty commits")
+	set.BoolVar(&v.padCommits, "p", false, "pad commits with empty commits")
 
 	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
 	set.Usage = v.Usage
+
+	v.CommandAction = func(c *NormalizeRevisions) error {
+
+		err := cli.NormalizeRevisions(c.padCommits, c.useMmap, c.files...)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
+			}
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
+			}
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
+			}
+			return fmt.Errorf("normalize-revisions failed: %w", err)
+		}
+		return nil
+	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

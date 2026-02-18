@@ -7,16 +7,15 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	""
 )
 
 var _ Cmd = (*Branches)(nil)
 
 type Branches struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	SubCommands map[string]Cmd
+	Flags         *flag.FlagSet
+	SubCommands   map[string]Cmd
+	CommandAction func(c *Branches) error
 }
 
 type UsageDataBranches struct {
@@ -49,7 +48,7 @@ func (c *Branches) Execute(args []string) error {
 		if arg == "--" {
 			break
 		}
-		if strings.HasPrefix(arg, "-") {
+		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
@@ -62,6 +61,12 @@ func (c *Branches) Execute(args []string) error {
 		}
 	}
 
+	if c.CommandAction != nil {
+		if err := c.CommandAction(c); err != nil {
+			return fmt.Errorf("branches failed: %w", err)
+		}
+		return nil
+	}
 	c.Usage()
 
 	return nil
