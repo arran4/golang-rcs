@@ -89,11 +89,12 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	// options.conf / options.json
 	options := make(map[string]bool)
 	optionArgs := []string{}
+	optionMessage := ""
 	if optContent, ok := parts["options.conf"]; ok {
-		parseOptions(optContent, options, &optionArgs)
+		parseOptions(optContent, options, &optionArgs, &optionMessage)
 	}
 	if optContent, ok := parts["options.json"]; ok {
-		parseOptions(optContent, options, &optionArgs)
+		parseOptions(optContent, options, &optionArgs, &optionMessage)
 	}
 
 	// tests.txt or tests.md
@@ -175,14 +176,14 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
 		case strings.HasPrefix(testName, "log message"):
-			testLogMessage(t, parts, options, optionArgs)
+			testLogMessage(t, parts, options, optionArgs, optionMessage)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }
 
-func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string, message string) {
 	t.Run("log message", func(t *testing.T) {
 		if len(args) == 0 {
 			t.Fatal("Missing subcommand for log message")
@@ -191,7 +192,6 @@ func testLogMessage(t *testing.T, parts map[string]string, options map[string]bo
 		remainingArgs := args[1:]
 
 		var revision string
-		var message string
 		var files []string
 
 		for i := 0; i < len(remainingArgs); i++ {
@@ -498,7 +498,7 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 	})
 }
 
-func parseOptions(content string, options map[string]bool, optionArgs *[]string) {
+func parseOptions(content string, options map[string]bool, optionArgs *[]string, message *string) {
 	trimmed := strings.TrimSpace(content)
 	if strings.HasPrefix(trimmed, "{") {
 		var parsed struct {
@@ -506,6 +506,7 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string)
 			TransformedArgs []string        `json:"transformed_args"`
 			Flags           map[string]bool `json:"flags"`
 			Options         []string        `json:"options"`
+			Message         string          `json:"message"`
 		}
 		if err := json.Unmarshal([]byte(trimmed), &parsed); err == nil {
 			selectedArgs := parsed.Args
@@ -520,6 +521,9 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string)
 			}
 			for _, opt := range parsed.Options {
 				options[opt] = true
+			}
+			if parsed.Message != "" {
+				*message = parsed.Message
 			}
 			return
 		}

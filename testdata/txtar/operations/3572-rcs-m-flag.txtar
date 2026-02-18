@@ -2,7 +2,7 @@
 rcs -m flag (change log message)
 
 -- options.conf --
-{"args": ["change", "-rev", "1.1", "-m", "new message\n", "input.txt,v"]}
+{"args": ["change", "-rev", "1.1", "input.txt,v"], "message": "new message\n"}
 
 -- input.txt --
 Initial content
