@@ -5,6 +5,7 @@
   "Description": "asdkjfa\nsadfsaa\nmessage!\n",
   "Comment": "# ",
   "Access": true,
+  "AccessMultiline": true,
   "Symbols": [],
   "AccessUsers": [
     "user1",

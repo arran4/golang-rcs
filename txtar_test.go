@@ -172,19 +172,22 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
 		case testName == "access-list copy":
-			testAccessListCopy(t, parts, options, optionArgs)
+			testAccessList(t, "copy", parts, options, optionArgs)
+		case testName == "access-list append":
+			testAccessList(t, "append", parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }
 
-func testAccessListCopy(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
-	t.Run("access-list copy", func(t *testing.T) {
+func testAccessList(t *testing.T, op string, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("access-list "+op, func(t *testing.T) {
 		var fromFile string
 		var toFiles []string
 
 		// Parse args to find -from and to files
+		// Note: The args here come from options.conf
 		for i := 0; i < len(args); i++ {
 			if args[i] == "-from" {
 				if i+1 < len(args) {
@@ -200,10 +203,10 @@ func testAccessListCopy(t *testing.T, parts map[string]string, options map[strin
 		}
 
 		if fromFile == "" {
-			t.Skip("access-list copy requires -from")
+			t.Skipf("access-list %s requires -from", op)
 		}
 		if len(toFiles) == 0 {
-			t.Skip("access-list copy requires target files")
+			t.Skipf("access-list %s requires target files", op)
 		}
 
 		fromContent, ok := parts[fromFile]
@@ -226,7 +229,13 @@ func testAccessListCopy(t *testing.T, parts map[string]string, options map[strin
 				t.Fatalf("ParseFile error (to): %v", err)
 			}
 
-			toParsed.CopyAccessList(fromParsed)
+			if op == "copy" {
+				toParsed.CopyAccessList(fromParsed)
+			} else if op == "append" {
+				toParsed.AppendAccessList(fromParsed)
+			} else {
+				t.Fatalf("Unknown operation: %s", op)
+			}
 
 			gotRCS := toParsed.String()
 

@@ -73,6 +73,7 @@ func (c *RootCmd) NewAccessList() *AccessList {
 	set.Usage = v.Usage
 
 	v.SubCommands["copy"] = v.NewCopy()
+	v.SubCommands["append"] = v.NewAppend()
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

@@ -5,6 +5,8 @@ Access list operations.
 Subcommands:
 {{if .Recursive}}
     access-list copy
+    access-list append
 {{else}}
     copy
+    append
 {{end}}

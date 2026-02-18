@@ -1,5 +1,5 @@
 -- description.txt --
-rcs append access list from file
+rcs copy access list from file
 
 -- options.conf --
 {"args": ["-from", "source.txt,v", "input.txt,v"] }
@@ -8,8 +8,7 @@ rcs append access list from file
 head	1.1;
 access
 	jules
-	martha
-	jules;
+	martha;
 symbols;
 locks; strict;
 comment	@# @;
@@ -35,7 +34,8 @@ text
 
 -- input.txt,v --
 head	1.1;
-access;
+access
+    original;
 symbols;
 locks; strict;
 comment	@# @;
@@ -60,7 +60,7 @@ text
 @
 
 -- tests.txt --
-access-list append
+access-list copy
 
 -- expected.txt,v --
 head	1.1;

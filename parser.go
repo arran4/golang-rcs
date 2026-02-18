@@ -191,7 +191,7 @@ type FileFormattingOptions struct {
 	HeadSeparatorSpaces      int    `json:",omitempty"`
 	BranchSeparatorSpaces    int    `json:",omitempty"`
 	AccessSeparatorSpaces    int    `json:",omitempty"`
-	AccessInline             bool   `json:",omitempty"`
+	AccessMultiline          bool   `json:",omitempty"`
 	SymbolsSeparatorSpaces   int    `json:",omitempty"`
 	SymbolsInline            bool   `json:",omitempty"`
 	SymbolsFirstSpaces       int    `json:",omitempty"`
@@ -352,7 +352,7 @@ func (f *File) String() string {
 	}
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
-			if f.AccessInline {
+			if !f.AccessMultiline {
 				sb.WriteString("access ")
 				sb.WriteString(strings.Join(f.AccessUsers, " "))
 				sb.WriteString(";")
@@ -659,12 +659,12 @@ func ParseHeader(s *Scanner, f *File) error {
 			}
 		case "access":
 			f.Access = true
-			if users, ws, inline, err := ParseHeaderAccessWithSpacing(s, true); err != nil {
+			if users, ws, multiline, err := ParseHeaderAccessWithSpacing(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.AccessUsers = users
 				if len(users) > 0 {
-					f.AccessInline = inline
+					f.AccessMultiline = multiline
 				}
 				if len(users) == 0 && isSpacesOnly(ws) {
 					f.AccessSeparatorSpaces = len(ws)
@@ -1079,14 +1079,14 @@ func ParseHeaderAccessWithSpacing(s *Scanner, havePropertyName bool) ([]string, 
 	}
 	var ids []string
 	var wsBeforeTerm string
-	inline := true
+	multiline := false
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
 			return nil, "", false, err
 		}
 		ws := s.Text()
 		if strings.Contains(ws, "\n") || strings.Contains(ws, "\r") {
-			inline = false
+			multiline = true
 		}
 		if err := ScanStrings(s, ";"); err == nil {
 			wsBeforeTerm = ws
@@ -1098,7 +1098,7 @@ func ParseHeaderAccessWithSpacing(s *Scanner, havePropertyName bool) ([]string, 
 		}
 		ids = append(ids, id)
 	}
-	return ids, wsBeforeTerm, inline, nil
+	return ids, wsBeforeTerm, multiline, nil
 }
 
 func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, string, error) {
