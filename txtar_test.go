@@ -151,6 +151,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 				fullLine = "parse error: " + testLine[1]
 			}
 			testParseError(t, fullLine, parts, options)
+		case testName == "rcs access-list":
+			testAccessList(t, parts, options, optionArgs)
 		case testName == "rcs":
 			testRCS(t, parts, options, optionArgs)
 		case strings.HasPrefix(testName, "rcs "):
@@ -171,8 +173,6 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
-		case testName == "access-list copy":
-			testAccessListCopy(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
@@ -183,17 +183,23 @@ func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool
 	t.Skip("rcs clean test type not implemented yet")
 }
 
-func testAccessListCopy(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
-	t.Run("access-list copy", func(t *testing.T) {
+func testAccessList(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("rcs access-list", func(t *testing.T) {
+		if len(args) == 0 {
+			t.Fatal("Missing subcommand for access-list")
+		}
+		subCmd := args[0]
+		remainingArgs := args[1:]
+
 		var fromFile string
 		var targetFiles []string
 
-		for i := 0; i < len(args); i++ {
-			if args[i] == "-from" && i+1 < len(args) {
-				fromFile = args[i+1]
+		for i := 0; i < len(remainingArgs); i++ {
+			if remainingArgs[i] == "-from" && i+1 < len(remainingArgs) {
+				fromFile = remainingArgs[i+1]
 				i++
-			} else if !strings.HasPrefix(args[i], "-") {
-				targetFiles = append(targetFiles, args[i])
+			} else if !strings.HasPrefix(remainingArgs[i], "-") {
+				targetFiles = append(targetFiles, remainingArgs[i])
 			}
 		}
 
@@ -225,7 +231,14 @@ func testAccessListCopy(t *testing.T, parts map[string]string, options map[strin
 				t.Fatalf("Failed to parse target file %s: %v", targetFile, err)
 			}
 
-			targetRCS.CopyAccessList(fromRCS)
+			switch subCmd {
+			case "copy":
+				targetRCS.CopyAccessList(fromRCS)
+			case "append":
+				targetRCS.AppendAccessList(fromRCS)
+			default:
+				t.Fatalf("Unknown subcommand: %s", subCmd)
+			}
 
 			expectedKey := "expected.txt,v"
 			expectedContent, ok := parts[expectedKey]

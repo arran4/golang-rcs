@@ -1,0 +1,7 @@
+Usage: gorcs access-list append -from <source> [target...]
+
+Flags:
+    -from string    Source RCS file to append access list from
+
+Positional Arguments:
+    files      List of RCS files to update
