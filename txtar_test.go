@@ -702,9 +702,6 @@ func getInputRCS(t *testing.T, parts map[string]string) string {
 	if content, ok := parts["input,v"]; ok {
 		return content
 	}
-	if content, ok := parts["input.txt,v"]; ok {
-		return content
-	}
 	if content, ok := parts["input.rcs"]; ok {
 		return content
 	}

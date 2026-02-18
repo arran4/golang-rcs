@@ -4,7 +4,7 @@ state set (reset state to Exp)
 -- options.conf --
 {"args": ["state", "set", "input.txt"]}
 
--- input.txt,v --
+-- input,v --
 head	1.1;
 access;
 symbols;

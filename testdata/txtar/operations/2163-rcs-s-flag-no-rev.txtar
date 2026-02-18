@@ -4,7 +4,7 @@ rcs -s flag (change state, no revision)
 -- options.conf --
 {"args": ["state", "set", "-state", "Rel", "input.txt"]}
 
--- input.txt,v --
+-- input,v --
 head	1.1;
 access;
 symbols;

@@ -4,7 +4,7 @@ state list
 -- options.conf --
 {"args": ["state", "list", "input.txt"]}
 
--- input.txt,v --
+-- input,v --
 head	1.1;
 access;
 symbols;

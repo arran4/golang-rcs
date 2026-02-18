@@ -7,7 +7,7 @@ rcs -s flag (change state)
 -- input.txt --
 Initial content
 
--- input.txt,v --
+-- input,v --
 head	1.1;
 access;
 symbols;

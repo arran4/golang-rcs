@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+// StateSet is a subcommand `gorcs state set`
+//
+// Flags:
+//
+//	rev: Revision to modify
+//	state: State to set
+//	files: ... List of RCS files to process
 func StateSet(rev string, state string, files ...string) error {
 	if len(files) == 0 {
 		return fmt.Errorf("no files provided")
@@ -64,6 +71,12 @@ func stateSetFile(filename string, rev string, state string) error {
 	return nil
 }
 
+// StateGet is a subcommand `gorcs state get`
+//
+// Flags:
+//
+//	rev: Revision to get state of
+//	files: ... List of RCS files to process
 func StateGet(rev string, files ...string) error {
 	if len(files) == 0 {
 		return fmt.Errorf("no files provided")
@@ -112,6 +125,11 @@ func stateGetFile(filename string, rev string) error {
 	return nil
 }
 
+// StateList is a subcommand `gorcs state list`
+//
+// Flags:
+//
+//	files: ... List of RCS files to process
 func StateList(files ...string) error {
 	if len(files) == 0 {
 		return fmt.Errorf("no files provided")
