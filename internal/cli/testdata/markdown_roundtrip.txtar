@@ -12,6 +12,7 @@ expand	@o@;
 date	2023.01.01.00.00.00;	author user;	state Exp;
 branches;
 next	1.1;
+commitid	12345;
 
 1.1
 date	2022.01.01.00.00.00;	author user;	state Exp;
@@ -67,7 +68,7 @@ Expand
 
 | Revision | Date | Author | State | Branches | Next | CommitID |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| [`1.2`](#1.2) | 2023.01.01.00.00.00 | user | Exp |  | `1.1` |  |
+| [`1.2`](#1.2) | 2023.01.01.00.00.00 | user | Exp |  | `1.1` | `12345` |
 | [`1.1`](#1.1) | 2022.01.01.00.00.00 | user | Exp |  |  |  |
 
 
