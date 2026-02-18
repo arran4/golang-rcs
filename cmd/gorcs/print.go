@@ -6,44 +6,41 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*Validate)(nil)
+var _ Cmd = (*Print)(nil)
 
-type Validate struct {
-	*RootCmd
+type Print struct {
+	*Message
 	Flags       *flag.FlagSet
-	output      string
-	force       bool
-	useMmap     bool
+	rev         string
 	files       []string
 	SubCommands map[string]Cmd
 }
 
-type UsageDataValidate struct {
-	*Validate
+type UsageDataPrint struct {
+	*Print
 	Recursive bool
 }
 
-func (c *Validate) Usage() {
-	err := executeUsage(os.Stderr, "validate_usage.txt", UsageDataValidate{c, false})
+func (c *Print) Usage() {
+	err := executeUsage(os.Stderr, "print_usage.txt", UsageDataPrint{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Validate) UsageRecursive() {
-	err := executeUsage(os.Stderr, "validate_usage.txt", UsageDataValidate{c, true})
+func (c *Print) UsageRecursive() {
+	err := executeUsage(os.Stderr, "print_usage.txt", UsageDataPrint{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Validate) Execute(args []string) error {
+func (c *Print) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -69,7 +66,7 @@ func (c *Validate) Execute(args []string) error {
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 
-			case "output":
+			case "rev":
 				if !hasValue {
 					if i+1 < len(args) {
 						value = args[i+1]
@@ -78,29 +75,7 @@ func (c *Validate) Execute(args []string) error {
 						return fmt.Errorf("flag %s requires a value", name)
 					}
 				}
-				c.output = value
-
-			case "force":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.force = b
-				} else {
-					c.force = true
-				}
-
-			case "useMmap", "use-mmap":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.useMmap = b
-				} else {
-					c.useMmap = true
-				}
+				c.rev = value
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -121,26 +96,22 @@ func (c *Validate) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.Validate(c.output, c.force, c.useMmap, c.files...); err != nil {
-		return fmt.Errorf("validate failed: %w", err)
+	if err := cli.LogMessagePrint(c.rev, c.files...); err != nil {
+		return fmt.Errorf("print failed: %w", err)
 	}
 
 	return nil
 }
 
-func (c *RootCmd) NewValidate() *Validate {
-	set := flag.NewFlagSet("validate", flag.ContinueOnError)
-	v := &Validate{
-		RootCmd:     c,
+func (c *Message) NewPrint() *Print {
+	set := flag.NewFlagSet("print", flag.ContinueOnError)
+	v := &Print{
+		Message:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.output, "output", "", "TODO: Add usage text")
-
-	set.BoolVar(&v.force, "force", false, "TODO: Add usage text")
-
-	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
+	set.StringVar(&v.rev, "rev", "", "TODO: Add usage text")
 	set.Usage = v.Usage
 
 	v.SubCommands["help"] = &InternalCommand{

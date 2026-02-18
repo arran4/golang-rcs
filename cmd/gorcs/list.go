@@ -6,42 +6,40 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*ListHeads)(nil)
+var _ Cmd = (*List)(nil)
 
-type ListHeads struct {
-	*RootCmd
+type List struct {
+	*Message
 	Flags       *flag.FlagSet
-	useMmap     bool
 	files       []string
 	SubCommands map[string]Cmd
 }
 
-type UsageDataListHeads struct {
-	*ListHeads
+type UsageDataList struct {
+	*List
 	Recursive bool
 }
 
-func (c *ListHeads) Usage() {
-	err := executeUsage(os.Stderr, "list-heads_usage.txt", UsageDataListHeads{c, false})
+func (c *List) Usage() {
+	err := executeUsage(os.Stderr, "list_usage.txt", UsageDataList{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *ListHeads) UsageRecursive() {
-	err := executeUsage(os.Stderr, "list-heads_usage.txt", UsageDataListHeads{c, true})
+func (c *List) UsageRecursive() {
+	err := executeUsage(os.Stderr, "list_usage.txt", UsageDataList{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *ListHeads) Execute(args []string) error {
+func (c *List) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -56,27 +54,8 @@ func (c *ListHeads) Execute(args []string) error {
 		}
 		if strings.HasPrefix(arg, "-") {
 			name := arg
-			value := ""
-			hasValue := false
-			if strings.Contains(arg, "=") {
-				parts := strings.SplitN(arg, "=", 2)
-				name = parts[0]
-				value = parts[1]
-				hasValue = true
-			}
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
-
-			case "useMmap", "use-mmap":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.useMmap = b
-				} else {
-					c.useMmap = true
-				}
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -97,22 +76,20 @@ func (c *ListHeads) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.ListHeads(c.useMmap, c.files...); err != nil {
-		return fmt.Errorf("list-heads failed: %w", err)
+	if err := cli.LogMessageList(c.files...); err != nil {
+		return fmt.Errorf("list failed: %w", err)
 	}
 
 	return nil
 }
 
-func (c *RootCmd) NewListHeads() *ListHeads {
-	set := flag.NewFlagSet("list-heads", flag.ContinueOnError)
-	v := &ListHeads{
-		RootCmd:     c,
+func (c *Message) NewList() *List {
+	set := flag.NewFlagSet("list", flag.ContinueOnError)
+	v := &List{
+		Message:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
-
-	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
 	set.Usage = v.Usage
 
 	v.SubCommands["help"] = &InternalCommand{

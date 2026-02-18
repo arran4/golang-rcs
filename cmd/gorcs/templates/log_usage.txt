@@ -1,0 +1,11 @@
+Usage: gorcs log <subcommand>
+
+Subcommands:
+{{if .Recursive}}
+    log message
+    log message change
+    log message list
+    log message print
+{{else}}
+    message
+{{end}}

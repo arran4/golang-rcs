@@ -1,0 +1,18 @@
+Usage: gorcs log message change [flags...] [files...]
+
+Changes the log message for a specific revision in the given files.
+
+
+rev: -rev revision to change log message for
+m: -m new log message
+
+Subcommands:
+    help         Print this help message
+    usage        Print this usage message
+
+Flags:
+    --rev string
+    -m string
+
+Positional Arguments:
+    files      List of files to process

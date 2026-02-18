@@ -1,0 +1,16 @@
+Usage: gorcs log message print [flags...] [files...]
+
+Prints the log message for a specific revision in the given files.
+
+
+rev: -rev revision to print log message for
+
+Subcommands:
+    help         Print this help message
+    usage        Print this usage message
+
+Flags:
+    --rev string
+
+Positional Arguments:
+    files      List of files to process

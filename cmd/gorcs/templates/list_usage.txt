@@ -1,13 +1,10 @@
-Usage: gorcs list-heads [flags...] [files...]
+Usage: gorcs log message list [files...]
 
-mmap: -m --mmap Use mmap to read file
+Lists all log messages in the given files.
 
 Subcommands:
     help         Print this help message
     usage        Print this usage message
-
-Flags:
-    --use-mmap
 
 Positional Arguments:
     files      List of files to process
