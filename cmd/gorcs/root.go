@@ -80,10 +80,12 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "    %s\n", "branches default set")
 	fmt.Fprintf(os.Stderr, "    %s\n", "format")
 	fmt.Fprintf(os.Stderr, "    %s\n", "from-json")
+	fmt.Fprintf(os.Stderr, "    %s\n", "from-markdown")
 	fmt.Fprintf(os.Stderr, "    %s\n", "list-heads")
 	fmt.Fprintf(os.Stderr, "    %s\n", "co")
 	fmt.Fprintf(os.Stderr, "    %s\n", "normalize-revisions")
 	fmt.Fprintf(os.Stderr, "    %s\n", "to-json")
+	fmt.Fprintf(os.Stderr, "    %s\n", "to-markdown")
 	fmt.Fprintf(os.Stderr, "    %s\n", "validate")
 }
 
@@ -103,10 +105,12 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	c.Commands["branches"] = c.NewBranches()
 	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()
+	c.Commands["from-markdown"] = c.NewFromMarkdown()
 	c.Commands["list-heads"] = c.NewListHeads()
 	c.Commands["co"] = c.NewCo()
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
 	c.Commands["to-json"] = c.NewToJson()
+	c.Commands["to-markdown"] = c.NewToMarkdown()
 	c.Commands["validate"] = c.NewValidate()
 	c.Commands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
