@@ -44,7 +44,10 @@ func processFileToMarkdown(fn string, output string, force bool) error {
 		return fmt.Errorf("error parsing %s: %w", fn, err)
 	}
 
-	outString := rcsFileToMarkdown(r)
+	outString, err := rcsFileToMarkdown(r)
+	if err != nil {
+		return fmt.Errorf("error converting %s to markdown: %w", fn, err)
+	}
 	b := []byte(outString)
 
 	if output == "-" {
@@ -66,111 +69,122 @@ func processFileToMarkdown(fn string, output string, force bool) error {
 	return nil
 }
 
-func rcsFileToMarkdown(f *rcs.File) string {
+func rcsFileToMarkdown(f *rcs.File) (string, error) {
 	var sb strings.Builder
-	sb.WriteString("# RCS File\n\n")
+	// Use the template defined in markdown_template.go
+	// However, template funcs "fenced" need to be defined.
+	// We defined them in markdown_template.go
+	// We just need to execute it.
 
-	sb.WriteString("## Header\n\n")
-	if f.Head != "" {
-		sb.WriteString(fmt.Sprintf("* Head: %s\n", f.Head))
-	}
-	if f.Branch != "" {
-		sb.WriteString(fmt.Sprintf("* Branch: %s\n", f.Branch))
-	}
-	if len(f.AccessUsers) > 0 {
-		sb.WriteString("* Access:\n")
-		for _, u := range f.AccessUsers {
-			sb.WriteString(fmt.Sprintf("  * %s\n", u))
-		}
-	}
-	if len(f.Symbols) > 0 {
-		sb.WriteString("* Symbols:\n")
-		for _, s := range f.Symbols {
-			sb.WriteString(fmt.Sprintf("  * %s: %s\n", s.Name, s.Revision))
-		}
-	}
-	if len(f.Locks) > 0 {
-		sb.WriteString("* Locks:\n")
-		for _, l := range f.Locks {
-			sb.WriteString(fmt.Sprintf("  * %s: %s\n", l.User, l.Revision))
-		}
-	}
-	if f.Strict {
-		sb.WriteString("* Strict: true\n")
-	}
-	if f.Comment != "" {
-		sb.WriteString(fmt.Sprintf("* Comment: %s\n", f.Comment))
-	}
-	if f.Expand != "" {
-		sb.WriteString(fmt.Sprintf("* Expand: %s\n", f.Expand))
-	}
-	sb.WriteString("\n")
+	// We also need to prepare data if necessary.
+	// But `rcs.File` matches the template structure.
+	// Except `RevisionContents` order must match `RevisionHeads`.
+	// The RCS parser guarantees they are parsed in order?
+	// `ParseFile` populates `RevisionHeads` and `RevisionContents`.
+	// They correspond by index if `ParseRevisionContents` parses them in same order as headers.
+	// Let's verify `parser.go`.
 
-	sb.WriteString("## Description\n\n")
-	writeFencedBlock(&sb, "text", f.Description)
-	sb.WriteString("\n")
+	// In `parser.go`, `ParseRevisionHeaders` reads headers.
+	// Then `ParseRevisionContents` reads contents.
+	// RCS file format: headers first, then description, then contents.
+	// Usually contents appear in same order as headers?
+	// Wait, RCS file has `desc` then `deltatext`.
+	// `deltatext` blocks are keyed by revision number.
+	// `parser.go` `ParseRevisionContents` reads them sequentially.
+	// Does it guarantee order?
+	// `ParseRevisionContents` loop reads until EOF.
+	// It appends to `rcs`.
 
-	sb.WriteString("## Revisions\n\n")
+	// If the order in file differs from headers, index access `index $.RevisionContents $i` will be WRONG.
+	// We must map them by revision.
 
-	// Map RevisionContents by Revision string for easy lookup
+	// Let's create a struct wrapper for template execution.
+
+	type TemplateData struct {
+		*rcs.File
+		RevisionContents map[string]*rcs.RevisionContent
+	}
+
 	contentsMap := make(map[string]*rcs.RevisionContent)
 	for _, rc := range f.RevisionContents {
 		contentsMap[rc.Revision] = rc
 	}
 
+	// We need to pass this map to template.
+	// But template iterates `RevisionHeads`.
+	// We can use a custom function `get_content`.
+
+	// Re-parse template with extra func?
+	// `markdownTemplate` is global. We can't change funcs easily per execution without cloning (which is fine).
+	// Or we can just attach the map to the data and use `index`.
+	// But `index` on map works in Go templates.
+
+	// So we need to pass a struct that has the map.
+	// And update template to use `index .RevisionContentsMap $rh.Revision`.
+	// But `$rh.Revision` is `rcs.Num` (string alias).
+	// Map key is `string`. `rcs.Num` should work as key? No, types must match.
+	// `rcs.Num` is `string`.
+
+	// Let's redefine the template to support this lookup safely.
+
+	// Since `markdownTemplate` is in another file, we should update IT to support map lookup.
+	// But `markdownTemplate` is initialized in `init` (var block).
+	// We can clone it and add func?
+
+	t, err := markdownTemplate.Clone()
+	if err != nil {
+		return "", fmt.Errorf("failed to clone template: %w", err)
+	}
+
+	// We can add a function `content` that takes a revision string and returns content.
+	// We can't use template.FuncMap because template package is not imported.
+	// But wait, we used template.FuncMap in `markdown_template.go`.
+	// We need to import "text/template" here if we want to use it.
+	// Or we can rely on `t.Funcs(map[string]interface{}{...})` if it accepted that.
+	// But it requires template.FuncMap which is map[string]interface{}.
+	// So we must import text/template.
+
+	// But wait, the template string is already parsed. We can't change the text of the template easily.
+	// We defined the template text in `markdown_template.go`.
+	// If we want to change logic, we should update `markdown_template.go` to use a function we provide, or use a map we provide.
+
+	// Let's update `markdown_template.go` to use `call .Content rev`.
+	// Or just `{{with (call $.ContentLookup .Revision)}}`.
+
+	// Better: Prepare a slice of structs that has Head and Content paired.
+	// This is cleaner for template.
+
+	type RevisionPair struct {
+		Head    *rcs.RevisionHead
+		Content *rcs.RevisionContent
+	}
+
+	var revisions []RevisionPair
 	for _, rh := range f.RevisionHeads {
 		rev := rh.Revision.String()
-		sb.WriteString(fmt.Sprintf("### %s\n\n", rev))
-		sb.WriteString(fmt.Sprintf("* Date: %s\n", rh.Date))
-		sb.WriteString(fmt.Sprintf("* Author: %s\n", rh.Author))
-		sb.WriteString(fmt.Sprintf("* State: %s\n", rh.State))
-		if len(rh.Branches) > 0 {
-			branches := make([]string, len(rh.Branches))
-			for i, b := range rh.Branches {
-				branches[i] = b.String()
-			}
-			sb.WriteString(fmt.Sprintf("* Branches: %s\n", strings.Join(branches, " ")))
+		rc := contentsMap[rev]
+		if rc == nil {
+			rc = &rcs.RevisionContent{}
 		}
-		if rh.NextRevision != "" {
-			sb.WriteString(fmt.Sprintf("* Next: %s\n", rh.NextRevision))
-		}
-		if rh.CommitID != "" {
-			sb.WriteString(fmt.Sprintf("* CommitID: %s\n", rh.CommitID))
-		}
-		sb.WriteString("\n")
-
-		if rc, ok := contentsMap[rev]; ok {
-			sb.WriteString("#### Log\n\n")
-			writeFencedBlock(&sb, "text", rc.Log)
-			sb.WriteString("\n")
-
-			sb.WriteString("#### Text\n\n")
-			writeFencedBlock(&sb, "text", rc.Text)
-			sb.WriteString("\n")
-		}
+		revisions = append(revisions, RevisionPair{Head: rh, Content: rc})
 	}
 
-	return sb.String()
-}
+	data := struct {
+		*rcs.File
+		Revisions []RevisionPair
+	}{
+		File:      f,
+		Revisions: revisions,
+	}
 
-func writeFencedBlock(sb *strings.Builder, lang, content string) {
-	fence := "```"
-	// Check if content contains fence, if so, extend fence
-	for strings.Contains(content, fence) {
-		fence += "`"
+	// We need to update the template to iterate `.Revisions`.
+	// Update `markdown_template.go` first.
+
+	if err := t.Execute(&sb, data); err != nil {
+		return "", err
 	}
-	sb.WriteString(fence + lang + "\n")
-	if content != "" {
-		// Ensure content ends with newline if not empty
-		if !strings.HasSuffix(content, "\n") {
-			sb.WriteString(content + "\n")
-		} else {
-			sb.WriteString(content)
-		}
-	} else {
-		// Empty content
-	}
-	sb.WriteString(fence + "\n")
+
+	return sb.String(), nil
 }
 
 // FromMarkdown is a subcommand `gorcs from-markdown`
@@ -237,10 +251,8 @@ func processFileFromMarkdown(fn string, output string, force, useMmap bool) erro
 	return nil
 }
 
-type parseState int
-
 const (
-	stateStart parseState = iota
+	stateStart = iota
 	stateHeader
 	stateDescription
 	stateRevisions
@@ -255,7 +267,7 @@ func parseMarkdownFile(r io.Reader) (*rcs.File, error) {
 	scanner.Buffer(buf, 1024*1024*10)
 
 	f := rcs.NewFile()
-	var state parseState = stateStart
+	var state = stateStart
 	var subState string // "Access", "Symbols", "Locks"
 
 	var currentRevision *rcs.RevisionHead

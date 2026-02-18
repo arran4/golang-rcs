@@ -1,0 +1,102 @@
+-- input.rcs --
+head	1.2;
+access;
+symbols
+	tag1:1.1;
+locks; strict;
+comment	@# @;
+expand	@o@;
+
+
+1.2
+date	2023.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2022.01.01.00.00.00;	author user;	state Exp;
+branches;
+next	;
+
+
+desc
+@description
+multiline
+@
+
+
+1.2
+log
+@log message 1.2
+@
+text
+@content 1.2
+line 2
+@
+
+
+1.1
+log
+@log message 1.1
+@
+text
+@content 1.1
+@
+-- expected.md --
+# RCS File
+
+## Header
+
+* Head: 1.2
+* Symbols:
+  * tag1: 1.1
+* Strict: true
+* Comment: #
+* Expand: o
+
+## Description
+
+```text
+description
+multiline
+```
+
+## Revisions
+
+### 1.2
+
+* Date: 2023.01.01.00.00.00
+* Author: user
+* State: Exp
+* Next: 1.1
+
+#### Log
+
+```text
+log message 1.2
+```
+
+#### Text
+
+```text
+content 1.2
+line 2
+```
+
+### 1.1
+
+* Date: 2022.01.01.00.00.00
+* Author: user
+* State: Exp
+
+#### Log
+
+```text
+log message 1.1
+```
+
+#### Text
+
+```text
+content 1.1
+```
