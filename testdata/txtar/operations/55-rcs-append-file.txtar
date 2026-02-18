@@ -2,13 +2,14 @@
 rcs append access list from file
 
 -- options.conf --
-{"args": ["-Asource.txt", "input.txt"] }
+{"args": ["append", "-from", "source.txt,v", "input.txt,v"], "flags": {"ignore white space": true} }
 
 -- source.txt,v --
 head	1.1;
 access
 	jules
-	martha;
+	martha
+	bob;
 symbols;
 locks; strict;
 comment	@# @;
@@ -34,7 +35,9 @@ text
 
 -- input.txt,v --
 head	1.1;
-access;
+access
+	bob
+	alice;
 symbols;
 locks; strict;
 comment	@# @;
@@ -59,11 +62,13 @@ text
 @
 
 -- tests.txt --
-rcs
+rcs access-list
 
 -- expected.txt,v --
 head	1.1;
 access
+	bob
+	alice
 	jules
 	martha;
 symbols;
