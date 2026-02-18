@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/tools/txtar"
@@ -163,6 +164,9 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testCI(t, parts, options)
 		case testName == "co":
 			testCO(t, parts, options, optionArgs)
+		case strings.HasPrefix(testName, "co "):
+			args := strings.Fields(testName)[1:]
+			testCO(t, parts, options, append(optionArgs, args...))
 		case testName == "rcsdiff":
 			testRCSDiff(t, parts, options)
 		case testName == "rcs diff":
@@ -254,8 +258,44 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 		}
 
 		user := "tester"
+		var zone *time.Location
+		var zoneStr string
+
+		// First pass for zone
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
+			if strings.HasPrefix(arg, "-z") {
+				if arg == "-z" {
+					if i+1 < len(args) {
+						zoneStr = args[i+1]
+						i++
+					}
+				} else {
+					zoneStr = strings.TrimPrefix(arg, "-z")
+				}
+			}
+		}
+		if zoneStr != "" {
+			if zoneStr == "LT" {
+				zone = time.Local
+			} else if z, err := time.Parse("-0700", zoneStr); err == nil {
+				zone = z.Location()
+			} else if z, err := time.Parse("-07:00", zoneStr); err == nil {
+				zone = z.Location()
+			} else if z, err := time.Parse("Z07:00", zoneStr); err == nil {
+				zone = z.Location()
+			} else {
+				var err error
+				zone, err = time.LoadLocation(zoneStr)
+				if err != nil {
+					t.Fatalf("invalid zone %q: %v", zoneStr, err)
+				}
+			}
+		}
+
 		ops := make([]any, 0, 2)
-		for _, arg := range args {
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
 			if !strings.HasPrefix(arg, "-") {
 				continue
 			}
@@ -266,15 +306,49 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 				t.Skipf("unsupported co flag in basic co mode: %s", arg)
 			case strings.HasPrefix(arg, "-w"):
 				if arg == "-w" {
-					continue
+					if i+1 < len(args) {
+						user = args[i+1]
+						i++
+					}
+				} else {
+					user = strings.TrimPrefix(arg, "-w")
 				}
-				user = strings.TrimPrefix(arg, "-w")
 			case strings.HasPrefix(arg, "-r"):
-				rev := strings.TrimPrefix(arg, "-r")
+				var rev string
+				if arg == "-r" {
+					if i+1 < len(args) {
+						rev = args[i+1]
+						i++
+					}
+				} else {
+					rev = strings.TrimPrefix(arg, "-r")
+				}
 				if strings.Count(rev, ".") > 1 {
 					t.Skipf("unsupported branch checkout in basic co mode: %s", arg)
 				}
 				ops = append(ops, WithRevision(rev))
+			case strings.HasPrefix(arg, "-d"):
+				var dateStr string
+				if arg == "-d" {
+					if i+1 < len(args) {
+						dateStr = args[i+1]
+						i++
+					}
+				} else {
+					dateStr = strings.TrimPrefix(arg, "-d")
+				}
+				d, err := ParseDate(dateStr, time.Now(), zone)
+				if err != nil {
+					t.Fatalf("invalid date %q: %v", dateStr, err)
+				}
+				ops = append(ops, WithDate(d))
+			case strings.HasPrefix(arg, "-z"):
+				if arg == "-z" {
+					if i+1 < len(args) {
+						i++
+					}
+				}
+				continue
 			case strings.HasPrefix(arg, "-l"):
 				rev := strings.TrimPrefix(arg, "-l")
 				if rev != "" {

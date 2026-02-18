@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"errors"
-	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -18,12 +16,11 @@ var _ Cmd = (*NormalizeRevisions)(nil)
 
 type NormalizeRevisions struct {
 	*RootCmd
-	Flags         *flag.FlagSet
-	padCommits    bool
-	mmap          bool
-	files         []string
-	SubCommands   map[string]Cmd
-	CommandAction func(c *NormalizeRevisions) error
+	Flags       *flag.FlagSet
+	padCommits  bool
+	useMmap     bool
+	files       []string
+	SubCommands map[string]Cmd
 }
 
 type UsageDataNormalizeRevisions struct {
@@ -58,7 +55,7 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") && arg != "-" {
+		if strings.HasPrefix(arg, "-") {
 			name := arg
 			value := ""
 			hasValue := false
@@ -71,7 +68,7 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 
-			case "padCommits", "pad-commits", "p":
+			case "padCommits", "pad-commits":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
 					if err != nil {
@@ -81,15 +78,16 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 				} else {
 					c.padCommits = true
 				}
-			case "mmap", "m":
+
+			case "useMmap", "use-mmap":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
 					if err != nil {
 						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
 					}
-					c.mmap = b
+					c.useMmap = b
 				} else {
-					c.mmap = true
+					c.useMmap = true
 				}
 			case "help", "h":
 				c.Usage()
@@ -111,12 +109,8 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if c.CommandAction != nil {
-		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("normalize-revisions failed: %w", err)
-		}
-	} else {
-		c.Usage()
+	if err := cli.NormalizeRevisions(c.padCommits, c.useMmap, c.files...); err != nil {
+		return fmt.Errorf("normalize-revisions failed: %w", err)
 	}
 
 	return nil
@@ -130,30 +124,10 @@ func (c *RootCmd) NewNormalizeRevisions() *NormalizeRevisions {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.BoolVar(&v.padCommits, "pad-commits", false, "pad commits with empty commits")
-	set.BoolVar(&v.padCommits, "p", false, "pad commits with empty commits")
+	set.BoolVar(&v.padCommits, "pad-commits", false, "TODO: Add usage text")
 
-	set.BoolVar(&v.mmap, "mmap", false, "Use mmap for reading files")
-	set.BoolVar(&v.mmap, "m", false, "Use mmap for reading files")
-
+	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
 	set.Usage = v.Usage
-
-	v.CommandAction = func(c *NormalizeRevisions) error {
-
-		err := cli.NormalizeRevisions(c.padCommits, c.mmap || c.Mmap, c.files...)
-		if err != nil {
-			if errors.Is(err, cmd.ErrPrintHelp) {
-				c.Usage()
-				return nil
-			}
-			if errors.Is(err, cmd.ErrHelp) {
-				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
-				return nil
-			}
-			return fmt.Errorf("normalize-revisions failed: %w", err)
-		}
-		return nil
-	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

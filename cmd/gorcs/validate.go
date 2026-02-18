@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"errors"
-	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -18,13 +16,12 @@ var _ Cmd = (*Validate)(nil)
 
 type Validate struct {
 	*RootCmd
-	Flags         *flag.FlagSet
-	output        string
-	force         bool
-	mmap          bool
-	files         []string
-	SubCommands   map[string]Cmd
-	CommandAction func(c *Validate) error
+	Flags       *flag.FlagSet
+	output      string
+	force       bool
+	useMmap     bool
+	files       []string
+	SubCommands map[string]Cmd
 }
 
 type UsageDataValidate struct {
@@ -59,7 +56,7 @@ func (c *Validate) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") && arg != "-" {
+		if strings.HasPrefix(arg, "-") {
 			name := arg
 			value := ""
 			hasValue := false
@@ -72,7 +69,7 @@ func (c *Validate) Execute(args []string) error {
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 
-			case "output", "o":
+			case "output":
 				if !hasValue {
 					if i+1 < len(args) {
 						value = args[i+1]
@@ -83,7 +80,7 @@ func (c *Validate) Execute(args []string) error {
 				}
 				c.output = value
 
-			case "force", "f":
+			case "force":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
 					if err != nil {
@@ -93,15 +90,16 @@ func (c *Validate) Execute(args []string) error {
 				} else {
 					c.force = true
 				}
-			case "mmap", "m":
+
+			case "useMmap", "use-mmap":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
 					if err != nil {
 						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
 					}
-					c.mmap = b
+					c.useMmap = b
 				} else {
-					c.mmap = true
+					c.useMmap = true
 				}
 			case "help", "h":
 				c.Usage()
@@ -123,12 +121,8 @@ func (c *Validate) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if c.CommandAction != nil {
-		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("validate failed: %w", err)
-		}
-	} else {
-		c.Usage()
+	if err := cli.Validate(c.output, c.force, c.useMmap, c.files...); err != nil {
+		return fmt.Errorf("validate failed: %w", err)
 	}
 
 	return nil
@@ -142,33 +136,12 @@ func (c *RootCmd) NewValidate() *Validate {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.output, "output", "", "Output file path")
-	set.StringVar(&v.output, "o", "", "Output file path")
+	set.StringVar(&v.output, "output", "", "TODO: Add usage text")
 
-	set.BoolVar(&v.force, "force", false, "Force overwrite output")
-	set.BoolVar(&v.force, "f", false, "Force overwrite output")
+	set.BoolVar(&v.force, "force", false, "TODO: Add usage text")
 
-	set.BoolVar(&v.mmap, "mmap", false, "Use mmap for reading files")
-	set.BoolVar(&v.mmap, "m", false, "Use mmap for reading files")
-
+	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
 	set.Usage = v.Usage
-
-	v.CommandAction = func(c *Validate) error {
-
-		err := cli.Validate(c.output, c.force, c.mmap || c.Mmap, c.files...)
-		if err != nil {
-			if errors.Is(err, cmd.ErrPrintHelp) {
-				c.Usage()
-				return nil
-			}
-			if errors.Is(err, cmd.ErrHelp) {
-				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
-				return nil
-			}
-			return fmt.Errorf("validate failed: %w", err)
-		}
-		return nil
-	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

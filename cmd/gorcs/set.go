@@ -96,14 +96,6 @@ func (c *Set) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if c.name == "" {
-		if len(c.files) < 1 {
-			return fmt.Errorf("name is required")
-		}
-		c.name = c.files[0]
-		c.files = c.files[1:]
-	}
-
 	if err := cli.BranchesDefaultSet(c.name, c.files...); err != nil {
 		return fmt.Errorf("set failed: %w", err)
 	}
@@ -119,7 +111,7 @@ func (c *Default) NewSet() *Set {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.name, "name", "", "Default branch revision/name to set")
+	set.StringVar(&v.name, "name", "", "TODO: Add usage text")
 	set.Usage = v.Usage
 
 	v.SubCommands["help"] = &InternalCommand{
