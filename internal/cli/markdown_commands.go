@@ -100,11 +100,6 @@ func rcsFileToMarkdown(f *rcs.File) (string, error) {
 
 	// Let's create a struct wrapper for template execution.
 
-	type TemplateData struct {
-		*rcs.File
-		RevisionContents map[string]*rcs.RevisionContent
-	}
-
 	contentsMap := make(map[string]*rcs.RevisionContent)
 	for _, rc := range f.RevisionContents {
 		contentsMap[rc.Revision] = rc

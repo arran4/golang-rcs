@@ -28,9 +28,10 @@ func TestMarkdownTxtar(t *testing.T) {
 			// Extract input.rcs and expected.md
 			var inputRCS, expectedMD []byte
 			for _, f := range archive.Files {
-				if f.Name == "input.rcs" {
+				switch f.Name {
+				case "input.rcs":
 					inputRCS = f.Data
-				} else if f.Name == "expected.md" {
+				case "expected.md":
 					expectedMD = f.Data
 				}
 			}
