@@ -1639,45 +1639,23 @@ func IsNotFound(err error) bool {
 }
 
 func ScanStrings(s *Scanner, strs ...string) (err error) {
-	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
-		err = nil
-		for _, ss := range strs {
-			if len(ss) == 0 && atEOF && len(data) == 0 {
-				return 0, []byte{}, nil
-			} else if len(ss) == 0 {
-				continue
-			}
-			i := len(ss)
-			if i > len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
-				return 0, nil, nil
-			}
-			if bytes.HasPrefix(data, []byte(ss)) {
-				rs := data[:i]
-				return i, rs, nil
-			}
-		}
-		if atEOF {
-			err = ScanNotFound{
-				LookingFor: strs,
-				Pos:        *s.pos,
-				Found:      string(data),
-			}
-			return 0, []byte{}, nil
-		}
-		return 0, nil, nil
-	})
+	s.scanStringsTarget = strs
+	s.Split(s.scanStringsFunc)
 	if !s.Scan() {
 		if s.Err() != nil {
 			return s.Err()
 		}
-		if err != nil {
-			return err
+		if s.scanStringsError != nil {
+			return s.scanStringsError
 		}
 		return ScanNotFound{
 			LookingFor: strs,
 			Pos:        *s.pos,
 			Found:      "",
 		}
+	}
+	if s.scanStringsError != nil {
+		return s.scanStringsError
 	}
 	return
 }

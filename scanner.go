@@ -10,9 +10,12 @@ import (
 
 type Scanner struct {
 	*bufio.Scanner
-	sf       bufio.SplitFunc
-	lastScan bool
-	pos      *Pos
+	sf                bufio.SplitFunc
+	lastScan          bool
+	pos               *Pos
+	scanStringsFunc   bufio.SplitFunc
+	scanStringsTarget []string
+	scanStringsError  error
 }
 
 type scannerInterface interface {
@@ -72,12 +75,41 @@ func NewScanner(r io.Reader, opts ...ScannerOpt) *Scanner {
 		},
 		sf: bufio.ScanLines,
 	}
+	scanner.scanStringsFunc = scanner.scanStringsSplit
 	scanner.Scanner.Split(scanner.scannerWrapper)
 	scanner.Buffer(nil, math.MaxInt/2)
 	for _, opt := range opts {
 		opt.ScannerOpt(scanner)
 	}
 	return scanner
+}
+
+func (s *Scanner) scanStringsSplit(data []byte, atEOF bool) (int, []byte, error) {
+	s.scanStringsError = nil
+	for _, ss := range s.scanStringsTarget {
+		if len(ss) == 0 && atEOF && len(data) == 0 {
+			return 0, []byte{}, nil
+		} else if len(ss) == 0 {
+			continue
+		}
+		i := len(ss)
+		if i > len(data) && !atEOF && bytes.HasPrefix([]byte(ss), data) {
+			return 0, nil, nil
+		}
+		if bytes.HasPrefix(data, []byte(ss)) {
+			rs := data[:i]
+			return i, rs, nil
+		}
+	}
+	if atEOF {
+		s.scanStringsError = ScanNotFound{
+			LookingFor: s.scanStringsTarget,
+			Pos:        *s.pos,
+			Found:      string(data),
+		}
+		return 0, []byte{}, nil
+	}
+	return 0, nil, nil
 }
 
 func scanFound(found []byte, advance int, pos *Pos) {
