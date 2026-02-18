@@ -192,7 +192,6 @@ func compareRevisions(a, b string) int {
 	return 0
 }
 
-
 func (file *File) resolveRevisionContent(targetRevision string) (string, error) {
 	head := file.Head
 	if head == "" {

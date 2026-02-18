@@ -168,12 +168,12 @@ func TestParseDate_Errors(t *testing.T) {
 
 func TestParseZone(t *testing.T) {
 	tests := []struct {
-		name      string
-		input     string
-		wantUTC   bool
-		wantLocal bool
+		name       string
+		input      string
+		wantUTC    bool
+		wantLocal  bool
 		wantOffset int
-		wantErr   bool
+		wantErr    bool
 	}{
 		{
 			name:    "Empty",
