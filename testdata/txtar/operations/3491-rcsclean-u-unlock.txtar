@@ -2,7 +2,7 @@
 rcs clean -u (unlock)
 
 -- options.conf --
-{"args": ["-q", "-u", "input.txt"]}
+{"args": []}
 
 -- input.txt --
 Initial content
@@ -36,7 +36,7 @@ text
 @
 
 -- tests.txt --
-locks clean input.txt
+rcs locks clean
 
 -- expected.txt,v --
 head	1.1;

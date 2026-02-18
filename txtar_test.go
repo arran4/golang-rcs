@@ -171,15 +171,15 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
-		case strings.HasPrefix(testName, "locks "):
-			testLocks(t, testName, parts, options)
+		case strings.HasPrefix(testName, "rcs locks "):
+			testLocks(t, testName, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }
 
-func testLocks(t *testing.T, testName string, parts map[string]string, options map[string]bool) {
+func testLocks(t *testing.T, testName string, parts map[string]string, options map[string]bool, cmdArgs []string) {
 	t.Run(testName, func(t *testing.T) {
 		input, ok := parts["input.txt,v"]
 		if !ok {
@@ -196,14 +196,12 @@ func testLocks(t *testing.T, testName string, parts map[string]string, options m
 		}
 
 		args := strings.Fields(testName)
-		// args[0] is "locks"
-		if len(args) < 2 {
+		// args[0] is "rcs", args[1] is "locks"
+		if len(args) < 3 {
 			t.Fatalf("Invalid locks command: %s", testName)
 		}
-		subCmd := args[1]
+		subCmd := args[2]
 
-		// Parse flags from args[2:]
-		cmdArgs := args[2:]
 		revision := ""
 		user := "tester"
 

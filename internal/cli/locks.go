@@ -9,6 +9,13 @@ import (
 	rcs "github.com/arran4/golang-rcs"
 )
 
+// Lock performs lock operations over one or more working files.
+//
+// Flags:
+//
+//	revision: -revision revision to lock
+//	user: -w user for lock operations
+//	files: ... List of working files to process
 func Lock(revision string, user string, files ...string) error {
 	if user == "" {
 		user = currentLoggedInUser()
@@ -50,6 +57,13 @@ func lockFile(revision string, user string, workingFile string) error {
 	return nil
 }
 
+// Unlock performs unlock operations over one or more working files.
+//
+// Flags:
+//
+//	revision: -revision revision to unlock
+//	user: -w user for unlock operations
+//	files: ... List of working files to process
 func Unlock(revision string, user string, files ...string) error {
 	if user == "" {
 		user = currentLoggedInUser()
@@ -101,6 +115,12 @@ func unlockFile(revision string, user string, workingFile string) error {
 	return nil
 }
 
+// SetStrict performs strict locking operations over one or more working files.
+//
+// Flags:
+//
+//	strict: strict locking enabled/disabled
+//	files: ... List of working files to process
 func SetStrict(strict bool, files ...string) error {
 	for _, file := range files {
 		if err := setStrictFile(strict, file); err != nil {
@@ -139,8 +159,15 @@ func setStrictFile(strict bool, workingFile string) error {
 	return nil
 }
 
+// Clean performs clean operations over one or more working files.
+//
+// Flags:
+//
+//	revision: -revision revision to clean
+//	user: -w user for clean operations
+//	files: ... List of working files to process
 func Clean(revision string, user string, files ...string) error {
-	// Implement rcsclean -u behavior: unlock if working file is unmodified, then remove working file.
+	// TODO Implement rcsclean -u behavior: unlock if working file is unmodified, then remove working file.
 	// For simplicity, we just unlock and remove the working file if it exists, matching test 3491 which just expects unlock.
 	// But rcsclean usually implies checking modification.
 	// Since we don't have diff logic handy here (it's in rcs package but internal/cli imports it), we can do it.
