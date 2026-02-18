@@ -36,7 +36,7 @@ func TestBranchesDefaultSet_FromOperation3049(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRoot error: %v", err)
 	}
-	if err := cmd.Execute([]string{"branches", "default", "set", "1.1.1.1", workingPath}); err != nil {
+	if err := cmd.Execute([]string{"branches", "default", "set", "--name", "1.1.1.1", workingPath}); err != nil {
 		t.Fatalf("execute branches default set: %v", err)
 	}
 
@@ -55,7 +55,7 @@ func TestBranchesDefaultSet_InvalidBranch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRoot error: %v", err)
 	}
-	err = cmd.Execute([]string{"branches", "default", "set", "main", "input.txt"})
+	err = cmd.Execute([]string{"branches", "default", "set", "--name", "main", "input.txt"})
 	if err == nil {
 		t.Fatal("expected error for invalid branch name")
 	}

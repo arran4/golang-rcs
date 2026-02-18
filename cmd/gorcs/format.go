@@ -22,7 +22,7 @@ type Format struct {
 	output             string
 	force              bool
 	keepTruncatedYears bool
-	mmap               bool
+	useMmap            bool
 	files              []string
 	SubCommands        map[string]Cmd
 	CommandAction      func(c *Format) error
@@ -105,15 +105,16 @@ func (c *Format) Execute(args []string) error {
 				} else {
 					c.keepTruncatedYears = true
 				}
-			case "mmap", "m":
+
+			case "useMmap", "use-mmap":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
 					if err != nil {
 						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
 					}
-					c.mmap = b
+					c.useMmap = b
 				} else {
-					c.mmap = true
+					c.useMmap = true
 				}
 			case "help", "h":
 				c.Usage()
@@ -162,14 +163,12 @@ func (c *RootCmd) NewFormat() *Format {
 
 	set.BoolVar(&v.keepTruncatedYears, "keep-truncated-years", false, "TODO: Add usage text")
 
-	set.BoolVar(&v.mmap, "mmap", false, "Use mmap for reading files")
-	set.BoolVar(&v.mmap, "m", false, "Use mmap for reading files")
-
+	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *Format) error {
 
-		err := cli.Format(c.output, c.force, c.keepTruncatedYears, c.mmap || c.Mmap, c.files...)
+		err := cli.Format(c.output, c.force, c.keepTruncatedYears, c.useMmap, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
@@ -178,6 +177,9 @@ func (c *RootCmd) NewFormat() *Format {
 			if errors.Is(err, cmd.ErrHelp) {
 				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
 				return nil
+			}
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
 			}
 			return fmt.Errorf("format failed: %w", err)
 		}

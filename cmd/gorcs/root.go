@@ -9,8 +9,6 @@ import (
 	"os"
 
 	"github.com/arran4/golang-rcs/cmd/gorcs/templates"
-	"github.com/arran4/golang-rcs/diff"
-	_ "github.com/arran4/golang-rcs/diff/hashline"
 )
 
 type Cmd interface {
@@ -57,9 +55,7 @@ type RootCmd struct {
 	Version       string
 	Commit        string
 	Date          string
-	Mmap          bool
 	CommandAction func(c *RootCmd) error
-	DiffAlgo      string
 }
 
 func (c *RootCmd) Usage() {
@@ -81,8 +77,11 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "    %s\n", "format")
 	fmt.Fprintf(os.Stderr, "    %s\n", "from-json")
 	fmt.Fprintf(os.Stderr, "    %s\n", "list-heads")
-	fmt.Fprintf(os.Stderr, "    %s\n", "co")
 	fmt.Fprintf(os.Stderr, "    %s\n", "normalize-revisions")
+	fmt.Fprintf(os.Stderr, "    %s\n", "state")
+	fmt.Fprintf(os.Stderr, "    %s\n", "state get")
+	fmt.Fprintf(os.Stderr, "    %s\n", "state list")
+	fmt.Fprintf(os.Stderr, "    %s\n", "state set-state")
 	fmt.Fprintf(os.Stderr, "    %s\n", "to-json")
 	fmt.Fprintf(os.Stderr, "    %s\n", "validate")
 }
@@ -95,16 +94,12 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 		Commit:   commit,
 		Date:     date,
 	}
-	c.StringVar(&c.DiffAlgo, "diff-algo", "lcs", "Diff algorithm to use (default: lcs)")
 	c.FlagSet.Usage = c.Usage
-	c.BoolVar(&c.Mmap, "mmap", false, "Use mmap for reading files")
-	c.BoolVar(&c.Mmap, "m", false, "Use mmap for reading files")
 
 	c.Commands["branches"] = c.NewBranches()
 	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()
 	c.Commands["list-heads"] = c.NewListHeads()
-	c.Commands["co"] = c.NewCo()
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
 	c.Commands["state"] = c.NewState()
 	c.Commands["to-json"] = c.NewToJson()
@@ -150,11 +145,6 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 func (c *RootCmd) Execute(args []string) error {
 	if err := c.Parse(args); err != nil {
 		return NewUserError(err, fmt.Sprintf("flag parse error %s", err.Error()))
-	}
-	if c.DiffAlgo != "" {
-		if err := diff.SetDefaultAlgorithm(c.DiffAlgo); err != nil {
-			return err
-		}
 	}
 	remainingArgs := c.Args()
 	if len(remainingArgs) < 1 {

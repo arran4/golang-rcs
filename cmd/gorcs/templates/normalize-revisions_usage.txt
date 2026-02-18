@@ -6,6 +6,7 @@ Subcommands:
 
 Flags:
     --pad-commits, -p   pad commits with empty commits
+    --use-mmap
 
 Positional Arguments:
     files      List of files to process

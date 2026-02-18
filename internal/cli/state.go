@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// StateSet is a subcommand `gorcs state set`
+// StateSet is a subcommand `gorcs state set-state`
 //
 // Flags:
 //
