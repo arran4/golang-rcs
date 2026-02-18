@@ -7,14 +7,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
 )
 
 var _ Cmd = (*Default)(nil)
 
 type Default struct {
 	*Branches
-	Flags       *flag.FlagSet
-	SubCommands map[string]Cmd
+	Flags         *flag.FlagSet
+	SubCommands   map[string]Cmd
+	CommandAction func(c *Default) error
 }
 
 type UsageDataDefault struct {
@@ -47,7 +49,7 @@ func (c *Default) Execute(args []string) error {
 		if arg == "--" {
 			break
 		}
-		if strings.HasPrefix(arg, "-") {
+		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {

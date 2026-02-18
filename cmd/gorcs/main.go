@@ -7,6 +7,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/arran4/golang-rcs/cmd"
 )
 
 var (
@@ -23,6 +25,12 @@ func main() {
 	}
 
 	if err := root.Execute(os.Args[1:]); err != nil {
+		if e, ok := err.(*cmd.ErrExitCode); ok {
+			if e.Err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", e.Err)
+			}
+			os.Exit(e.Code)
+		}
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
