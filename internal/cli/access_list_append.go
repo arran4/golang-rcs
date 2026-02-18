@@ -6,7 +6,12 @@ import (
 	"os"
 )
 
-// AccessListAppend appends the access list from one RCS file to others.
+// AccessListAppend is a subcommand `gorcs access-list append`
+//
+// Flags:
+//
+//	from: -from Source RCS file to append access list from
+//	files: ... List of working files/RCS files to update
 func AccessListAppend(fromFile string, toFiles ...string) error {
 	fromF, err := OpenFile(fromFile, false)
 	if err != nil {
