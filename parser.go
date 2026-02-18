@@ -1589,75 +1589,9 @@ func ScanNewLine(s *Scanner, orEof bool) error {
 	return ScanStrings(s, "\r\n", "\n")
 }
 
-type ScanNotFound struct {
-	LookingFor []string
-	Pos        Pos
-	Found      string
-}
-
-func (se ScanNotFound) Error() string {
-	strs := make([]string, len(se.LookingFor))
-	for i, s := range se.LookingFor {
-		strs[i] = fmt.Sprintf("%#v", s)
-	}
-	lookingFor := strings.Join(strs, ", ")
-	found := se.Found
-	if len(found) > 20 {
-		runes := []rune(found)
-		if len(runes) > 20 {
-			found = string(runes[:20]) + "..."
-		}
-	}
-	return fmt.Sprintf("looking for %s at %s but found %q", lookingFor, se.Pos.String(), found)
-}
-
-type ScanUntilNotFound struct {
-	Until string
-	Pos   Pos
-	Found string
-}
-
-func (se ScanUntilNotFound) Error() string {
-	found := se.Found
-	if len(found) > 20 {
-		runes := []rune(found)
-		if len(runes) > 20 {
-			found = string(runes[:20]) + "..."
-		}
-	}
-	return fmt.Sprintf("scanning for %q at %s but found %q", se.Until, se.Pos.String(), found)
-}
-
-func IsNotFound(err error) bool {
-	switch err.(type) {
-	case ScanUntilNotFound, ScanNotFound:
-		return true
-	}
-	e1 := ScanNotFound{}
-	e2 := ScanUntilNotFound{}
-	return errors.As(err, &e1) || errors.As(err, &e2)
-}
 
 func ScanStrings(s *Scanner, strs ...string) (err error) {
-	s.scanStringsTarget = strs
-	s.Split(s.scanStringsFunc)
-	if !s.Scan() {
-		if s.Err() != nil {
-			return s.Err()
-		}
-		if s.scanStringsError != nil {
-			return s.scanStringsError
-		}
-		return ScanNotFound{
-			LookingFor: strs,
-			Pos:        *s.pos,
-			Found:      "",
-		}
-	}
-	if s.scanStringsError != nil {
-		return s.scanStringsError
-	}
-	return
+	return s.ScanMatch(strs...)
 }
 
 type ErrEOF struct{ error }
