@@ -111,6 +111,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	c.Commands["from-markdown"] = c.NewFromMarkdown()
 	c.Commands["list-heads"] = c.NewListHeads()
 	c.Commands["co"] = c.NewCo()
+	c.Commands["checkout"] = c.NewCheckout()
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
 	c.Commands["to-json"] = c.NewToJson()
 	c.Commands["to-markdown"] = c.NewToMarkdown()
