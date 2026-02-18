@@ -10,8 +10,8 @@ import (
 //
 // Flags:
 //
-//     from: -from Source RCS file to copy access list from
-//     files: ... List of working files/RCS files to update
+//	from: -from Source RCS file to copy access list from
+//	files: ... List of working files/RCS files to update
 func AccessListCopy(fromFile string, toFiles ...string) error {
 	fromF, err := OpenFile(fromFile, false)
 	if err != nil {
