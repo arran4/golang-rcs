@@ -8,7 +8,13 @@ import (
 	rcs "github.com/arran4/golang-rcs"
 )
 
-// LogMessageChange changes the log message for a specific revision in the given RCS files.
+// LogMessageChange is a subcommand `gorcs log message change`
+//
+// Flags:
+//
+//	revision: -rev revision to change
+//	message: -m new log message
+//	files: ... List of working files to process
 func LogMessageChange(revision, message string, files ...string) error {
 	for _, file := range files {
 		rcsFile := file
@@ -41,7 +47,12 @@ func LogMessageChange(revision, message string, files ...string) error {
 	return nil
 }
 
-// LogMessagePrint prints the log message for a specific revision in the given RCS files.
+// LogMessagePrint is a subcommand `gorcs log message print`
+//
+// Flags:
+//
+//	revision: -rev revision to print
+//	files: ... List of working files to process
 func LogMessagePrint(revision string, files ...string) error {
 	for _, file := range files {
 		rcsFile := file
@@ -72,7 +83,11 @@ func LogMessagePrint(revision string, files ...string) error {
 	return nil
 }
 
-// LogMessageList lists all log messages in the given RCS files.
+// LogMessageList is a subcommand `gorcs log message list`
+//
+// Flags:
+//
+//	files: ... List of working files to process
 func LogMessageList(files ...string) error {
 	for _, file := range files {
 		rcsFile := file

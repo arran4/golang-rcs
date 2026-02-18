@@ -13,37 +13,36 @@ import (
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*Init)(nil)
+var _ Cmd = (*List)(nil)
 
-type Init struct {
-	*RootCmd
+type List struct {
+	*Message
 	Flags         *flag.FlagSet
-	description   string
 	files         []string
 	SubCommands   map[string]Cmd
-	CommandAction func(c *Init) error
+	CommandAction func(c *List) error
 }
 
-type UsageDataInit struct {
-	*Init
+type UsageDataList struct {
+	*List
 	Recursive bool
 }
 
-func (c *Init) Usage() {
-	err := executeUsage(os.Stderr, "init_usage.txt", UsageDataInit{c, false})
+func (c *List) Usage() {
+	err := executeUsage(os.Stderr, "list_usage.txt", UsageDataList{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Init) UsageRecursive() {
-	err := executeUsage(os.Stderr, "init_usage.txt", UsageDataInit{c, true})
+func (c *List) UsageRecursive() {
+	err := executeUsage(os.Stderr, "list_usage.txt", UsageDataList{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Init) Execute(args []string) error {
+func (c *List) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -58,27 +57,8 @@ func (c *Init) Execute(args []string) error {
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
-			value := ""
-			hasValue := false
-			if strings.Contains(arg, "=") {
-				parts := strings.SplitN(arg, "=", 2)
-				name = parts[0]
-				value = parts[1]
-				hasValue = true
-			}
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
-
-			case "description", "t":
-				if !hasValue {
-					if i+1 < len(args) {
-						value = args[i+1]
-						i++
-					} else {
-						return fmt.Errorf("flag %s requires a value", name)
-					}
-				}
-				c.description = value
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -101,7 +81,7 @@ func (c *Init) Execute(args []string) error {
 
 	if c.CommandAction != nil {
 		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("init failed: %w", err)
+			return fmt.Errorf("list failed: %w", err)
 		}
 	} else {
 		c.Usage()
@@ -110,20 +90,18 @@ func (c *Init) Execute(args []string) error {
 	return nil
 }
 
-func (c *RootCmd) NewInit() *Init {
-	set := flag.NewFlagSet("init", flag.ContinueOnError)
-	v := &Init{
-		RootCmd:     c,
+func (c *Message) NewList() *List {
+	set := flag.NewFlagSet("list", flag.ContinueOnError)
+	v := &List{
+		Message:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
-
-	set.StringVar(&v.description, "t", "", "description of the file")
 	set.Usage = v.Usage
 
-	v.CommandAction = func(c *Init) error {
+	v.CommandAction = func(c *List) error {
 
-		err := cli.Init(c.description, c.files...)
+		err := cli.LogMessageList(c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
@@ -136,7 +114,7 @@ func (c *RootCmd) NewInit() *Init {
 			if e, ok := err.(*cmd.ErrExitCode); ok {
 				return e
 			}
-			return fmt.Errorf("init failed: %w", err)
+			return fmt.Errorf("list failed: %w", err)
 		}
 		return nil
 	}

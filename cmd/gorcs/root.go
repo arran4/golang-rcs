@@ -71,20 +71,26 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 	c.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "  Commands:")
+	fmt.Fprintf(os.Stderr, "    %s\n", "access-list")
+	fmt.Fprintf(os.Stderr, "    %s\n", "access-list append")
+	fmt.Fprintf(os.Stderr, "    %s\n", "access-list copy")
 	fmt.Fprintf(os.Stderr, "    %s\n", "branches")
 	fmt.Fprintf(os.Stderr, "    %s\n", "branches default")
 	fmt.Fprintf(os.Stderr, "    %s\n", "branches default set")
 	fmt.Fprintf(os.Stderr, "    %s\n", "format")
 	fmt.Fprintf(os.Stderr, "    %s\n", "from-json")
 	fmt.Fprintf(os.Stderr, "    %s\n", "from-markdown")
+	fmt.Fprintf(os.Stderr, "    %s\n", "init")
 	fmt.Fprintf(os.Stderr, "    %s\n", "list-heads")
+	fmt.Fprintf(os.Stderr, "    %s\n", "log")
+	fmt.Fprintf(os.Stderr, "    %s\n", "log message")
+	fmt.Fprintf(os.Stderr, "    %s\n", "log message change")
+	fmt.Fprintf(os.Stderr, "    %s\n", "log message list")
+	fmt.Fprintf(os.Stderr, "    %s\n", "log message print")
 	fmt.Fprintf(os.Stderr, "    %s\n", "normalize-revisions")
 	fmt.Fprintf(os.Stderr, "    %s\n", "to-json")
 	fmt.Fprintf(os.Stderr, "    %s\n", "to-markdown")
 	fmt.Fprintf(os.Stderr, "    %s\n", "validate")
-	fmt.Fprintf(os.Stderr, "    %s\n", "init")
-	fmt.Fprintf(os.Stderr, "    %s\n", "access-list")
-	fmt.Fprintf(os.Stderr, "    %s\n", "log")
 }
 
 func NewRoot(name, version, commit, date string) (*RootCmd, error) {
@@ -97,18 +103,18 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	}
 	c.FlagSet.Usage = c.Usage
 
+	c.Commands["access-list"] = c.NewAccessList()
 	c.Commands["branches"] = c.NewBranches()
 	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()
 	c.Commands["from-markdown"] = c.NewFromMarkdown()
+	c.Commands["init"] = c.NewInit()
 	c.Commands["list-heads"] = c.NewListHeads()
+	c.Commands["log"] = c.NewLog()
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
 	c.Commands["to-json"] = c.NewToJson()
 	c.Commands["to-markdown"] = c.NewToMarkdown()
 	c.Commands["validate"] = c.NewValidate()
-	c.Commands["init"] = c.NewInit()
-	c.Commands["access-list"] = c.NewAccessList()
-	c.Commands["log"] = c.NewLog()
 	c.Commands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
 			for _, arg := range args {
