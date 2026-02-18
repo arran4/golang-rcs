@@ -1,0 +1,40 @@
+# RCS File
+
+## Header
+
+{{if .Head}}Head
+: {{.Head}}
+{{end}}{{if .Branch}}Branch
+: {{.Branch}}
+{{end}}{{if .AccessUsers}}Access
+{{range .AccessUsers}}: {{.}}
+{{end}}{{end}}{{if .Symbols}}Symbols
+{{range .Symbols}}: `{{.Name}}`: `{{.Revision}}`
+{{end}}{{end}}{{if .Locks}}Locks
+{{range .Locks}}: `{{.User}}`: `{{.Revision}}`
+{{end}}{{end}}{{if .Strict}}Strict
+: true
+{{end}}{{if .Comment}}Comment
+{{quote .Comment}}{{end}}{{if .Expand}}Expand
+: {{.Expand}}
+{{end}}
+## Description
+
+{{quote .Description}}
+## Revisions
+
+| Revision | Date | Author | State | Branches | Next | CommitID |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+{{range $i, $rp := .Revisions}}| [`{{$rp.Head.Revision}}`](#{{$rp.Head.Revision}}) | {{$rp.Head.Date}} | {{$rp.Head.Author}} | {{$rp.Head.State}} | {{if $rp.Head.Branches}}{{range $j, $b := $rp.Head.Branches}}{{if $j}} {{end}}`{{$b}}`{{end}}{{end}} | {{if $rp.Head.NextRevision}}`{{$rp.Head.NextRevision}}`{{end}} | {{if $rp.Head.CommitID}}`{{$rp.Head.CommitID}}`{{end}} |
+{{end}}
+
+{{range $i, $rp := .Revisions}}
+### `{{$rp.Head.Revision}}`
+
+#### Log
+
+{{quote $rp.Content.Log}}
+#### Text
+
+{{quote $rp.Content.Text}}
+{{end}}
