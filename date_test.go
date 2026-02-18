@@ -165,3 +165,77 @@ func TestParseDate_Errors(t *testing.T) {
 		})
 	}
 }
+
+func TestParseZone(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		wantUTC   bool
+		wantLocal bool
+		wantOffset int
+		wantErr   bool
+	}{
+		{
+			name:    "Empty",
+			input:   "",
+			wantUTC: true,
+		},
+		{
+			name:      "LT",
+			input:     "LT",
+			wantLocal: true,
+		},
+		{
+			name:    "UTC",
+			input:   "UTC",
+			wantUTC: true,
+		},
+		{
+			name:       "-0800",
+			input:      "-0800",
+			wantOffset: -8 * 3600,
+		},
+		{
+			name:       "+05:30",
+			input:      "+05:30",
+			wantOffset: 5*3600 + 30*60,
+		},
+		{
+			name:    "Unknown",
+			input:   "UnknownZone",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			loc, err := ParseZone(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ParseZone() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+
+			if tt.wantUTC {
+				if loc.String() != "UTC" && loc.String() != "" { // UTC sometimes string is empty or UTC? time.UTC string is UTC.
+					// time.LoadLocation("UTC") returns loc with name "UTC".
+					// time.UTC has name "UTC".
+					// time.FixedZone("UTC", 0) has name "UTC".
+					if loc.String() != "UTC" {
+						t.Errorf("ParseZone() = %v, want UTC", loc)
+					}
+				}
+			} else if tt.wantLocal {
+				if loc != time.Local {
+					t.Errorf("ParseZone() = %v, want Local", loc)
+				}
+			} else if tt.wantOffset != 0 {
+				_, offset := time.Now().In(loc).Zone()
+				if offset != tt.wantOffset {
+					t.Errorf("ParseZone() offset = %v, want %v", offset, tt.wantOffset)
+				}
+			}
+		})
+	}
+}

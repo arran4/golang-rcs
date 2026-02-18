@@ -264,3 +264,40 @@ func parseYearWeekDow(input string, loc *time.Location) (time.Time, bool) {
 
 	return targetDay, true
 }
+
+// ParseZone parses a time zone string.
+// It accepts "LT" (Local Time), numeric offsets (e.g. "-0800", "+05:30"),
+// and named locations (e.g. "UTC", "PST", "America/New_York").
+func ParseZone(zone string) (*time.Location, error) {
+	if zone == "" {
+		return time.UTC, nil
+	}
+	if zone == "LT" {
+		return time.Local, nil
+	}
+	// Try loading location first
+	if loc, err := time.LoadLocation(zone); err == nil {
+		return loc, nil
+	}
+
+	// Try parsing numeric offset
+	// time.Parse can parse "-0700" or "-07:00" if we use a layout.
+	// We can use a dummy date.
+	// "15:04 -0700"
+	// But we only have the offset part.
+	// Let's prepend a time.
+	dummy := "12:00 " + zone
+	// Try formats: "-0700", "-07:00", "-07"
+	layouts := []string{
+		"15:04 -0700",
+		"15:04 -07:00",
+		"15:04 -07",
+	}
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, dummy); err == nil {
+			return t.Location(), nil
+		}
+	}
+
+	return nil, fmt.Errorf("unknown time zone %q", zone)
+}
