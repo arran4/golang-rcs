@@ -343,6 +343,23 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
+### `gorcs init`
+
+Creates and initializes a new RCS file.
+
+```bash
+gorcs init [-t[description]] [file ...]
+```
+
+- `-t[description]`: Set the initial description. If the argument starts with `-`, the rest is taken as the description string. Otherwise, it is treated as a file name to read the description from.
+
+
+**Example:**
+
+```shell
+gorcs init -t-"Initial Description" file.txt
+```
+
 ### `gorcs access-list copy`
 
 Copies the access list from one RCS file to one or more other RCS files. This replaces the access list of the target files with the one from the source file.
