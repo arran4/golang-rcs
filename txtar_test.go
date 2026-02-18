@@ -6,6 +6,7 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"flag"
 	"io/fs"
 	"strings"
 	"testing"
@@ -190,21 +191,13 @@ func testAccessList(t *testing.T, op string, parts map[string]string, options ma
 		var fromFile string
 		var toFiles []string
 
-		// Parse args to find -from and to files
-		// Note: The args here come from options.conf
-		for i := 0; i < len(args); i++ {
-			if args[i] == "-from" {
-				if i+1 < len(args) {
-					fromFile = args[i+1]
-					i++
-				}
-				continue
-			}
-			if strings.HasPrefix(args[i], "-") {
-				continue // Ignore other flags?
-			}
-			toFiles = append(toFiles, args[i])
+		// Parse args using flag.FlagSet
+		fs := flag.NewFlagSet("access-list", flag.ContinueOnError)
+		fs.StringVar(&fromFile, "from", "", "Source RCS file")
+		if err := fs.Parse(args); err != nil {
+			t.Fatalf("Error parsing args: %v", err)
 		}
+		toFiles = fs.Args()
 
 		if fromFile == "" {
 			t.Skipf("access-list %s requires -from", op)
