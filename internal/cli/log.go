@@ -22,7 +22,9 @@ func LogMessageChange(revision, message string, files ...string) error {
 		}
 
 		parsedFile, err := rcs.ParseFile(f)
-		f.Close() // Close immediately after parsing
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("close %s: %w", rcsFile, err)
+		}
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", rcsFile, err)
 		}
@@ -53,7 +55,9 @@ func LogMessagePrint(revision string, files ...string) error {
 		}
 
 		parsedFile, err := rcs.ParseFile(f)
-		f.Close()
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("close %s: %w", rcsFile, err)
+		}
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", rcsFile, err)
 		}
@@ -82,7 +86,9 @@ func LogMessageList(files ...string) error {
 		}
 
 		parsedFile, err := rcs.ParseFile(f)
-		f.Close()
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("close %s: %w", rcsFile, err)
+		}
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", rcsFile, err)
 		}

@@ -144,7 +144,9 @@ func (c *LogMessageChange) Usage() {
 }
 
 func (c *LogMessageChange) Execute(args []string) error {
-	c.Flags.Parse(args)
+	if err := c.Flags.Parse(args); err != nil {
+		return err
+	}
 	c.Files = c.Flags.Args()
 
 	if c.Revision == "" {
@@ -189,7 +191,9 @@ func (c *LogMessagePrint) Usage() {
 }
 
 func (c *LogMessagePrint) Execute(args []string) error {
-	c.Flags.Parse(args)
+	if err := c.Flags.Parse(args); err != nil {
+		return err
+	}
 	c.Files = c.Flags.Args()
 
 	if c.Revision == "" {
@@ -229,7 +233,9 @@ func (c *LogMessageList) Usage() {
 }
 
 func (c *LogMessageList) Execute(args []string) error {
-	c.Flags.Parse(args)
+	if err := c.Flags.Parse(args); err != nil {
+		return err
+	}
 	c.Files = c.Flags.Args()
 
 	if len(c.Files) == 0 {
