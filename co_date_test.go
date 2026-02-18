@@ -11,7 +11,9 @@ import (
 var coDateTestRCS string
 
 func TestCheckout_WithDate(t *testing.T) {
-	f, err := ParseFile(strings.NewReader(coDateTestRCS))
+	// Normalize line endings to \n for consistent testing across platforms
+	input := strings.ReplaceAll(coDateTestRCS, "\r\n", "\n")
+	f, err := ParseFile(strings.NewReader(input))
 	if err != nil {
 		t.Fatalf("ParseFile: %v", err)
 	}

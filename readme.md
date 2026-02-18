@@ -383,7 +383,7 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-wUSER] [file ...]
 - `-l[REV]`: Check out and lock the given revision (or head when omitted).
 - `-u[REV]`: Check out and unlock the given revision (or head when omitted).
 - `-dDATE`: Check out the latest revision on the default branch (or trunk) that is on or before the specified date.
-- `-zZONE`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [time.LoadLocation](https://pkg.go.dev/time#LoadLocation) for valid zone names.
+- `-zZONE`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid zone names.
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
