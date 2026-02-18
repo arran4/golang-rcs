@@ -391,12 +391,12 @@ func (f *File) String() string {
 				} else {
 					sb.WriteString(between)
 				}
-				sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
+				fmt.Fprintf(&sb, "%s:%s", sym.Name, sym.Revision)
 			}
 		} else {
 			for _, sym := range f.Symbols {
 				sb.WriteString(nl + "\t")
-				sb.WriteString(fmt.Sprintf("%s:%s", sym.Name, sym.Revision))
+				fmt.Fprintf(&sb, "%s:%s", sym.Name, sym.Revision)
 			}
 		}
 		if len(f.Symbols) == 0 && f.SymbolsSeparatorSpaces > 0 {
@@ -411,7 +411,7 @@ func (f *File) String() string {
 		sb.WriteString("locks")
 		for _, lock := range f.Locks {
 			sb.WriteString(nl + "\t")
-			sb.WriteString(fmt.Sprintf("%s:%s", lock.User, lock.Revision))
+			fmt.Fprintf(&sb, "%s:%s", lock.User, lock.Revision)
 		}
 		if len(f.Locks) == 0 && f.LocksSeparatorSpaces > 0 {
 			sb.WriteString(strings.Repeat(" ", f.LocksSeparatorSpaces))
