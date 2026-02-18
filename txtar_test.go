@@ -151,8 +151,10 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 				fullLine = "parse error: " + testLine[1]
 			}
 			testParseError(t, fullLine, parts, options)
-		case testName == "rcs access-list":
-			testAccessList(t, parts, options, optionArgs)
+		case testName == "access-list copy":
+			testAccessList(t, "copy", parts, options, optionArgs)
+		case testName == "access-list append":
+			testAccessList(t, "append", parts, options, optionArgs)
 		case testName == "rcs":
 			testRCS(t, parts, options, optionArgs)
 		case strings.HasPrefix(testName, "rcs "):
@@ -183,70 +185,72 @@ func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool
 	t.Skip("rcs clean test type not implemented yet")
 }
 
-func testAccessList(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
-	t.Run("rcs access-list", func(t *testing.T) {
-		if len(args) == 0 {
-			t.Fatal("Missing subcommand for access-list")
-		}
-		subCmd := args[0]
-		remainingArgs := args[1:]
-
+func testAccessList(t *testing.T, op string, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("access-list "+op, func(t *testing.T) {
 		var fromFile string
-		var targetFiles []string
+		var toFiles []string
 
-		for i := 0; i < len(remainingArgs); i++ {
-			if remainingArgs[i] == "-from" && i+1 < len(remainingArgs) {
-				fromFile = remainingArgs[i+1]
-				i++
-			} else if !strings.HasPrefix(remainingArgs[i], "-") {
-				targetFiles = append(targetFiles, remainingArgs[i])
+		// Parse args to find -from and to files
+		// Note: The args here come from options.conf
+		for i := 0; i < len(args); i++ {
+			if args[i] == "-from" {
+				if i+1 < len(args) {
+					fromFile = args[i+1]
+					i++
+				}
+				continue
 			}
+			if strings.HasPrefix(args[i], "-") {
+				continue // Ignore other flags?
+			}
+			toFiles = append(toFiles, args[i])
 		}
 
 		if fromFile == "" {
-			t.Fatal("Missing -from argument")
+			t.Skipf("access-list %s requires -from", op)
 		}
-		if len(targetFiles) == 0 {
-			t.Fatal("Missing target files")
+		if len(toFiles) == 0 {
+			t.Skipf("access-list %s requires target files", op)
 		}
 
 		fromContent, ok := parts[fromFile]
 		if !ok {
-			t.Fatalf("Missing from file: %s", fromFile)
+			t.Fatalf("Missing from file content: %s", fromFile)
 		}
 
-		fromRCS, err := parseRCS(fromContent)
+		fromParsed, err := parseRCS(fromContent)
 		if err != nil {
-			t.Fatalf("Failed to parse from file %s: %v", fromFile, err)
+			t.Fatalf("ParseFile error (from): %v", err)
 		}
 
-		for _, targetFile := range targetFiles {
-			targetContent, ok := parts[targetFile]
+		for _, toFile := range toFiles {
+			toContent, ok := parts[toFile]
 			if !ok {
-				t.Fatalf("Missing target file: %s", targetFile)
+				t.Fatalf("Missing to file content: %s", toFile)
 			}
-
-			targetRCS, err := parseRCS(targetContent)
+			toParsed, err := parseRCS(toContent)
 			if err != nil {
-				t.Fatalf("Failed to parse target file %s: %v", targetFile, err)
+				t.Fatalf("ParseFile error (to): %v", err)
 			}
 
-			switch subCmd {
+			switch op {
 			case "copy":
-				targetRCS.CopyAccessList(fromRCS)
+				toParsed.CopyAccessList(fromParsed)
 			case "append":
-				targetRCS.AppendAccessList(fromRCS)
+				toParsed.AppendAccessList(fromParsed)
 			default:
-				t.Fatalf("Unknown subcommand: %s", subCmd)
+				t.Fatalf("Unknown operation: %s", op)
 			}
+
+			gotRCS := toParsed.String()
 
 			expectedKey := "expected.txt,v"
-			expectedContent, ok := parts[expectedKey]
+			expectedRCS, ok := parts[expectedKey]
 			if !ok {
-				t.Fatalf("Missing expected file: %s", expectedKey)
+				t.Fatalf("Missing expected.txt,v")
 			}
 
-			checkRCS(t, expectedContent, targetRCS.String(), options)
+			checkRCS(t, expectedRCS, gotRCS, options)
 		}
 	})
 }

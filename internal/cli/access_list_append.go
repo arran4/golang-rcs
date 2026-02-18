@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-// AccessListCopy is a subcommand `gorcs access-list copy`
+// AccessListAppend is a subcommand `gorcs access-list append`
 //
 // Flags:
 //
-//     from: -from Source RCS file to copy access list from
+//     from: -from Source RCS file to append access list from
 //     files: ... List of working files/RCS files to update
-func AccessListCopy(fromFile string, toFiles ...string) error {
+func AccessListAppend(fromFile string, toFiles ...string) error {
 	fromF, err := OpenFile(fromFile, false)
 	if err != nil {
 		return fmt.Errorf("error opening from file %s: %w", fromFile, err)
@@ -27,14 +27,14 @@ func AccessListCopy(fromFile string, toFiles ...string) error {
 	}
 
 	for _, toFile := range toFiles {
-		if err := copyAccessListToFile(fromParsed, toFile); err != nil {
-			return fmt.Errorf("error copying access list to %s: %w", toFile, err)
+		if err := appendAccessListToFile(fromParsed, toFile); err != nil {
+			return fmt.Errorf("error appending access list to %s: %w", toFile, err)
 		}
 	}
 	return nil
 }
 
-func copyAccessListToFile(fromParsed *rcs.File, toFile string) error {
+func appendAccessListToFile(fromParsed *rcs.File, toFile string) error {
 	toF, err := OpenFile(toFile, false)
 	if err != nil {
 		return fmt.Errorf("error opening to file %s: %w", toFile, err)
@@ -48,7 +48,7 @@ func copyAccessListToFile(fromParsed *rcs.File, toFile string) error {
 		return fmt.Errorf("error parsing to file %s: %w", toFile, err)
 	}
 
-	toParsed.CopyAccessList(fromParsed)
+	toParsed.AppendAccessList(fromParsed)
 
 	// Write back
 	content := toParsed.String()
