@@ -71,83 +71,16 @@ func processFileToMarkdown(fn string, output string, force bool) error {
 
 func rcsFileToMarkdown(f *rcs.File) (string, error) {
 	var sb strings.Builder
-	// Use the template defined in markdown_template.go
-	// However, template funcs "fenced" need to be defined.
-	// We defined them in markdown_template.go
-	// We just need to execute it.
-
-	// We also need to prepare data if necessary.
-	// But `rcs.File` matches the template structure.
-	// Except `RevisionContents` order must match `RevisionHeads`.
-	// The RCS parser guarantees they are parsed in order?
-	// `ParseFile` populates `RevisionHeads` and `RevisionContents`.
-	// They correspond by index if `ParseRevisionContents` parses them in same order as headers.
-	// Let's verify `parser.go`.
-
-	// In `parser.go`, `ParseRevisionHeaders` reads headers.
-	// Then `ParseRevisionContents` reads contents.
-	// RCS file format: headers first, then description, then contents.
-	// Usually contents appear in same order as headers?
-	// Wait, RCS file has `desc` then `deltatext`.
-	// `deltatext` blocks are keyed by revision number.
-	// `parser.go` `ParseRevisionContents` reads them sequentially.
-	// Does it guarantee order?
-	// `ParseRevisionContents` loop reads until EOF.
-	// It appends to `rcs`.
-
-	// If the order in file differs from headers, index access `index $.RevisionContents $i` will be WRONG.
-	// We must map them by revision.
-
-	// Let's create a struct wrapper for template execution.
 
 	contentsMap := make(map[string]*rcs.RevisionContent)
 	for _, rc := range f.RevisionContents {
 		contentsMap[rc.Revision] = rc
 	}
 
-	// We need to pass this map to template.
-	// But template iterates `RevisionHeads`.
-	// We can use a custom function `get_content`.
-
-	// Re-parse template with extra func?
-	// `markdownTemplate` is global. We can't change funcs easily per execution without cloning (which is fine).
-	// Or we can just attach the map to the data and use `index`.
-	// But `index` on map works in Go templates.
-
-	// So we need to pass a struct that has the map.
-	// And update template to use `index .RevisionContentsMap $rh.Revision`.
-	// But `$rh.Revision` is `rcs.Num` (string alias).
-	// Map key is `string`. `rcs.Num` should work as key? No, types must match.
-	// `rcs.Num` is `string`.
-
-	// Let's redefine the template to support this lookup safely.
-
-	// Since `markdownTemplate` is in another file, we should update IT to support map lookup.
-	// But `markdownTemplate` is initialized in `init` (var block).
-	// We can clone it and add func?
-
 	t, err := markdownTemplate.Clone()
 	if err != nil {
 		return "", fmt.Errorf("failed to clone template: %w", err)
 	}
-
-	// We can add a function `content` that takes a revision string and returns content.
-	// We can't use template.FuncMap because template package is not imported.
-	// But wait, we used template.FuncMap in `markdown_template.go`.
-	// We need to import "text/template" here if we want to use it.
-	// Or we can rely on `t.Funcs(map[string]interface{}{...})` if it accepted that.
-	// But it requires template.FuncMap which is map[string]interface{}.
-	// So we must import text/template.
-
-	// But wait, the template string is already parsed. We can't change the text of the template easily.
-	// We defined the template text in `markdown_template.go`.
-	// If we want to change logic, we should update `markdown_template.go` to use a function we provide, or use a map we provide.
-
-	// Let's update `markdown_template.go` to use `call .Content rev`.
-	// Or just `{{with (call $.ContentLookup .Revision)}}`.
-
-	// Better: Prepare a slice of structs that has Head and Content paired.
-	// This is cleaner for template.
 
 	type RevisionPair struct {
 		Head    *rcs.RevisionHead
@@ -171,9 +104,6 @@ func rcsFileToMarkdown(f *rcs.File) (string, error) {
 		File:      f,
 		Revisions: revisions,
 	}
-
-	// We need to update the template to iterate `.Revisions`.
-	// Update `markdown_template.go` first.
 
 	if err := t.Execute(&sb, data); err != nil {
 		return "", err
@@ -263,57 +193,67 @@ func parseMarkdownFile(r io.Reader) (*rcs.File, error) {
 
 	f := rcs.NewFile()
 	var state = stateStart
-	var subState string // "Access", "Symbols", "Locks"
+	var subState string // "Access", "Symbols", "Locks", "Comment"
 
-	var currentRevision *rcs.RevisionHead
 	var currentContent *rcs.RevisionContent
 
 	var multilineBuilder strings.Builder
-	var fence string
-	inFence := false
+	inQuote := false
+
+	commitQuote := func() {
+		if !inQuote {
+			return
+		}
+		inQuote = false
+		content := multilineBuilder.String()
+		if len(content) > 0 && content[len(content)-1] == '\n' {
+			content = content[:len(content)-1]
+		}
+
+		switch state {
+		case stateDescription:
+			f.Description = content
+			state = stateStart
+		case stateLog:
+			if currentContent != nil {
+				currentContent.Log = content
+			}
+			state = stateRevision
+		case stateText:
+			if currentContent != nil {
+				currentContent.Text = content
+			}
+			state = stateRevision
+		case stateHeader:
+			if subState == "Comment" {
+				f.Comment = content
+			}
+		}
+		multilineBuilder.Reset()
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		trimmed := strings.TrimSpace(line)
 
-		if inFence {
-			if strings.HasPrefix(line, fence) && strings.TrimSpace(line) == fence {
-				inFence = false
-				content := multilineBuilder.String()
-				// Remove the last newline which is usually added by the builder loop
-				// if it matches what writeFencedBlock does.
-				// writeFencedBlock ensures content ends with \n inside the block.
-				// Here we append \n for each line. So the last line has \n.
-				// If the original content had no trailing newline, writeFencedBlock added one.
-				// So we should probably keep it?
-				// But strings.Join(lines, "\n") would be better.
-				// Current approach: we append line + "\n".
-				// So "line1\nline2\n".
-				// This is correct for preserving lines.
-				// However, if the source had "line1", we write "line1\n".
-				// So we read "line1\n".
-				// RCS generally expects newlines.
+		isQuoteLine := strings.HasPrefix(trimmed, ">")
 
-				switch state {
-				case stateDescription:
-					f.Description = content
-					state = stateStart
-				case stateLog:
-					if currentContent != nil {
-						currentContent.Log = content
-					}
-					state = stateRevision
-				case stateText:
-					if currentContent != nil {
-						currentContent.Text = content
-					}
-					state = stateRevision
-				}
-				multilineBuilder.Reset()
-				continue
+		// Check if we expect a quote
+		expectingQuote := state == stateDescription || state == stateLog || state == stateText || (state == stateHeader && subState == "Comment")
+
+		if isQuoteLine && expectingQuote {
+			inQuote = true
+			content := strings.TrimPrefix(trimmed, ">")
+			if len(content) > 0 && content[0] == ' ' {
+				content = content[1:]
 			}
-			multilineBuilder.WriteString(line + "\n")
+			multilineBuilder.WriteString(content + "\n")
 			continue
+		}
+
+		// If we were quoting, but this line is not a quote, or we are not expecting one anymore
+		if inQuote {
+			commitQuote()
 		}
 
 		if trimmed == "" {
@@ -338,20 +278,28 @@ func parseMarkdownFile(r io.Reader) (*rcs.File, error) {
 			subState = ""
 			continue
 		}
-		if strings.HasPrefix(line, "### ") && (state == stateRevisions || state == stateRevision) {
-			rev := strings.TrimSpace(strings.TrimPrefix(line, "### "))
-			currentRevision = &rcs.RevisionHead{
-				Revision: rcs.Num(rev),
+
+		if strings.HasPrefix(line, "### ") {
+			revStr := strings.TrimSpace(strings.TrimPrefix(line, "### "))
+			revStr = strings.Trim(revStr, "`")
+
+			found := false
+			for _, rc := range f.RevisionContents {
+				if rc.Revision == revStr {
+					currentContent = rc
+					found = true
+					break
+				}
 			}
-			f.RevisionHeads = append(f.RevisionHeads, currentRevision)
-			currentContent = &rcs.RevisionContent{
-				Revision: rev,
+			if !found {
+				currentContent = &rcs.RevisionContent{Revision: revStr}
+				f.RevisionContents = append(f.RevisionContents, currentContent)
 			}
-			f.RevisionContents = append(f.RevisionContents, currentContent)
 			state = stateRevision
 			subState = ""
 			continue
 		}
+
 		if strings.HasPrefix(line, "#### Log") && state == stateRevision {
 			state = stateLog
 			continue
@@ -361,127 +309,100 @@ func parseMarkdownFile(r io.Reader) (*rcs.File, error) {
 			continue
 		}
 
-		// Fence start
-		if strings.HasPrefix(line, "```") && (state == stateDescription || state == stateLog || state == stateText) {
-			fence = strings.TrimSpace(line)
-			// Remove language hint
-			// Fence is just the backticks part of the line start?
-			// But `strings.TrimSpace` might have removed indentation?
-			// We check `line` for prefix.
-			// Usually fenced blocks start at start of line in our output.
+		if state == stateHeader && strings.HasPrefix(trimmed, ":") {
+			val := strings.TrimSpace(strings.TrimPrefix(trimmed, ":"))
+			unquote := func(s string) string {
+				return strings.Trim(s, "`")
+			}
 
-			// Find how many backticks
-			ticks := 0
-			trimmedFence := strings.TrimSpace(fence)
-			for _, r := range trimmedFence {
-				if r == '`' {
-					ticks++
-				} else {
+			switch subState {
+			case "Head":
+				f.Head = unquote(val)
+			case "Branch":
+				f.Branch = unquote(val)
+			case "Strict":
+				if val == "true" {
+					f.Strict = true
+				}
+			case "Expand":
+				f.Expand = unquote(val)
+			case "Access":
+				f.AccessUsers = append(f.AccessUsers, unquote(val))
+				f.Access = true
+			case "Symbols":
+				parts := strings.SplitN(val, ":", 2)
+				if len(parts) == 2 {
+					f.Symbols = append(f.Symbols, &rcs.Symbol{Name: unquote(strings.TrimSpace(parts[0])), Revision: unquote(strings.TrimSpace(parts[1]))})
+				}
+			case "Locks":
+				parts := strings.SplitN(val, ":", 2)
+				if len(parts) == 2 {
+					f.Locks = append(f.Locks, &rcs.Lock{User: unquote(strings.TrimSpace(parts[0])), Revision: unquote(strings.TrimSpace(parts[1]))})
+				}
+			}
+			continue
+		}
+
+		if state == stateHeader && trimmed != "" && !strings.HasPrefix(trimmed, ":") {
+			// If it's a quote for Comment, it should have been handled by isQuoteLine check above if subState is Comment.
+			// If we are here, it's a key.
+			subState = strings.TrimSpace(trimmed)
+			continue
+		}
+
+		if state == stateRevisions && strings.HasPrefix(trimmed, "|") {
+			parts := strings.Split(trimmed, "|")
+			if len(parts) < 8 {
+				continue
+			}
+
+			cols := make([]string, 0, len(parts))
+			for _, p := range parts {
+				cols = append(cols, strings.TrimSpace(p))
+			}
+
+			rev := strings.Trim(cols[1], "`")
+			if rev == "Revision" || strings.HasPrefix(rev, ":") || rev == "" {
+				continue
+			}
+
+			rh := &rcs.RevisionHead{
+				Revision: rcs.Num(rev),
+				Date:     rcs.DateTime(cols[2]),
+				Author:   rcs.ID(cols[3]),
+				State:    rcs.ID(cols[4]),
+			}
+
+			branchesStr := cols[5]
+			if branchesStr != "" {
+				bs := strings.Fields(branchesStr)
+				for _, b := range bs {
+					rh.Branches = append(rh.Branches, rcs.Num(strings.Trim(b, "`")))
+				}
+			}
+
+			rh.NextRevision = rcs.Num(strings.Trim(cols[6], "`"))
+			rh.CommitID = rcs.Sym(strings.Trim(cols[7], "`"))
+
+			f.RevisionHeads = append(f.RevisionHeads, rh)
+
+			exists := false
+			for _, rc := range f.RevisionContents {
+				if rc.Revision == rev {
+					exists = true
 					break
 				}
 			}
-			if ticks < 3 {
-				// Not a valid fence, probably text?
-				// But we are outside fence context, looking for start.
-				// If it's `Key: Value`, it won't start with ```.
-				// Only Description/Log/Text start with fence.
-			} else {
-				fence = trimmedFence[:ticks]
-				inFence = true
+			if !exists {
+				f.RevisionContents = append(f.RevisionContents, &rcs.RevisionContent{Revision: rev})
 			}
+
 			continue
 		}
+	}
 
-		// Key-Value
-		if strings.HasPrefix(trimmed, "* ") {
-			parts := strings.SplitN(trimmed, ":", 2)
-			key := strings.TrimSpace(strings.TrimPrefix(parts[0], "* "))
-			val := ""
-			if len(parts) > 1 {
-				val = strings.TrimSpace(parts[1])
-			}
-
-			if state == stateHeader {
-				// Check indentation to see if it is a sub-item
-				indent := 0
-				for _, r := range line {
-					if r == ' ' {
-						indent++
-					} else {
-						break
-					}
-				}
-
-				if indent > 0 && subState != "" {
-					// Sub-item
-					// Remove `* ` from trimmed (already done in parts[0])
-					// But `parts` comes from `trimmed`.
-					// `trimmed` starts with `* `.
-					// `key` is `tag` in `* tag: rev`
-
-					switch subState {
-					case "Access":
-						// Format: `  * user`
-						// key is `user`
-						f.AccessUsers = append(f.AccessUsers, key)
-						f.Access = true
-					case "Symbols":
-						// Format: `  * tag: rev`
-						// key is `tag`, val is `rev`
-						f.Symbols = append(f.Symbols, &rcs.Symbol{Name: key, Revision: val})
-					case "Locks":
-						// Format: `  * user: rev`
-						// key is `user`, val is `rev`
-						f.Locks = append(f.Locks, &rcs.Lock{User: key, Revision: val})
-					}
-				} else {
-					// Top level item
-					subState = ""
-					switch key {
-					case "Head":
-						f.Head = val
-					case "Branch":
-						f.Branch = val
-					case "Strict":
-						if val == "true" {
-							f.Strict = true
-						}
-					case "Comment":
-						f.Comment = val
-					case "Expand":
-						f.Expand = val
-					case "Access":
-						subState = "Access"
-					case "Symbols":
-						subState = "Symbols"
-					case "Locks":
-						subState = "Locks"
-					}
-				}
-			} else if state == stateRevision {
-				if currentRevision != nil {
-					switch key {
-					case "Date":
-						currentRevision.Date = rcs.DateTime(val)
-					case "Author":
-						currentRevision.Author = rcs.ID(val)
-					case "State":
-						currentRevision.State = rcs.ID(val)
-					case "Branches":
-						if val != "" {
-							for _, b := range strings.Fields(val) {
-								currentRevision.Branches = append(currentRevision.Branches, rcs.Num(b))
-							}
-						}
-					case "Next":
-						currentRevision.NextRevision = rcs.Num(val)
-					case "CommitID":
-						currentRevision.CommitID = rcs.Sym(val)
-					}
-				}
-			}
-			continue
-		}
+	if inQuote {
+		commitQuote()
 	}
 
 	return f, nil

@@ -1,60 +1,31 @@
 package cli
 
 import (
+	_ "embed"
 	"strings"
 	"text/template"
 )
 
+//go:embed markdown.tmpl
+var markdownTmpl string
+
 var markdownTemplate = template.Must(template.New("markdown").Funcs(template.FuncMap{
-	"fenced": func(content string, lang string) string {
-		fence := "```"
-		// If content contains fence, extend it
-		for strings.Contains(content, fence) {
-			fence += "`"
+	"quote": func(content string) string {
+		if content == "" {
+			return "> \n"
 		}
-		// Fenced block usually has newline after opening fence, then content.
-		// If content is not empty and doesn't end with newline, add one before closing fence.
-		if content != "" && !strings.HasSuffix(content, "\n") {
-			content += "\n"
+		var sb strings.Builder
+		lines := strings.Split(content, "\n")
+		// If the last line is empty (due to trailing newline in Split), ignore it loop?
+		// strings.Split("a\n", "\n") -> ["a", ""]
+		// We want "> a\n"
+
+		for i, line := range lines {
+			if i == len(lines)-1 && line == "" {
+				continue
+			}
+			sb.WriteString("> " + line + "\n")
 		}
-		return fence + lang + "\n" + content + fence + "\n"
+		return sb.String()
 	},
-}).Parse(`# RCS File
-
-## Header
-
-{{if .Head}}* Head: {{.Head}}
-{{end}}{{if .Branch}}* Branch: {{.Branch}}
-{{end}}{{if .AccessUsers}}* Access:
-{{range .AccessUsers}}  * {{.}}
-{{end}}{{end}}{{if .Symbols}}* Symbols:
-{{range .Symbols}}  * {{.Name}}: {{.Revision}}
-{{end}}{{end}}{{if .Locks}}* Locks:
-{{range .Locks}}  * {{.User}}: {{.Revision}}
-{{end}}{{end}}{{if .Strict}}* Strict: true
-{{end}}{{if .Comment}}* Comment: {{.Comment}}
-{{end}}{{if .Expand}}* Expand: {{.Expand}}
-{{end}}
-## Description
-
-{{fenced .Description "text"}}
-## Revisions
-{{range $i, $rp := .Revisions}}
-### {{$rp.Head.Revision}}
-
-* Date: {{$rp.Head.Date}}
-* Author: {{$rp.Head.Author}}
-* State: {{$rp.Head.State}}
-{{if $rp.Head.Branches}}* Branches: {{range $j, $b := $rp.Head.Branches}}{{if $j}} {{end}}{{$b}}{{end}}
-{{end}}{{if $rp.Head.NextRevision}}* Next: {{$rp.Head.NextRevision}}
-{{end}}{{if $rp.Head.CommitID}}* CommitID: {{$rp.Head.CommitID}}
-{{end}}
-
-#### Log
-
-{{fenced $rp.Content.Log "text"}}
-
-#### Text
-
-{{fenced $rp.Content.Text "text"}}
-{{end}}`))
+}).Parse(markdownTmpl))

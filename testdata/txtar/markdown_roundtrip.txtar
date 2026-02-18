@@ -47,56 +47,47 @@ text
 
 ## Header
 
-* Head: 1.2
-* Symbols:
-  * tag1: 1.1
-* Strict: true
-* Comment: #
-* Expand: o
+Head
+: 1.2
+Symbols
+: `tag1`: `1.1`
+Strict
+: true
+Comment
+> #
+Expand
+: o
 
 ## Description
 
-```text
-description
-multiline
-```
+> description
+> multiline
 
 ## Revisions
 
-### 1.2
+| Revision | Date | Author | State | Branches | Next | CommitID |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `1.2` | 2023.01.01.00.00.00 | user | Exp |  | `1.1` |  |
+| `1.1` | 2022.01.01.00.00.00 | user | Exp |  |  |  |
 
-* Date: 2023.01.01.00.00.00
-* Author: user
-* State: Exp
-* Next: 1.1
 
-#### Log
-
-```text
-log message 1.2
-```
-
-#### Text
-
-```text
-content 1.2
-line 2
-```
-
-### 1.1
-
-* Date: 2022.01.01.00.00.00
-* Author: user
-* State: Exp
+### `1.2`
 
 #### Log
 
-```text
-log message 1.1
-```
+> log message 1.2
 
 #### Text
 
-```text
-content 1.1
-```
+> content 1.2
+> line 2
+
+### `1.1`
+
+#### Log
+
+> log message 1.1
+
+#### Text
+
+> content 1.1
