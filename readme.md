@@ -343,6 +343,42 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
+### `gorcs access-list copy`
+
+Copies the access list from one RCS file to one or more other RCS files. This replaces the access list of the target files with the one from the source file.
+
+**Usage:**
+
+```shell
+gorcs access-list copy -from <source_file,v> <target_file1,v> [target_file2,v ...]
+```
+
+- `-from`: The source RCS file to read the access list from.
+
+**Example:**
+
+```shell
+gorcs access-list copy -from template.txt,v file1.txt,v file2.txt,v
+```
+
+### `gorcs access-list append`
+
+Appends the access list from one RCS file to one or more other RCS files, avoiding duplicates.
+
+**Usage:**
+
+```shell
+gorcs access-list append -from <source_file,v> <target_file1,v> [target_file2,v ...]
+```
+
+- `-from`: The source RCS file to read the access list from.
+
+**Example:**
+
+```shell
+gorcs access-list append -from new_users.txt,v file1.txt,v
+```
+
 ## License
 
 MIT.
