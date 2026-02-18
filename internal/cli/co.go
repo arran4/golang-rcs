@@ -30,7 +30,7 @@ type COVerdict struct {
 //	user: -w user for lock operations
 //	quiet: -q suppress status output
 //	date: -d date to check out
-//	zone: -z zone for date parsing
+//	zone: -z zone for date parsing (e.g. "LT", "UTC", "-0700", "America/New_York")
 //	files: ... List of working files to process
 func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, files ...string) error {
 	if lock && unlock {

@@ -280,21 +280,10 @@ func ParseZone(zone string) (*time.Location, error) {
 		return loc, nil
 	}
 
-	// Try parsing numeric offset
-	// time.Parse can parse "-0700" or "-07:00" if we use a layout.
-	// We can use a dummy date.
-	// "15:04 -0700"
-	// But we only have the offset part.
-	// Let's prepend a time.
-	dummy := "12:00 " + zone
-	// Try formats: "-0700", "-07:00", "-07"
-	layouts := []string{
-		"15:04 -0700",
-		"15:04 -07:00",
-		"15:04 -07",
-	}
-	for _, layout := range layouts {
-		if t, err := time.Parse(layout, dummy); err == nil {
+	// Try parsing numeric offset using time.Parse
+	// Layouts for offsets: -0700, -07:00, -07
+	for _, layout := range []string{"-0700", "-07:00", "-07"} {
+		if t, err := time.Parse(layout, zone); err == nil {
 			return t.Location(), nil
 		}
 	}

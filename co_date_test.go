@@ -1,52 +1,17 @@
 package rcs
 
 import (
+	_ "embed"
 	"strings"
 	"testing"
 	"time"
 )
 
+//go:embed testdata/co/date.rcs
+var coDateTestRCS string
+
 func TestCheckout_WithDate(t *testing.T) {
-	input := `head	1.2;
-access;
-symbols;
-locks; strict;
-comment	@# @;
-
-
-1.2
-date	2023.01.01.00.00.00;	author user;	state Exp;
-branches;
-next	1.1;
-
-1.1
-date	2022.01.01.00.00.00;	author user;	state Exp;
-branches;
-next	;
-
-
-desc
-@@
-
-
-1.2
-log
-@rev 1.2@
-text
-@A
-B
-@
-
-
-1.1
-log
-@rev 1.1@
-text
-@d2 1
-@
-`
-
-	f, err := ParseFile(strings.NewReader(input))
+	f, err := ParseFile(strings.NewReader(coDateTestRCS))
 	if err != nil {
 		t.Fatalf("ParseFile: %v", err)
 	}

@@ -376,12 +376,14 @@ gorcs validate [-o output_file] [-w] [-s] [-f] [file1,v ...]
 Checks out a revision from an RCS file and optionally updates lock state.
 
 ```bash
-gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
+gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-wUSER] [file ...]
 ```
 
 - `-rREV`: Check out a specific revision.
 - `-l[REV]`: Check out and lock the given revision (or head when omitted).
 - `-u[REV]`: Check out and unlock the given revision (or head when omitted).
+- `-dDATE`: Check out the latest revision on the default branch (or trunk) that is on or before the specified date.
+- `-zZONE`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [time.LoadLocation](https://pkg.go.dev/time#LoadLocation) for valid zone names.
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
