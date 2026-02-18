@@ -343,12 +343,19 @@ gorcs co [-q] [-kSUBST] [-rREV | -l[REV] | -u[REV]] [-wUSER] [file ...]
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 - `-kSUBST`: Substitution mode option.
-    - `kv` (default): Generate `$Keyword: value $`. Locker's name inserted only if locking.
+    - If not specified, the mode defaults to the file's `expand` property (if set), otherwise `kv`.
+    - `kv`: Generate `$Keyword: value $`. Locker's name inserted only if locking.
     - `kvl`: Like `kv`, but locker's name is always inserted if revision is locked.
     - `k`: Generate `$Keyword$`. Log messages are inserted after `$Log`.
     - `o`: Generate old value (identity).
     - `b`: Like `o` (binary mode).
     - `v`: Generate value only.
+
+**Example:**
+
+```shell
+gorcs co -r1.2 -kvl file.txt
+```
 
 ## License
 

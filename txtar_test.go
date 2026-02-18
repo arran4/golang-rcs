@@ -255,6 +255,7 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 
 		user := "tester"
 		ops := make([]any, 0, 4)
+		kFlagSeen := false
 		for i := 0; i < len(args); i++ {
 			arg := args[i]
 			if !strings.HasPrefix(arg, "-") {
@@ -266,6 +267,7 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			case strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
 				t.Skipf("unsupported co flag in basic co mode: %s", arg)
 			case strings.HasPrefix(arg, "-k"):
+				kFlagSeen = true
 				modeStr := ""
 				if arg == "-k" {
 					if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
@@ -323,6 +325,13 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 				ops = append(ops, WithClearLock)
 			default:
 				t.Skipf("unsupported co arg format in basic co mode: %s", arg)
+			}
+		}
+
+		if !kFlagSeen && parsed.Expand != "" {
+			mode, err := ParseKeywordSubstitution(parsed.Expand)
+			if err == nil {
+				ops = append(ops, WithExpandKeyword(mode))
 			}
 		}
 

@@ -32,6 +32,25 @@ type KeywordContext struct {
 
 var keywordRegex = regexp.MustCompile(`\$([A-Z][a-z]+)(?::[^\$]*)?\$`)
 
+func ParseKeywordSubstitution(s string) (KeywordSubstitution, error) {
+	switch s {
+	case "kv":
+		return KV, nil
+	case "kvl":
+		return KVL, nil
+	case "k":
+		return K, nil
+	case "o":
+		return O, nil
+	case "b":
+		return B, nil
+	case "v":
+		return V, nil
+	default:
+		return KV, fmt.Errorf("unknown keyword substitution mode: %s", s)
+	}
+}
+
 func ExpandKeywords(content string, mode KeywordSubstitution, ctx KeywordContext) string {
 	if mode == O || mode == B {
 		return content

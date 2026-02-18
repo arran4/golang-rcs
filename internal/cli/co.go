@@ -40,26 +40,13 @@ func Co(revision string, lock, unlock bool, keywordModeStr string, user string, 
 		return fmt.Errorf("no files provided")
 	}
 
-	var keywordMode rcs.KeywordSubstitution
+	var keywordMode *rcs.KeywordSubstitution
 	if keywordModeStr != "" {
-		switch keywordModeStr {
-		case "kv":
-			keywordMode = rcs.KV
-		case "kvl":
-			keywordMode = rcs.KVL
-		case "k":
-			keywordMode = rcs.K
-		case "o":
-			keywordMode = rcs.O
-		case "b":
-			keywordMode = rcs.B
-		case "v":
-			keywordMode = rcs.V
-		default:
-			return fmt.Errorf("unknown keyword substitution mode: %s", keywordModeStr)
+		mode, err := rcs.ParseKeywordSubstitution(keywordModeStr)
+		if err != nil {
+			return err
 		}
-	} else {
-		keywordMode = rcs.KV // Default
+		keywordMode = &mode
 	}
 
 	for _, file := range files {
@@ -81,7 +68,7 @@ func Co(revision string, lock, unlock bool, keywordModeStr string, user string, 
 	return nil
 }
 
-func coFile(revision string, lock, unlock bool, keywordMode rcs.KeywordSubstitution, user string, quiet bool, workingFile string) (COVerdict, error) {
+func coFile(revision string, lock, unlock bool, keywordMode *rcs.KeywordSubstitution, user string, quiet bool, workingFile string) (COVerdict, error) {
 	rcsFile := workingFile
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
@@ -95,6 +82,20 @@ func coFile(revision string, lock, unlock bool, keywordMode rcs.KeywordSubstitut
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
 	}
 
+	var mode rcs.KeywordSubstitution
+	if keywordMode != nil {
+		mode = *keywordMode
+	} else if parsed.Expand != "" {
+		var err error
+		mode, err = rcs.ParseKeywordSubstitution(parsed.Expand)
+		if err != nil {
+			// If unknown, fallback to KV as per standard RCS behavior (mostly)
+			mode = rcs.KV
+		}
+	} else {
+		mode = rcs.KV
+	}
+
 	ops := make([]any, 0, 4)
 	if revision != "" {
 		ops = append(ops, rcs.WithRevision(revision))
@@ -104,7 +105,7 @@ func coFile(revision string, lock, unlock bool, keywordMode rcs.KeywordSubstitut
 	} else if unlock {
 		ops = append(ops, rcs.WithClearLock)
 	}
-	ops = append(ops, rcs.WithExpandKeyword(keywordMode))
+	ops = append(ops, rcs.WithExpandKeyword(mode))
 	ops = append(ops, rcs.WithRCSFilename(rcsFile))
 
 	verdict, err := parsed.Checkout(user, ops...)
