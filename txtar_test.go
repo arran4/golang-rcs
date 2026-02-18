@@ -229,11 +229,12 @@ func testAccessList(t *testing.T, op string, parts map[string]string, options ma
 				t.Fatalf("ParseFile error (to): %v", err)
 			}
 
-			if op == "copy" {
+			switch op {
+			case "copy":
 				toParsed.CopyAccessList(fromParsed)
-			} else if op == "append" {
+			case "append":
 				toParsed.AppendAccessList(fromParsed)
-			} else {
+			default:
 				t.Fatalf("Unknown operation: %s", op)
 			}
 

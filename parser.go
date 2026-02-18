@@ -153,7 +153,7 @@ func (c *RevisionContent) StringWithNewLine(nl string) string {
 	if 2+c.PrecedingNewLinesOffset > 0 {
 		sb.WriteString(strings.Repeat(nl, 2+c.PrecedingNewLinesOffset))
 	}
-	sb.WriteString(fmt.Sprintf("%s%s", c.Revision, nl))
+	fmt.Fprintf(&sb, "%s%s", c.Revision, nl)
 	sb.WriteString("log" + nl)
 	_, _ = WriteAtQuote(&sb, c.Log)
 	sb.WriteString(nl)
@@ -342,13 +342,13 @@ func (f *File) String() string {
 	if f.HeadSeparatorSpaces > 0 {
 		headSep = strings.Repeat(" ", f.HeadSeparatorSpaces)
 	}
-	sb.WriteString(fmt.Sprintf("head%s%s;%s", headSep, f.Head, nl))
+	fmt.Fprintf(&sb, "head%s%s;%s", headSep, f.Head, nl)
 	if f.Branch != "" {
 		branchSep := "\t"
 		if f.BranchSeparatorSpaces > 0 {
 			branchSep = strings.Repeat(" ", f.BranchSeparatorSpaces)
 		}
-		sb.WriteString(fmt.Sprintf("branch%s%s;%s", branchSep, f.Branch, nl))
+		fmt.Fprintf(&sb, "branch%s%s;%s", branchSep, f.Branch, nl)
 	}
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
