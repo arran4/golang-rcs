@@ -1251,7 +1251,7 @@ func ParseOptionalTokenWithSpacing(s *Scanner, scannerFunc func(*Scanner) (strin
 			return "", "", err
 		}
 	}
-	return val, nil, nil
+	return val, ws, nil
 }
 
 func isSpacesOnly(s string) bool {
