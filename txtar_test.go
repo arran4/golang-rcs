@@ -136,8 +136,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testFormatRCS(t, parts, options)
 		case testName == "validate rcs":
 			testValidateRCS(t, parts, options)
-		case testName == "new rcs":
-			testNewRCS(t, parts, options)
+		case testName == "rcs init":
+			testNewRCS(t, parts, options, optionArgs)
 		case testName == "list heads":
 			testListHeads(t, parts, options)
 		case testName == "normalize revisions":
@@ -151,6 +151,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 				fullLine = "parse error: " + testLine[1]
 			}
 			testParseError(t, fullLine, parts, options)
+		case testName == "rcs access-list":
+			testAccessList(t, parts, options, optionArgs)
 		case testName == "rcs":
 			testRCS(t, parts, options, optionArgs)
 		case strings.HasPrefix(testName, "rcs "):
@@ -179,6 +181,74 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 
 func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("rcs clean test type not implemented yet")
+}
+
+func testAccessList(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("rcs access-list", func(t *testing.T) {
+		if len(args) == 0 {
+			t.Fatal("Missing subcommand for access-list")
+		}
+		subCmd := args[0]
+		remainingArgs := args[1:]
+
+		var fromFile string
+		var targetFiles []string
+
+		for i := 0; i < len(remainingArgs); i++ {
+			if remainingArgs[i] == "-from" && i+1 < len(remainingArgs) {
+				fromFile = remainingArgs[i+1]
+				i++
+			} else if !strings.HasPrefix(remainingArgs[i], "-") {
+				targetFiles = append(targetFiles, remainingArgs[i])
+			}
+		}
+
+		if fromFile == "" {
+			t.Fatal("Missing -from argument")
+		}
+		if len(targetFiles) == 0 {
+			t.Fatal("Missing target files")
+		}
+
+		fromContent, ok := parts[fromFile]
+		if !ok {
+			t.Fatalf("Missing from file: %s", fromFile)
+		}
+
+		fromRCS, err := parseRCS(fromContent)
+		if err != nil {
+			t.Fatalf("Failed to parse from file %s: %v", fromFile, err)
+		}
+
+		for _, targetFile := range targetFiles {
+			targetContent, ok := parts[targetFile]
+			if !ok {
+				t.Fatalf("Missing target file: %s", targetFile)
+			}
+
+			targetRCS, err := parseRCS(targetContent)
+			if err != nil {
+				t.Fatalf("Failed to parse target file %s: %v", targetFile, err)
+			}
+
+			switch subCmd {
+			case "copy":
+				targetRCS.CopyAccessList(fromRCS)
+			case "append":
+				targetRCS.AppendAccessList(fromRCS)
+			default:
+				t.Fatalf("Unknown subcommand: %s", subCmd)
+			}
+
+			expectedKey := "expected.txt,v"
+			expectedContent, ok := parts[expectedKey]
+			if !ok {
+				t.Fatalf("Missing expected file: %s", expectedKey)
+			}
+
+			checkRCS(t, expectedContent, targetRCS.String(), options)
+		}
+	})
 }
 
 func testRCSDiff(t *testing.T, parts map[string]string, options map[string]bool) {
@@ -512,7 +582,7 @@ func testValidateRCS(t *testing.T, parts map[string]string, options map[string]b
 	})
 }
 
-func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool) {
+func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
 	t.Run("new rcs", func(t *testing.T) {
 		expectedRCS, ok := parts["expected,v"]
 		if !ok {
@@ -523,6 +593,29 @@ func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool) 
 		if options["unix line endings"] {
 			f.NewLine = "\n"
 		}
+
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
+			if strings.HasPrefix(arg, "-t") {
+				if arg == "-t" {
+					if i+1 < len(args) {
+						i++
+						// TODO read file?
+						// f.Description = args[i]
+						t.Skip("reading file from -t arg not implemented in test runner")
+					}
+				} else {
+					val := strings.TrimPrefix(arg, "-t")
+					if strings.HasPrefix(val, "-") {
+						f.Description = strings.TrimPrefix(val, "-")
+					} else {
+						// TODO read file?
+						t.Skip("reading file from -t arg not implemented in test runner")
+					}
+				}
+			}
+		}
+
 		gotRCS := f.String()
 		checkRCS(t, expectedRCS, gotRCS, options)
 	})

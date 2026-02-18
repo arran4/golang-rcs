@@ -1,0 +1,4 @@
+Usage: gorcs init [flags...] [files...]
+
+Flags:
+  -t[description]	initial description

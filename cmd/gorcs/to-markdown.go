@@ -9,41 +9,43 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
+	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*Validate)(nil)
+var _ Cmd = (*ToMarkdown)(nil)
 
-type Validate struct {
+type ToMarkdown struct {
 	*RootCmd
-	Flags       *flag.FlagSet
-	output      string
-	force       bool
-	useMmap     bool
-	files       []string
-	SubCommands map[string]Cmd
+	Flags         *flag.FlagSet
+	output        string
+	force         bool
+	files         []string
+	SubCommands   map[string]Cmd
+	CommandAction func(c *ToMarkdown) error
 }
 
-type UsageDataValidate struct {
-	*Validate
+type UsageDataToMarkdown struct {
+	*ToMarkdown
 	Recursive bool
 }
 
-func (c *Validate) Usage() {
-	err := executeUsage(os.Stderr, "validate_usage.txt", UsageDataValidate{c, false})
+func (c *ToMarkdown) Usage() {
+	err := executeUsage(os.Stderr, "to-markdown_usage.txt", UsageDataToMarkdown{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Validate) UsageRecursive() {
-	err := executeUsage(os.Stderr, "validate_usage.txt", UsageDataValidate{c, true})
+func (c *ToMarkdown) UsageRecursive() {
+	err := executeUsage(os.Stderr, "to-markdown_usage.txt", UsageDataToMarkdown{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Validate) Execute(args []string) error {
+func (c *ToMarkdown) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -56,7 +58,7 @@ func (c *Validate) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") {
+		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
 			value := ""
 			hasValue := false
@@ -69,7 +71,7 @@ func (c *Validate) Execute(args []string) error {
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 
-			case "output":
+			case "output", "o":
 				if !hasValue {
 					if i+1 < len(args) {
 						value = args[i+1]
@@ -80,7 +82,7 @@ func (c *Validate) Execute(args []string) error {
 				}
 				c.output = value
 
-			case "force":
+			case "force", "f":
 				if hasValue {
 					b, err := strconv.ParseBool(value)
 					if err != nil {
@@ -91,16 +93,6 @@ func (c *Validate) Execute(args []string) error {
 					c.force = true
 				}
 
-			case "useMmap", "use-mmap":
-				if hasValue {
-					b, err := strconv.ParseBool(value)
-					if err != nil {
-						return fmt.Errorf("invalid boolean value for flag %s: %s", name, value)
-					}
-					c.useMmap = b
-				} else {
-					c.useMmap = true
-				}
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -121,27 +113,49 @@ func (c *Validate) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if err := cli.Validate(c.output, c.force, c.useMmap, c.files...); err != nil {
-		return fmt.Errorf("validate failed: %w", err)
+	if c.CommandAction != nil {
+		if err := c.CommandAction(c); err != nil {
+			return fmt.Errorf("to-markdown failed: %w", err)
+		}
+	} else {
+		c.Usage()
 	}
 
 	return nil
 }
 
-func (c *RootCmd) NewValidate() *Validate {
-	set := flag.NewFlagSet("validate", flag.ContinueOnError)
-	v := &Validate{
+func (c *RootCmd) NewToMarkdown() *ToMarkdown {
+	set := flag.NewFlagSet("to-markdown", flag.ContinueOnError)
+	v := &ToMarkdown{
 		RootCmd:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.output, "output", "", "TODO: Add usage text")
+	set.StringVar(&v.output, "output", "", "Output file path")
+	set.StringVar(&v.output, "o", "", "Output file path")
 
-	set.BoolVar(&v.force, "force", false, "TODO: Add usage text")
+	set.BoolVar(&v.force, "force", false, "Force overwrite output")
+	set.BoolVar(&v.force, "f", false, "Force overwrite output")
 
-	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
 	set.Usage = v.Usage
+
+	v.CommandAction = func(c *ToMarkdown) error {
+
+		err := cli.ToMarkdown(c.output, c.force, c.files...)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
+			}
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
+			}
+			return fmt.Errorf("to-markdown failed: %w", err)
+		}
+		return nil
+	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

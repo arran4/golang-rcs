@@ -8,8 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"errors"
-	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -17,11 +15,10 @@ var _ Cmd = (*Set)(nil)
 
 type Set struct {
 	*Default
-	Flags         *flag.FlagSet
-	name          string
-	files         []string
-	SubCommands   map[string]Cmd
-	CommandAction func(c *Set) error
+	Flags       *flag.FlagSet
+	name        string
+	files       []string
+	SubCommands map[string]Cmd
 }
 
 type UsageDataSet struct {
@@ -56,7 +53,7 @@ func (c *Set) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") && arg != "-" {
+		if strings.HasPrefix(arg, "-") {
 			name := arg
 			value := ""
 			hasValue := false
@@ -99,12 +96,8 @@ func (c *Set) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if c.CommandAction != nil {
-		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("set failed: %w", err)
-		}
-	} else {
-		c.Usage()
+	if err := cli.BranchesDefaultSet(c.name, c.files...); err != nil {
+		return fmt.Errorf("set failed: %w", err)
 	}
 
 	return nil
@@ -118,28 +111,8 @@ func (c *Default) NewSet() *Set {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.name, "name", "", "default branch name/revision to set")
+	set.StringVar(&v.name, "name", "", "TODO: Add usage text")
 	set.Usage = v.Usage
-
-	v.CommandAction = func(c *Set) error {
-
-		err := cli.BranchesDefaultSet(c.name, c.files...)
-		if err != nil {
-			if errors.Is(err, cmd.ErrPrintHelp) {
-				c.Usage()
-				return nil
-			}
-			if errors.Is(err, cmd.ErrHelp) {
-				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
-				return nil
-			}
-			if e, ok := err.(*cmd.ErrExitCode); ok {
-				return e
-			}
-			return fmt.Errorf("set failed: %w", err)
-		}
-		return nil
-	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

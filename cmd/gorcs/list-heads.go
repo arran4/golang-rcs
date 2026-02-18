@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"errors"
-	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -18,11 +16,10 @@ var _ Cmd = (*ListHeads)(nil)
 
 type ListHeads struct {
 	*RootCmd
-	Flags         *flag.FlagSet
-	useMmap       bool
-	files         []string
-	SubCommands   map[string]Cmd
-	CommandAction func(c *ListHeads) error
+	Flags       *flag.FlagSet
+	useMmap     bool
+	files       []string
+	SubCommands map[string]Cmd
 }
 
 type UsageDataListHeads struct {
@@ -57,7 +54,7 @@ func (c *ListHeads) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") && arg != "-" {
+		if strings.HasPrefix(arg, "-") {
 			name := arg
 			value := ""
 			hasValue := false
@@ -100,12 +97,8 @@ func (c *ListHeads) Execute(args []string) error {
 		c.files = varArgs
 	}
 
-	if c.CommandAction != nil {
-		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("list-heads failed: %w", err)
-		}
-	} else {
-		c.Usage()
+	if err := cli.ListHeads(c.useMmap, c.files...); err != nil {
+		return fmt.Errorf("list-heads failed: %w", err)
 	}
 
 	return nil
@@ -121,26 +114,6 @@ func (c *RootCmd) NewListHeads() *ListHeads {
 
 	set.BoolVar(&v.useMmap, "use-mmap", false, "TODO: Add usage text")
 	set.Usage = v.Usage
-
-	v.CommandAction = func(c *ListHeads) error {
-
-		err := cli.ListHeads(c.useMmap, c.files...)
-		if err != nil {
-			if errors.Is(err, cmd.ErrPrintHelp) {
-				c.Usage()
-				return nil
-			}
-			if errors.Is(err, cmd.ErrHelp) {
-				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
-				return nil
-			}
-			if e, ok := err.(*cmd.ErrExitCode); ok {
-				return e
-			}
-			return fmt.Errorf("list-heads failed: %w", err)
-		}
-		return nil
-	}
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

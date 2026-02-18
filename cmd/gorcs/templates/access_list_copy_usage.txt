@@ -1,0 +1,7 @@
+Usage: gorcs access-list copy -from <source> [target...]
+
+Flags:
+    -from string    Source RCS file to copy access list from
+
+Positional Arguments:
+    files      List of RCS files to update
