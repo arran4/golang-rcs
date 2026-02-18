@@ -25,7 +25,7 @@
 
 | Revision | Date | Author | State | Branches | Next | CommitID |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-{{range $i, $rp := .Revisions}}| `{{$rp.Head.Revision}}` | {{$rp.Head.Date}} | {{$rp.Head.Author}} | {{$rp.Head.State}} | {{if $rp.Head.Branches}}{{range $j, $b := $rp.Head.Branches}}{{if $j}} {{end}}`{{$b}}`{{end}}{{end}} | {{if $rp.Head.NextRevision}}`{{$rp.Head.NextRevision}}`{{end}} | {{if $rp.Head.CommitID}}`{{$rp.Head.CommitID}}`{{end}} |
+{{range $i, $rp := .Revisions}}| [`{{$rp.Head.Revision}}`](#{{$rp.Head.Revision}}) | {{$rp.Head.Date}} | {{$rp.Head.Author}} | {{$rp.Head.State}} | {{if $rp.Head.Branches}}{{range $j, $b := $rp.Head.Branches}}{{if $j}} {{end}}`{{$b}}`{{end}}{{end}} | {{if $rp.Head.NextRevision}}`{{$rp.Head.NextRevision}}`{{end}} | {{if $rp.Head.CommitID}}`{{$rp.Head.CommitID}}`{{end}} |
 {{end}}
 
 {{range $i, $rp := .Revisions}}

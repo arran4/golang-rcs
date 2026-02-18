@@ -11,9 +11,8 @@ import (
 )
 
 func TestMarkdownTxtar(t *testing.T) {
-	// Find all txtar files in testdata/txtar related to markdown
-	// Since we are in internal/cli, we go up to root
-	files, err := filepath.Glob("../../testdata/txtar/markdown_*.txtar")
+	// Find all txtar files in internal/cli/testdata related to markdown
+	files, err := filepath.Glob("testdata/markdown_*.txtar")
 	if err != nil {
 		t.Fatalf("glob: %v", err)
 	}

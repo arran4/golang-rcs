@@ -361,7 +361,21 @@ func parseMarkdownFile(r io.Reader) (*rcs.File, error) {
 				cols = append(cols, strings.TrimSpace(p))
 			}
 
-			rev := strings.Trim(cols[1], "`")
+			// Clean column 1: `[`1.2`](#1.2)` or `1.2` or `[1.2](#1.2)`
+			// We want to extract just the revision number.
+			rawRev := cols[1]
+
+			// Remove backticks
+			// If it's a link: [text](url)
+			if strings.HasPrefix(rawRev, "[") && strings.Contains(rawRev, "](") {
+				// Extract text part [text]
+				idx := strings.LastIndex(rawRev, "](")
+				if idx > 1 {
+					rawRev = rawRev[1:idx]
+				}
+			}
+
+			rev := strings.Trim(rawRev, "`")
 			if rev == "Revision" || strings.HasPrefix(rev, ":") || rev == "" {
 				continue
 			}
