@@ -9,6 +9,12 @@ import (
 )
 
 // LogMessageChange changes the log message for a specific revision in the given files.
+//
+// Flags:
+//
+//	revision: -rev revision to change log message for
+//	message: -m new log message
+//	files: ... List of files to process
 func LogMessageChange(revision, message string, files ...string) error {
 	if revision == "" {
 		return fmt.Errorf("revision required")
@@ -40,6 +46,11 @@ func LogMessageChange(revision, message string, files ...string) error {
 }
 
 // LogMessagePrint prints the log message for a specific revision in the given files.
+//
+// Flags:
+//
+//	revision: -rev revision to print log message for
+//	files: ... List of files to process
 func LogMessagePrint(revision string, files ...string) error {
 	if revision == "" {
 		return fmt.Errorf("revision required")
@@ -69,6 +80,10 @@ func LogMessagePrint(revision string, files ...string) error {
 }
 
 // LogMessageList lists all log messages in the given files.
+//
+// Flags:
+//
+//	files: ... List of files to process
 func LogMessageList(files ...string) error {
 	for _, file := range files {
 		rcsFile := file
