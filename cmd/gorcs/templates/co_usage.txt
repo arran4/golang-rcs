@@ -6,6 +6,7 @@ Subcommands:
 
 Flags:
   -q	quiet
+  -k<mode>	keyword substitution mode (kv, kvl, k, o, b, v)
   -r<rev>	checkout specific revision
   -l[rev]	checkout and lock revision (default head)
   -u[rev]	checkout and unlock revision (default head)
