@@ -208,17 +208,17 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 				branchName = args[i+3]
 				i += 3
 			} else if strings.HasPrefix(arg, "-a") {
-				users := ParseDelimitedList(strings.TrimPrefix(arg, "-a"), " \n\t,")
+				users := parseDelimitedList(strings.TrimPrefix(arg, "-a"), " \n\t,")
 				parsed.AddAccess(users)
 			} else if strings.HasPrefix(arg, "-e") {
 				if arg == "-e" {
 					parsed.RemoveAllAccess()
 				} else {
-					users := ParseDelimitedList(strings.TrimPrefix(arg, "-e"), " \n\t,")
+					users := parseDelimitedList(strings.TrimPrefix(arg, "-e"), " \n\t,")
 					parsed.RemoveAccess(users)
 				}
 			} else if strings.HasPrefix(arg, "-o") {
-				revs := ParseDelimitedList(strings.TrimPrefix(arg, "-o"), ";,")
+				revs := parseDelimitedList(strings.TrimPrefix(arg, "-o"), ";,")
 				for _, r := range revs {
 					_ = parsed.DeleteRevision(r)
 				}
@@ -318,7 +318,7 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 				ops = append(ops, WithClearLock)
 			case strings.HasPrefix(arg, "-j"):
 				val := strings.TrimPrefix(arg, "-j")
-				list := ParseDelimitedList(val, " \t,")
+				list := parseDelimitedList(val, " \t,")
 				t.Logf("Parsed -j: %v", list)
 			default:
 				t.Skipf("unsupported co arg format in basic co mode: %s", arg)
@@ -349,26 +349,34 @@ func testRLog(t *testing.T, parts map[string]string, options map[string]bool, ar
 			arg := args[i]
 			if strings.HasPrefix(arg, "-r") {
 				val := strings.TrimPrefix(arg, "-r")
-				list := ParseDelimitedList(val, ";,")
+				list := parseDelimitedList(val, ";,")
 				t.Logf("Parsed -r: %v", list)
 			} else if strings.HasPrefix(arg, "-l") {
 				val := strings.TrimPrefix(arg, "-l")
-				list := ParseDelimitedList(val, " \t\n;,")
+				list := parseDelimitedList(val, " \t\n;,")
 				t.Logf("Parsed -l: %v", list)
 			} else if strings.HasPrefix(arg, "-w") {
 				val := strings.TrimPrefix(arg, "-w")
-				list := ParseDelimitedList(val, " \t\n;,")
+				list := parseDelimitedList(val, " \t\n;,")
 				t.Logf("Parsed -w: %v", list)
 			} else if strings.HasPrefix(arg, "-s") {
 				val := strings.TrimPrefix(arg, "-s")
-				list := ParseDelimitedList(val, " \t\n;,")
+				list := parseDelimitedList(val, " \t\n;,")
 				t.Logf("Parsed -s: %v", list)
 			} else if strings.HasPrefix(arg, "-d") {
 				val := strings.TrimPrefix(arg, "-d")
-				list := ParseDelimitedList(val, " \t\n;,")
+				list := parseDelimitedList(val, " \t\n;,")
 				t.Logf("Parsed -d: %v", list)
 			}
 		}
+	})
+}
+
+// parseDelimitedList parses a string into a list of items based on the provided delimiters.
+// Multiple adjacent delimiters are treated as a single delimiter.
+func parseDelimitedList(s string, delims string) []string {
+	return strings.FieldsFunc(s, func(r rune) bool {
+		return strings.ContainsRune(delims, r)
 	})
 }
 

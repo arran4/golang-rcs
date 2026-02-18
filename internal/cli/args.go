@@ -1,4 +1,4 @@
-package rcs
+package cli
 
 import "strings"
 
