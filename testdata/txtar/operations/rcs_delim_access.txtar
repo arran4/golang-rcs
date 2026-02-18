@@ -1,8 +1,11 @@
 -- description.txt --
 Test rcs -a with delimited list.
 
+-- options.conf --
+{"args": ["-auser1,user2, user3", "input.txt"] }
+
 -- tests.txt --
-rcs: -auser1,user2, user3
+rcs
 
 -- input.txt,v --
 head	1.1;
@@ -17,6 +20,8 @@ expand	@o@;
 date	2023.10.27.10.00.00;	author user1;	state Exp;
 branches;
 next	;
+
+
 desc
 @@
 
@@ -40,6 +45,8 @@ expand	@o@;
 date	2023.10.27.10.00.00;	author user1;	state Exp;
 branches;
 next	;
+
+
 desc
 @@
 

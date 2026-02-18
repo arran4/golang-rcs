@@ -1,8 +1,11 @@
 -- description.txt --
 Test rlog parsing.
 
+-- options.conf --
+{"args": ["-r1.1,1.2", "-luser1;user2", "-wuser3,user4", "-sExp;Dead", "-d>2020-01-01", "input.txt"] }
+
 -- tests.txt --
-rlog: -r1.1,1.2 -luser1;user2 -wuser3,user4 -sExp;Dead -d>2020-01-01
+rlog
 
 -- input.txt,v --
 head	1.1;

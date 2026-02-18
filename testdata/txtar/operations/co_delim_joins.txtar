@@ -1,8 +1,11 @@
 -- description.txt --
 Test co -j parsing.
 
+-- options.conf --
+{"args": ["-j1.1:1.2,1.3:1.4", "input.txt"] }
+
 -- tests.txt --
-co: -j1.1:1.2,1.3:1.4
+co
 
 -- input.txt,v --
 head	1.1;
