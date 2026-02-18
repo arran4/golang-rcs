@@ -31,11 +31,19 @@ type WithRevision string
 
 type WithDate time.Time
 
+type WithTimeZoneOffset int // Seconds East of UTC
+
+type WithLocation struct {
+	*time.Location
+}
+
 // Checkout resolves revision content and applies lock changes to the file.
 //
 // Options:
 //   - WithRevision("1.2") picks an explicit revision (defaults to file head)
 //   - WithDate(time.Time) picks the latest revision on the selected branch/trunk <= date
+//   - WithTimeZoneOffset(int) sets the timezone offset (in seconds) for parsing revision dates
+//   - WithLocation(*time.Location) sets the location for parsing revision dates
 //   - WithSetLock / WithClearLock controls lock mutation
 func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if file == nil {
@@ -44,6 +52,7 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	revision := file.Head
 	lockMode := WithNoLockChange
 	var targetDate time.Time
+	var targetLocation *time.Location
 
 	for _, op := range ops {
 		switch v := op.(type) {
@@ -53,13 +62,21 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 			targetDate = time.Time(v)
 		case WithLock:
 			lockMode = v
+		case WithTimeZoneOffset:
+			targetLocation = time.FixedZone("", int(v))
+		case WithLocation:
+			targetLocation = v.Location
 		default:
 			return nil, fmt.Errorf("unsupported checkout option type %T", op)
 		}
 	}
 
 	if !targetDate.IsZero() {
-		resolved, err := file.resolveRevisionByDate(revision, targetDate)
+		defaultZone := time.UTC
+		if targetLocation != nil {
+			defaultZone = targetLocation
+		}
+		resolved, err := file.resolveRevisionByDate(revision, targetDate, defaultZone)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +115,7 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	return v, nil
 }
 
-func (file *File) resolveRevisionByDate(startRev string, targetDate time.Time) (string, error) {
+func (file *File) resolveRevisionByDate(startRev string, targetDate time.Time, defaultZone *time.Location) (string, error) {
 	rhByRevision := map[string]*RevisionHead{}
 	for _, rh := range file.RevisionHeads {
 		rhByRevision[rh.Revision.String()] = rh
@@ -133,7 +150,7 @@ func (file *File) resolveRevisionByDate(startRev string, targetDate time.Time) (
 	for _, rh := range chain {
 		// Parse date (RCS file dates are UTC usually, or whatever is stored)
 		// We use ParseDate which handles formats.
-		t, err := ParseDate(string(rh.Date), time.Time{}, time.UTC)
+		t, err := ParseDate(string(rh.Date), time.Time{}, defaultZone)
 		if err != nil {
 			// If date is unparsable, we skip it? Or fail?
 			// Fail is safer.
