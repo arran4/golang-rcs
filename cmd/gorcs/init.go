@@ -13,109 +13,14 @@ import (
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*Rcs)(nil)
-
-type Rcs struct {
-	*RootCmd
-	Flags       *flag.FlagSet
-	SubCommands map[string]Cmd
-}
-
-type UsageDataRcs struct {
-	*Rcs
-	Recursive bool
-}
-
-func (c *Rcs) Usage() {
-	err := executeUsage(os.Stderr, "rcs_usage.txt", UsageDataRcs{c, false})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
-	}
-}
-
-func (c *Rcs) UsageRecursive() {
-	err := executeUsage(os.Stderr, "rcs_usage.txt", UsageDataRcs{c, true})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
-	}
-}
-
-func (c *Rcs) Execute(args []string) error {
-	if len(args) > 0 {
-		if cmd, ok := c.SubCommands[args[0]]; ok {
-			return cmd.Execute(args[1:])
-		}
-	}
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		if arg == "--" {
-			break
-		}
-		if strings.HasPrefix(arg, "-") {
-			name := arg
-			trimmedName := strings.TrimLeft(name, "-")
-			switch trimmedName {
-			case "help", "h":
-				c.Usage()
-				return nil
-			default:
-				return fmt.Errorf("unknown flag: %s", name)
-			}
-		}
-	}
-
-	c.Usage()
-
-	return nil
-}
-
-func (c *RootCmd) NewRcs() *Rcs {
-	set := flag.NewFlagSet("rcs", flag.ContinueOnError)
-	v := &Rcs{
-		RootCmd:     c,
-		Flags:       set,
-		SubCommands: make(map[string]Cmd),
-	}
-	set.Usage = v.Usage
-
-	v.SubCommands["init"] = v.NewInit()
-
-	v.SubCommands["help"] = &InternalCommand{
-		Exec: func(args []string) error {
-			for _, arg := range args {
-				if arg == "-deep" {
-					v.UsageRecursive()
-					return nil
-				}
-			}
-			v.Usage()
-			return nil
-		},
-		UsageFunc: v.Usage,
-	}
-	v.SubCommands["usage"] = &InternalCommand{
-		Exec: func(args []string) error {
-			for _, arg := range args {
-				if arg == "-deep" {
-					v.UsageRecursive()
-					return nil
-				}
-			}
-			v.Usage()
-			return nil
-		},
-		UsageFunc: v.Usage,
-	}
-	return v
-}
-
 var _ Cmd = (*Init)(nil)
 
 type Init struct {
-	*Rcs
+	*RootCmd
 	Flags         *flag.FlagSet
 	description   string
 	files         []string
+	SubCommands   map[string]Cmd
 	CommandAction func(c *Init) error
 }
 
@@ -204,9 +109,9 @@ func (c *Init) Execute(args []string) error {
 	return nil
 }
 
-func (c *Rcs) NewInit() *Init {
+func (c *RootCmd) NewInit() *Init {
 	set := flag.NewFlagSet("init", flag.ContinueOnError)
-	v := &Init{Rcs: c, Flags: set}
+	v := &Init{RootCmd: c, Flags: set, SubCommands: make(map[string]Cmd)}
 	set.Usage = v.Usage
 	v.CommandAction = func(c *Init) error {
 		err := cli.Init(c.description, c.files...)
@@ -223,5 +128,7 @@ func (c *Rcs) NewInit() *Init {
 		}
 		return nil
 	}
+	v.SubCommands["help"] = &InternalCommand{Exec: func(args []string) error { v.Usage(); return nil }, UsageFunc: v.Usage}
+	v.SubCommands["usage"] = &InternalCommand{Exec: func(args []string) error { v.Usage(); return nil }, UsageFunc: v.Usage}
 	return v
 }

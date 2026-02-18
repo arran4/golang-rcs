@@ -136,7 +136,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testFormatRCS(t, parts, options)
 		case testName == "validate rcs":
 			testValidateRCS(t, parts, options)
-		case testName == "new rcs" || testName == "rcs init":
+		case testName == "rcs init":
 			testNewRCS(t, parts, options, optionArgs)
 		case testName == "list heads":
 			testListHeads(t, parts, options)
