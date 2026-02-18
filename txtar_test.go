@@ -172,25 +172,24 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSMerge(t, parts, options)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
-		case strings.HasPrefix(testName, "state "):
-			testState(t, parts, options, testName)
+		case testName == "rcs state":
+			testState(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }
 
-func testState(t *testing.T, parts map[string]string, options map[string]bool, testName string) {
-	t.Run(testName, func(t *testing.T) {
+func testState(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("rcs state", func(t *testing.T) {
 		inputRCS := getInputRCS(t, parts)
 		parsedFile, err := parseRCS(inputRCS)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
 		}
 
-		args := strings.Fields(testName)
-		if len(args) < 2 {
-			t.Fatalf("Invalid state command: %s", testName)
+		if len(args) < 2 || args[0] != "state" {
+			t.Fatalf("Invalid state command args: %v", args)
 		}
 		subCmd := args[1]
 
