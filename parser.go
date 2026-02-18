@@ -191,6 +191,7 @@ type FileFormattingOptions struct {
 	HeadSeparatorSpaces      int    `json:",omitempty"`
 	BranchSeparatorSpaces    int    `json:",omitempty"`
 	AccessSeparatorSpaces    int    `json:",omitempty"`
+	AccessMultiline          bool   `json:",omitempty"`
 	SymbolsSeparatorSpaces   int    `json:",omitempty"`
 	SymbolsInline            bool   `json:",omitempty"`
 	SymbolsFirstSpaces       int    `json:",omitempty"`
@@ -351,10 +352,19 @@ func (f *File) String() string {
 	}
 	if f.Access {
 		if len(f.AccessUsers) > 0 {
-			sb.WriteString("access ")
-			sb.WriteString(strings.Join(f.AccessUsers, " "))
-			sb.WriteString(";")
-			sb.WriteString(nl)
+			if !f.AccessMultiline {
+				sb.WriteString("access ")
+				sb.WriteString(strings.Join(f.AccessUsers, " "))
+				sb.WriteString(";")
+				sb.WriteString(nl)
+			} else {
+				sb.WriteString("access")
+				for _, user := range f.AccessUsers {
+					sb.WriteString(nl + "\t" + user)
+				}
+				sb.WriteString(";")
+				sb.WriteString(nl)
+			}
 		} else {
 			sb.WriteString("access")
 			if f.AccessSeparatorSpaces > 0 {
@@ -649,10 +659,13 @@ func ParseHeader(s *Scanner, f *File) error {
 			}
 		case "access":
 			f.Access = true
-			if users, ws, err := ParseHeaderAccessWithSpacing(s, true); err != nil {
+			if users, ws, multiline, err := ParseHeaderAccessWithSpacing(s, true); err != nil {
 				return fmt.Errorf("token %#v: %w", nt, err)
 			} else {
 				f.AccessUsers = users
+				if len(users) > 0 {
+					f.AccessMultiline = multiline
+				}
 				if len(users) == 0 && isSpacesOnly(ws) {
 					f.AccessSeparatorSpaces = len(ws)
 				}
@@ -1054,34 +1067,38 @@ func ParseHeaderCommentWithSpacing(s *Scanner, havePropertyName bool) (string, s
 }
 
 func ParseHeaderAccess(s *Scanner, havePropertyName bool) ([]string, error) {
-	ids, _, err := ParseHeaderAccessWithSpacing(s, havePropertyName)
+	ids, _, _, err := ParseHeaderAccessWithSpacing(s, havePropertyName)
 	return ids, err
 }
 
-func ParseHeaderAccessWithSpacing(s *Scanner, havePropertyName bool) ([]string, string, error) {
+func ParseHeaderAccessWithSpacing(s *Scanner, havePropertyName bool) ([]string, string, bool, error) {
 	if !havePropertyName {
 		if err := ScanStrings(s, "access"); err != nil {
-			return nil, "", err
+			return nil, "", false, err
 		}
 	}
 	var ids []string
 	var wsBeforeTerm string
+	multiline := false
 	for {
 		if err := ScanWhiteSpace(s, 0); err != nil {
-			return nil, "", err
+			return nil, "", false, err
 		}
 		ws := s.Text()
+		if strings.Contains(ws, "\n") || strings.Contains(ws, "\r") {
+			multiline = true
+		}
 		if err := ScanStrings(s, ";"); err == nil {
 			wsBeforeTerm = ws
 			break
 		}
 		id, err := ScanTokenId(s)
 		if err != nil {
-			return nil, "", fmt.Errorf("expected id in access: %w", err)
+			return nil, "", false, fmt.Errorf("expected id in access: %w", err)
 		}
 		ids = append(ids, id)
 	}
-	return ids, wsBeforeTerm, nil
+	return ids, wsBeforeTerm, multiline, nil
 }
 
 func ParseHeaderSymbols(s *Scanner, havePropertyName bool) ([]*Symbol, string, error) {

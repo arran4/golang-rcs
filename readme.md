@@ -412,7 +412,7 @@ Copies the access list from one RCS file to one or more other RCS files. This re
 gorcs access-list copy -from <source_file,v> <target_file1,v> [target_file2,v ...]
 ```
 
-- `-from`: The source RCS file to read the access list from.
+- `-from`: The source RCS file to copy the access list from.
 
 **Example:**
 
@@ -430,7 +430,7 @@ Appends the access list from one RCS file to one or more other RCS files, avoidi
 gorcs access-list append -from <source_file,v> <target_file1,v> [target_file2,v ...]
 ```
 
-- `-from`: The source RCS file to read the access list from.
+- `-from`: The source RCS file to append the access list from.
 
 **Example:**
 
