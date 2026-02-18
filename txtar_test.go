@@ -89,12 +89,13 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	// options.conf / options.json
 	options := make(map[string]bool)
 	optionArgs := []string{}
-	optionMessage := ""
+	var optionMessage, optionSubCommand, optionRevision string
+	var optionFiles []string
 	if optContent, ok := parts["options.conf"]; ok {
-		parseOptions(optContent, options, &optionArgs, &optionMessage)
+		parseOptions(optContent, options, &optionArgs, &optionMessage, &optionSubCommand, &optionRevision, &optionFiles)
 	}
 	if optContent, ok := parts["options.json"]; ok {
-		parseOptions(optContent, options, &optionArgs, &optionMessage)
+		parseOptions(optContent, options, &optionArgs, &optionMessage, &optionSubCommand, &optionRevision, &optionFiles)
 	}
 
 	// tests.txt or tests.md
@@ -176,34 +177,33 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
 		case strings.HasPrefix(testName, "log message"):
-			testLogMessage(t, parts, options, optionArgs, optionMessage)
+			testLogMessage(t, parts, options, optionArgs, optionMessage, optionSubCommand, optionRevision, optionFiles)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
 }
 
-func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string, message string) {
+func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string, message, subCommand, revision string, files []string) {
 	t.Run("log message", func(t *testing.T) {
-		if len(args) == 0 {
-			t.Fatal("Missing subcommand for log message")
-		}
-		subCmd := args[0]
-		remainingArgs := args[1:]
+		if subCommand == "" {
+			if len(args) == 0 {
+				t.Fatal("Missing subcommand for log message")
+			}
+			subCommand = args[0]
+			remainingArgs := args[1:]
 
-		var revision string
-		var files []string
-
-		for i := 0; i < len(remainingArgs); i++ {
-			arg := remainingArgs[i]
-			if arg == "-rev" && i+1 < len(remainingArgs) {
-				revision = remainingArgs[i+1]
-				i++
-			} else if arg == "-m" && i+1 < len(remainingArgs) {
-				message = remainingArgs[i+1]
-				i++
-			} else if !strings.HasPrefix(arg, "-") {
-				files = append(files, arg)
+			for i := 0; i < len(remainingArgs); i++ {
+				arg := remainingArgs[i]
+				if arg == "-rev" && i+1 < len(remainingArgs) {
+					revision = remainingArgs[i+1]
+					i++
+				} else if arg == "-m" && i+1 < len(remainingArgs) {
+					message = remainingArgs[i+1]
+					i++
+				} else if !strings.HasPrefix(arg, "-") {
+					files = append(files, arg)
+				}
 			}
 		}
 
@@ -232,7 +232,7 @@ func testLogMessage(t *testing.T, parts map[string]string, options map[string]bo
 				t.Fatalf("parseRCS failed: %v", err)
 			}
 
-			switch subCmd {
+			switch subCommand {
 			case "change":
 				if revision == "" || message == "" {
 					t.Fatal("change requires -rev and -m")
@@ -292,7 +292,7 @@ func testLogMessage(t *testing.T, parts map[string]string, options map[string]bo
 				}
 
 			default:
-				t.Fatalf("Unknown subcommand: %s", subCmd)
+				t.Fatalf("Unknown subcommand: %s", subCommand)
 			}
 		}
 	})
@@ -498,7 +498,7 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 	})
 }
 
-func parseOptions(content string, options map[string]bool, optionArgs *[]string, message *string) {
+func parseOptions(content string, options map[string]bool, optionArgs *[]string, message, subCommand, revision *string, files *[]string) {
 	trimmed := strings.TrimSpace(content)
 	if strings.HasPrefix(trimmed, "{") {
 		var parsed struct {
@@ -507,6 +507,9 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string,
 			Flags           map[string]bool `json:"flags"`
 			Options         []string        `json:"options"`
 			Message         string          `json:"message"`
+			SubCommand      string          `json:"subcommand"`
+			Revision        string          `json:"revision"`
+			Files           []string        `json:"files"`
 		}
 		if err := json.Unmarshal([]byte(trimmed), &parsed); err == nil {
 			selectedArgs := parsed.Args
@@ -524,6 +527,15 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string,
 			}
 			if parsed.Message != "" {
 				*message = parsed.Message
+			}
+			if parsed.SubCommand != "" {
+				*subCommand = parsed.SubCommand
+			}
+			if parsed.Revision != "" {
+				*revision = parsed.Revision
+			}
+			if len(parsed.Files) > 0 {
+				*files = append((*files)[:0], parsed.Files...)
 			}
 			return
 		}
