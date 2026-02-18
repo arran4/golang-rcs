@@ -311,14 +311,12 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 				ops = append(ops, WithRevision(rev))
 			case strings.HasPrefix(arg, "-l"):
 				rev := strings.TrimPrefix(arg, "-l")
-				// REMOVED greedy consumption of next arg for -l and -u
 				if rev != "" {
 					ops = append(ops, WithRevision(rev))
 				}
 				ops = append(ops, WithSetLock)
 			case strings.HasPrefix(arg, "-u"):
 				rev := strings.TrimPrefix(arg, "-u")
-				// REMOVED greedy consumption of next arg for -l and -u
 				if rev != "" {
 					ops = append(ops, WithRevision(rev))
 				}
@@ -328,20 +326,7 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			}
 		}
 
-		// Pass RCS filename
-		// In tests, we don't know the filename unless args specifies it or we infer it.
-		// Usually tests pass "input.txt" as args.
-		// We'll peek at args for a filename?
-		// Actually, `testCO` is called with `optionArgs` derived from `options.conf`.
-		// `options.conf` typically contains `["-q", "input.txt"]`.
-		// But `testCO` iterates args starting with `-`.
-		// What about positional args?
-		// `testCO` ignores non-flag args?
-		// `if !strings.HasPrefix(arg, "-") { continue }`
-
-		// So we need to explicitly pass filename.
-		// Or assume "input.txt,v".
-		// We'll pass "input.txt,v" (or whatever parts uses).
+		// Ensure we pass the RCS filename so that keyword expansion (e.g. $Source$) works correctly.
 		ops = append(ops, WithRCSFilename("file.txt,v")) // Standard dummy name for tests
 
 		verdict, err := parsed.Checkout(user, ops...)

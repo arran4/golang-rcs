@@ -29,7 +29,7 @@ type COVerdict struct {
 //	user: -w user for lock operations
 //	quiet: -q suppress status output
 //	files: ... List of working files to process
-func Co(revision string, lock, unlock bool, keywordMode rcs.KeywordSubstitution, user string, quiet bool, files ...string) error {
+func Co(revision string, lock, unlock bool, keywordModeStr string, user string, quiet bool, files ...string) error {
 	if lock && unlock {
 		return fmt.Errorf("cannot combine -l and -u")
 	}
@@ -39,6 +39,29 @@ func Co(revision string, lock, unlock bool, keywordMode rcs.KeywordSubstitution,
 	if len(files) == 0 {
 		return fmt.Errorf("no files provided")
 	}
+
+	var keywordMode rcs.KeywordSubstitution
+	if keywordModeStr != "" {
+		switch keywordModeStr {
+		case "kv":
+			keywordMode = rcs.KV
+		case "kvl":
+			keywordMode = rcs.KVL
+		case "k":
+			keywordMode = rcs.K
+		case "o":
+			keywordMode = rcs.O
+		case "b":
+			keywordMode = rcs.B
+		case "v":
+			keywordMode = rcs.V
+		default:
+			return fmt.Errorf("unknown keyword substitution mode: %s", keywordModeStr)
+		}
+	} else {
+		keywordMode = rcs.KV // Default
+	}
+
 	for _, file := range files {
 		result, err := coFile(revision, lock, unlock, keywordMode, user, quiet, file)
 		if err != nil {

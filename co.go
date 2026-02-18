@@ -27,8 +27,12 @@ const (
 
 type WithRevision string
 
+// WithExpandKeyword sets the keyword substitution mode (e.g. KV, KVL, K) for the checkout operation.
+// This is required to control how keywords like $Id$ and $Log$ are expanded in the working file.
 type WithExpandKeyword KeywordSubstitution
 
+// WithRCSFilename sets the filename to be used in keyword expansion (e.g. for $Source$ or $Id$).
+// This is required because the file content itself typically doesn't know its own filename.
 type WithRCSFilename string
 
 // Checkout resolves revision content and applies lock changes to the file.

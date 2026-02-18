@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"errors"
-	rcs "github.com/arran4/golang-rcs"
 	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
@@ -27,7 +26,7 @@ type Co struct {
 	quiet         bool
 	user          string
 	files         []string
-	keywordMode   rcs.KeywordSubstitution
+	keywordMode   string
 	SubCommands   map[string]Cmd
 	CommandAction func(c *Co) error
 }
@@ -132,26 +131,12 @@ func (c *Co) Execute(args []string) error {
 					} else if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
 						modeStr = args[i+1]
 						i++
+						continue
 					}
 				} else {
 					modeStr = strings.TrimPrefix(trimmed, "k")
 				}
-				switch modeStr {
-				case "kv":
-					c.keywordMode = rcs.KV
-				case "kvl":
-					c.keywordMode = rcs.KVL
-				case "k":
-					c.keywordMode = rcs.K
-				case "o":
-					c.keywordMode = rcs.O
-				case "b":
-					c.keywordMode = rcs.B
-				case "v":
-					c.keywordMode = rcs.V
-				default:
-					return fmt.Errorf("unknown keyword substitution mode: %s", modeStr)
-				}
+				c.keywordMode = modeStr
 			default:
 				return fmt.Errorf("unknown flag: %s", name)
 			}
