@@ -1589,7 +1589,6 @@ func ScanNewLine(s *Scanner, orEof bool) error {
 	return ScanStrings(s, "\r\n", "\n")
 }
 
-
 func ScanStrings(s *Scanner, strs ...string) (err error) {
 	return s.ScanMatch(strs...)
 }
