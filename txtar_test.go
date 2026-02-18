@@ -287,7 +287,7 @@ func testState(t *testing.T, parts map[string]string, options map[string]bool, a
 		case "list":
 			var sb strings.Builder
 			for _, rh := range parsedFile.RevisionHeads {
-				sb.WriteString(fmt.Sprintf("%s %s\n", rh.Revision, rh.State))
+				fmt.Fprintf(&sb, "%s %s\n", rh.Revision, rh.State)
 			}
 			gotOut := sb.String()
 
