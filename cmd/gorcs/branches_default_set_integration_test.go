@@ -11,7 +11,7 @@ import (
 )
 
 func TestBranchesDefaultSet_FromOperation3049(t *testing.T) {
-	archivePath := filepath.Join("..", "..", "testdata", "txtar", "operations", "3049-rcs-b.txtar")
+	archivePath := filepath.Join("..", "..", "testdata", "txtar", "operations", "rcs-b.txtar")
 	content, err := os.ReadFile(archivePath)
 	if err != nil {
 		t.Fatalf("read fixture: %v", err)
