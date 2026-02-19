@@ -3,7 +3,9 @@ package rcs
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/arran4/golang-rcs/diff"
 )
@@ -27,10 +29,21 @@ const (
 
 type WithRevision string
 
+type WithDate time.Time
+
+type WithTimeZoneOffset int // Seconds East of UTC
+
+type WithLocation struct {
+	*time.Location
+}
+
 // Checkout resolves revision content and applies lock changes to the file.
 //
 // Options:
 //   - WithRevision("1.2") picks an explicit revision (defaults to file head)
+//   - WithDate(time.Time) picks the latest revision on the selected branch/trunk <= date
+//   - WithTimeZoneOffset(int) sets the timezone offset (in seconds) for parsing revision dates
+//   - WithLocation(*time.Location) sets the location for parsing revision dates
 //   - WithSetLock / WithClearLock controls lock mutation
 func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if file == nil {
@@ -38,16 +51,38 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	}
 	revision := file.Head
 	lockMode := WithNoLockChange
+	var targetDate time.Time
+	var targetLocation *time.Location
+
 	for _, op := range ops {
 		switch v := op.(type) {
 		case WithRevision:
 			revision = string(v)
+		case WithDate:
+			targetDate = time.Time(v)
 		case WithLock:
 			lockMode = v
+		case WithTimeZoneOffset:
+			targetLocation = time.FixedZone("", int(v))
+		case WithLocation:
+			targetLocation = v.Location
 		default:
 			return nil, fmt.Errorf("unsupported checkout option type %T", op)
 		}
 	}
+
+	if !targetDate.IsZero() {
+		defaultZone := time.UTC
+		if targetLocation != nil {
+			defaultZone = targetLocation
+		}
+		resolved, err := file.resolveRevisionByDate(revision, targetDate, defaultZone)
+		if err != nil {
+			return nil, err
+		}
+		revision = resolved
+	}
+
 	if revision == "" {
 		return nil, fmt.Errorf("missing target revision")
 	}
@@ -78,6 +113,100 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	}
 
 	return v, nil
+}
+
+func (file *File) resolveRevisionByDate(startRev string, targetDate time.Time, defaultZone *time.Location) (string, error) {
+	rhByRevision := map[string]*RevisionHead{}
+	for _, rh := range file.RevisionHeads {
+		rhByRevision[rh.Revision.String()] = rh
+	}
+
+	currentRev := startRev
+	// Collect all revisions in the chain starting from currentRev
+	var chain []*RevisionHead
+	visited := map[string]bool{}
+
+	for {
+		if visited[currentRev] {
+			return "", fmt.Errorf("loop detected while resolving date for %q", startRev)
+		}
+		visited[currentRev] = true
+
+		rh, ok := rhByRevision[currentRev]
+		if !ok {
+			return "", fmt.Errorf("revision %q not found", currentRev)
+		}
+		chain = append(chain, rh)
+
+		currentRev = rh.NextRevision.String()
+		if currentRev == "" {
+			break
+		}
+	}
+
+	// Find the revision with highest revision number that is <= targetDate
+	var bestRev string
+
+	for _, rh := range chain {
+		// Parse date (RCS file dates are UTC usually, or whatever is stored)
+		// We use ParseDate which handles formats.
+		t, err := ParseDate(string(rh.Date), time.Time{}, defaultZone)
+		if err != nil {
+			// If date is unparsable, we skip it? Or fail?
+			// Fail is safer.
+			return "", fmt.Errorf("invalid date in revision %q: %w", rh.Revision, err)
+		}
+
+		if !t.After(targetDate) {
+			// Candidate
+			if bestRev == "" {
+				bestRev = rh.Revision.String()
+			} else {
+				// Compare revisions
+				if compareRevisions(rh.Revision.String(), bestRev) > 0 {
+					bestRev = rh.Revision.String()
+				}
+			}
+		}
+	}
+
+	if bestRev == "" {
+		return "", fmt.Errorf("no revision found on or before %v starting from %q", targetDate, startRev)
+	}
+	return bestRev, nil
+}
+
+// compareRevisions compares two revision strings (e.g. "1.2" vs "1.10").
+// Returns 1 if a > b, -1 if a < b, 0 if a == b.
+func compareRevisions(a, b string) int {
+	partsA := strings.Split(a, ".")
+	partsB := strings.Split(b, ".")
+
+	lenA := len(partsA)
+	lenB := len(partsB)
+	minLen := lenA
+	if lenB < minLen {
+		minLen = lenB
+	}
+
+	for i := 0; i < minLen; i++ {
+		valA, _ := strconv.Atoi(partsA[i])
+		valB, _ := strconv.Atoi(partsB[i])
+		if valA > valB {
+			return 1
+		}
+		if valA < valB {
+			return -1
+		}
+	}
+
+	if lenA > lenB {
+		return 1
+	}
+	if lenA < lenB {
+		return -1
+	}
+	return 0
 }
 
 func (file *File) resolveRevisionContent(targetRevision string) (string, error) {

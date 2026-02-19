@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	rcs "github.com/arran4/golang-rcs"
 )
@@ -28,8 +29,10 @@ type COVerdict struct {
 //	unlock: -u unlock checked-out revision
 //	user: -w user for lock operations
 //	quiet: -q suppress status output
+//	date: -d date to check out
+//	zone: -z zone for date parsing (e.g. "LT", "UTC", "-0700", "America/New_York")
 //	files: ... List of working files to process
-func Co(revision string, lock, unlock bool, user string, quiet bool, files ...string) error {
+func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, files ...string) error {
 	if lock && unlock {
 		return fmt.Errorf("cannot combine -l and -u")
 	}
@@ -40,7 +43,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 		return fmt.Errorf("no files provided")
 	}
 	for _, file := range files {
-		result, err := coFile(revision, lock, unlock, user, quiet, file)
+		result, err := coFile(revision, lock, unlock, user, quiet, checkoutDate, checkoutZone, file)
 		if err != nil {
 			return err
 		}
@@ -58,7 +61,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, files ...st
 	return nil
 }
 
-func coFile(revision string, lock, unlock bool, user string, quiet bool, workingFile string) (COVerdict, error) {
+func coFile(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, workingFile string) (COVerdict, error) {
 	rcsFile := workingFile
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
@@ -72,9 +75,20 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, working
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
 	}
 
-	ops := make([]any, 0, 2)
+	ops := make([]any, 0, 3)
 	if revision != "" {
 		ops = append(ops, rcs.WithRevision(revision))
+	}
+	if checkoutDate != "" {
+		zone, err := rcs.ParseZone(checkoutZone)
+		if err != nil {
+			return COVerdict{}, fmt.Errorf("invalid zone %q: %w", checkoutZone, err)
+		}
+		t, err := rcs.ParseDate(checkoutDate, time.Now(), zone)
+		if err != nil {
+			return COVerdict{}, fmt.Errorf("invalid date %q: %w", checkoutDate, err)
+		}
+		ops = append(ops, rcs.WithDate(t))
 	}
 	if lock {
 		ops = append(ops, rcs.WithSetLock)

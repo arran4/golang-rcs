@@ -7,6 +7,7 @@
     *   These tests verify that parsing `input.rcs` results in the structure defined in `expected.json`, and that `File.String()` matches the original input (or a normalized version if specified).
 *   New features should include tests covering both positive and negative cases.
 *   When testing CLI flags, prefer integration tests that verify behavior through the command execution path.
+*   Multiline full RCS test data must be `go:embed` not added as a multiline string. Ideally integrated into the txtar system but not always necessary depending on pragmatics.
 
 ## Coding Standards
 *   Use standard Go formatting (`go fmt`).
