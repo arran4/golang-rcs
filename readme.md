@@ -385,12 +385,16 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-kSUBST] [-wUSER] [
 - `-dDATE`: Check out the latest revision on the default branch (or trunk) that is on or before the specified date.
 - `-zZONE`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid zone names.
 - `-kSUBST`: Substitution mode option. Controls how keywords are expanded in the working file.
-    - `kv`: Generate `$Keyword: value $`. This is the default.
-    - `kvl`: Like `kv`, but locker is always inserted if locked.
-    - `k`: Generate `$Keyword$`.
-    - `o`: Generate the old value present in the working file just before it was checked in.
-    - `b`: Binary. Like `o`.
-    - `v`: Generate value only.
+
+| Mode | Effect | Example Expansion |
+| :--- | :--- | :--- |
+| `kv` | Generate `$Keyword: value $`. This is the default. | `$Revision: 1.1 $` |
+| `kvl` | Like `kv`, but locker is always inserted if locked. | `$Header: file.v 1.1 2022/01/01 00:00:00 author Exp locker $` |
+| `k` | Generate `$Keyword$`. | `$Revision$` |
+| `o` | Generate the old value present in the working file just before it was checked in. | (The string as it was in the checked-in file) |
+| `b` | Binary. Like `o`. | (Same as `o`) |
+| `v` | Generate value only. | `1.1` |
+
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
