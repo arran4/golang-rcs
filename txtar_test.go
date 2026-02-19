@@ -261,10 +261,7 @@ func testLocks(t *testing.T, parts map[string]string, options map[string]bool, a
 				// If `file` is `input.txt`, check `parts["input.txt"]`.
 				// If user passed `input.txt,v` as file?
 
-				workFile := file
-				if strings.HasSuffix(workFile, ",v") {
-					workFile = strings.TrimSuffix(workFile, ",v")
-				}
+				workFile := strings.TrimSuffix(file, ",v")
 
 				workContent, ok := parts[workFile]
 				if !ok {
