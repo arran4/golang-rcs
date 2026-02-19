@@ -99,13 +99,7 @@ func PrintRLog(w io.Writer, f *File, filename string, workingFilename string, fi
 }
 
 func getLinesStats(f *File, rh *RevisionHead) (string, error) {
-	// Determine if trunk or branch based on number of parts in revision
-	// Simplistic check: X.Y is trunk, X.Y.Z.W is branch
-	// This might fail for Vendor branches (1.1.1.1) which are branches but treated specially?
 	// Standard RCS logic: if revision has odd number of dots (even number of fields), it's trunk or branch tip.
-	// But structure is recursive.
-	// 1.2 is trunk. 1.2.1.1 is branch.
-	// Trunk revisions have 2 components.
 	parts := strings.Split(string(rh.Revision), ".")
 	isTrunk := len(parts) == 2
 
@@ -128,7 +122,6 @@ func getLinesStats(f *File, rh *RevisionHead) (string, error) {
 			}
 		}
 		if !found {
-			// Next revision declared but content missing?
 			return "", nil
 		}
 		isReverse = true
@@ -178,19 +171,9 @@ func parseDeltaStats(delta string) (dCount, aCount int) {
 			// Format: d<start> <count> or a<start> <count>
 			// But wait, is there space after command char?
 			// RCS format says: "dla count" or "ala count". "la" is line number.
-			// Examples: "d1 1", "a1 1". No space between command char and line number?
-			// Let's check parser code or examples.
-			// Example: "d1 1". 'd' at 0. '1' at 1.
-			// So no space.
-			// We need to parse "d<num> <num>".
+			// We check if line matches pattern "d<num> <num>" or "a<num> <num>"
 
-			// Check if line matches pattern
 			parts := strings.Fields(line[1:])
-			// parts[0] is part of line number if space existed?
-			// If "d1 1", line[1:] is "1 1". Fields: ["1", "1"].
-			// If "d12 3", line[1:] is "12 3". Fields: ["12", "3"].
-			// If "d 1 1" (invalid?).
-
 			if len(parts) >= 2 {
 				count, err := strconv.Atoi(parts[1])
 				if err != nil {

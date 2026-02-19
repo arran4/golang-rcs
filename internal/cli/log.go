@@ -126,6 +126,11 @@ func LogMessageList(files ...string) error {
 //	stateFilter: -s state filters
 //	files: ... List of working files to process
 func Log(filterStr string, stateFilter string, files ...string) error {
+	if len(files) > 0 && files[0] == "filter-reference" {
+		printFilterReference()
+		return nil
+	}
+
 	var filters []rcs.Filter
 
 	if filterStr != "" {
@@ -184,4 +189,21 @@ func Log(filterStr string, stateFilter string, files ...string) error {
 		}
 	}
 	return nil
+}
+
+func printFilterReference() {
+	fmt.Println("Filter Reference:")
+	fmt.Println()
+	fmt.Println("Filtering allows selecting specific revisions based on criteria.")
+	fmt.Println("Syntax:")
+	fmt.Println("  state=<value>       Select revisions with the given state.")
+	fmt.Println("  s=<value>           Alias for state.")
+	fmt.Println("  state in (val ...)  Select revisions where state matches one of the values.")
+	fmt.Println("  <expr> OR <expr>    Logical OR.")
+	fmt.Println("  <expr> || <expr>    Logical OR.")
+	fmt.Println()
+	fmt.Println("Examples:")
+	fmt.Println("  state=Rel")
+	fmt.Println("  s=Exp || s=Prod")
+	fmt.Println("  state in (Rel Prod)")
 }
