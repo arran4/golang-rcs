@@ -37,6 +37,10 @@ type WithLocation struct {
 	*time.Location
 }
 
+type WithExpandKeyword KeywordSubstitution
+
+type WithRCSFilename string
+
 // Checkout resolves revision content and applies lock changes to the file.
 //
 // Options:
@@ -45,6 +49,8 @@ type WithLocation struct {
 //   - WithTimeZoneOffset(int) sets the timezone offset (in seconds) for parsing revision dates
 //   - WithLocation(*time.Location) sets the location for parsing revision dates
 //   - WithSetLock / WithClearLock controls lock mutation
+//   - WithExpandKeyword(KV) sets the keyword expansion mode
+//   - WithRCSFilename("file.v") sets the RCS filename for keyword expansion
 func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if file == nil {
 		return nil, fmt.Errorf("nil file")
@@ -53,6 +59,9 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	lockMode := WithNoLockChange
 	var targetDate time.Time
 	var targetLocation *time.Location
+	var expandMode KeywordSubstitution = KV
+	expandModeSet := false
+	var rcsFilename string
 
 	for _, op := range ops {
 		switch v := op.(type) {
@@ -66,8 +75,19 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 			targetLocation = time.FixedZone("", int(v))
 		case WithLocation:
 			targetLocation = v.Location
+		case WithExpandKeyword:
+			expandMode = KeywordSubstitution(v)
+			expandModeSet = true
+		case WithRCSFilename:
+			rcsFilename = string(v)
 		default:
 			return nil, fmt.Errorf("unsupported checkout option type %T", op)
+		}
+	}
+
+	if !expandModeSet && file.Expand != "" {
+		if m, err := ParseKeywordSubstitution(file.Expand); err == nil {
+			expandMode = m
 		}
 	}
 
@@ -96,6 +116,57 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Resolve metadata for keyword expansion
+	rhByRevision := map[string]*RevisionHead{}
+	for _, rh := range file.RevisionHeads {
+		rhByRevision[rh.Revision.String()] = rh
+	}
+	rh, ok := rhByRevision[revision]
+	if !ok {
+		return nil, fmt.Errorf("revision head %q not found", revision)
+	}
+
+	rcByRevision := map[string]*RevisionContent{}
+	for _, rc := range file.RevisionContents {
+		rcByRevision[rc.Revision] = rc
+	}
+	rc, ok := rcByRevision[revision]
+	if !ok {
+		return nil, fmt.Errorf("revision content %q not found", revision)
+	}
+
+	locker := ""
+	for _, l := range file.Locks {
+		if l.Revision == revision {
+			locker = l.User
+			break
+		}
+	}
+	if lockMode == WithSetLock {
+		locker = user
+	}
+
+	if expandMode == KV && lockMode != WithSetLock {
+		locker = ""
+	}
+
+	t, err := ParseDate(string(rh.Date), time.Time{}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("invalid date in revision %q: %w", revision, err)
+	}
+
+	kd := KeywordData{
+		Revision: revision,
+		Date:     t,
+		Author:   string(rh.Author),
+		State:    string(rh.State),
+		Locker:   locker,
+		Log:      rc.Log,
+		RCSFile:  rcsFilename,
+	}
+
+	content = ExpandKeywords(content, expandMode, kd)
 
 	v := &COVerdict{Revision: revision, Content: content}
 	switch lockMode {

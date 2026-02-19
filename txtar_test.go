@@ -451,7 +451,13 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			switch {
 			case arg == "-q":
 				continue
-			case strings.HasPrefix(arg, "-k"), strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
+			case strings.HasPrefix(arg, "-k"):
+				mode, err := ParseKeywordSubstitution(strings.TrimPrefix(arg, "-k"))
+				if err != nil {
+					t.Fatalf("ParseKeywordSubstitution error: %v", err)
+				}
+				ops = append(ops, WithExpandKeyword(mode))
+			case strings.HasPrefix(arg, "-f"), strings.HasPrefix(arg, "-s"):
 				t.Skipf("unsupported co flag in basic co mode: %s", arg)
 			case strings.HasPrefix(arg, "-w"):
 				if arg == "-w" {
@@ -480,6 +486,8 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 				t.Skipf("unsupported co arg format in basic co mode: %s", arg)
 			}
 		}
+
+		ops = append(ops, WithRCSFilename("input.txt,v"))
 
 		verdict, err := parsed.Checkout(user, ops...)
 		if err != nil {
