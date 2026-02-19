@@ -44,7 +44,7 @@ text
 @
 
 -- tests.txt --
-state
+rcs state
 
 -- expected.out --
 1.2 Rel

@@ -35,7 +35,7 @@ text
 @
 
 -- tests.txt --
-state
+rcs state
 
 -- expected.txt,v --
 head	1.1;
