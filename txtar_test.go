@@ -6,6 +6,7 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/fs"
 	"strings"
@@ -182,6 +183,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRLog(t, parts, options, optionArgs)
 		case testName == "rcs log":
 			testRLog(t, parts, options, optionArgs)
+		case testName == "gorcs locks":
+			testLocks(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
@@ -277,6 +280,121 @@ func testRLog(t *testing.T, parts map[string]string, options map[string]bool, ar
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
 			t.Errorf("rlog mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func testLocks(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("locks", func(t *testing.T) {
+		if len(args) == 0 {
+			t.Fatal("Missing subcommand for locks")
+		}
+		subCmd := args[0]
+
+		var revision string
+		var files []string
+
+		fs := flag.NewFlagSet(subCmd, flag.ContinueOnError)
+		fs.StringVar(&revision, "revision", "", "revision")
+		fs.StringVar(&revision, "rev", "", "revision (alias)")
+
+		// Filter out flags that might have been consumed by parseOptions but left in args?
+		// optionArgs come from options.conf "args".
+		// We expect them to be clean args for the command.
+
+		if err := fs.Parse(args[1:]); err != nil {
+			t.Fatalf("Flag parse error: %v", err)
+		}
+
+		files = fs.Args()
+
+		if len(files) == 0 {
+			t.Fatal("No files provided in args")
+		}
+
+		for _, file := range files {
+			// Find content in parts
+			// We expect to operate on the RCS file.
+			rcsFile := file
+			if !strings.HasSuffix(rcsFile, ",v") {
+				rcsFile += ",v"
+			}
+
+			content, ok := parts[rcsFile]
+			if !ok {
+				// Fallback: maybe the arg WAS the rcs file?
+				content, ok = parts[file]
+				if !ok {
+					t.Fatalf("Missing file part: %s", file)
+				}
+			}
+
+			parsed, err := parseRCS(content)
+			if err != nil {
+				t.Fatalf("parseRCS failed: %v", err)
+			}
+
+			user := "tester" // Mock user
+
+			switch subCmd {
+			case "lock":
+				if revision == "" {
+					t.Fatal("lock requires revision")
+				}
+				parsed.SetLock(user, revision)
+			case "unlock":
+				if revision == "" {
+					t.Fatal("unlock requires revision")
+				}
+				parsed.ClearLock(user, revision)
+			case "strict":
+				parsed.Strict = true
+			case "nonstrict":
+				parsed.Strict = false
+			case "clean", "clear":
+				// Logic for clean check
+				// We need working file content.
+				// Working file name is `file`.
+				// If `file` is `input.txt`, check `parts["input.txt"]`.
+				// If user passed `input.txt,v` as file?
+
+				workFile := strings.TrimSuffix(file, ",v")
+
+				workContent, ok := parts[workFile]
+				if !ok {
+					// Fallback: maybe file passed WAS input.txt and we found input.txt,v content earlier.
+					// But for 'clean' check we specifically need working file content.
+					t.Fatalf("Missing working file part: %s", workFile)
+				}
+
+				targetRev := revision
+				if targetRev == "" {
+					targetRev = parsed.Head
+				}
+
+				verdict, err := parsed.Checkout(user, WithRevision(targetRev))
+				if err != nil {
+					t.Fatalf("checkout failed: %v", err)
+				}
+
+				if workContent == verdict.Content {
+					parsed.ClearLock(user, targetRev)
+				} else {
+					t.Fatalf("Working file %s modified, cannot clean", file)
+				}
+
+			default:
+				t.Fatalf("Unknown subcommand: %s", subCmd)
+			}
+
+			// Compare with expected
+			expectedKey := "expected.txt,v"
+			expectedContent, ok := parts[expectedKey]
+			if !ok {
+				t.Fatalf("Missing expected file: %s", expectedKey)
+			}
+
+			checkRCS(t, expectedContent, parsed.String(), options)
 		}
 	})
 }
