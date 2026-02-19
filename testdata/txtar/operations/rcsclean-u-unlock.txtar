@@ -6,7 +6,6 @@ rcs clean -u (unlock)
 
 -- input.txt --
 Initial content
-
 -- input.txt,v --
 head	1.1;
 access;

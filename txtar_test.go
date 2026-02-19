@@ -156,26 +156,22 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testParseError(t, fullLine, parts, options)
 		case testName == "rcs access-list":
 			testAccessList(t, parts, options, optionArgs)
+		case testName == "rcs clean":
+			testRCSClean(t, parts, options, optionArgs)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
+		case testName == "rcs diff":
+			testRCSDiff(t, parts, options)
 		case testName == "rcs":
 			testRCS(t, parts, options, optionArgs)
 		case strings.HasPrefix(testName, "rcs "):
 			testRCS(t, parts, options, optionArgs)
-		case testName == "rcs merge":
-			testRCSMerge(t, parts, options)
-		case testName == "rcs merge":
-			testRCSMerge(t, parts, options)
 		case testName == "ci":
 			testCI(t, parts, options)
 		case testName == "co":
 			testCO(t, parts, options, optionArgs)
 		case testName == "rcsdiff":
 			testRCSDiff(t, parts, options)
-		case testName == "rcs diff":
-			testRCSDiff(t, parts, options)
-		case testName == "rcs merge":
-			testRCSMerge(t, parts, options)
-		case testName == "rcs clean":
-			testRCSClean(t, parts, options)
 		case strings.HasPrefix(testName, "log message"):
 			testLogMessage(t, parts, options, optionArgs, optionMessage, optionSubCommand, optionRevision, optionFiles)
 		default:
@@ -298,8 +294,77 @@ func testLogMessage(t *testing.T, parts map[string]string, options map[string]bo
 	})
 }
 
-func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool) {
-	t.Skip("rcs clean test type not implemented yet")
+func testRCSClean(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("rcs clean", func(t *testing.T) {
+		inputRCS := getInputRCS(t, parts)
+		expectedRCS, ok := parts["expected.txt,v"]
+		if !ok {
+			t.Fatal("Missing expected.txt,v")
+		}
+
+		parsedFile, err := parseRCS(inputRCS)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		user := "tester"
+		ops := make([]any, 0)
+		workingFile := ""
+
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
+			if arg == "-q" {
+				continue
+			}
+			if strings.HasPrefix(arg, "-u") {
+				if arg != "-u" {
+					// -u<rev>
+					revision := strings.TrimPrefix(arg, "-u")
+					ops = append(ops, WithRevision(revision))
+				}
+				ops = append(ops, WithClearLock)
+			} else if strings.HasPrefix(arg, "-r") {
+				if arg != "-r" {
+					revision := strings.TrimPrefix(arg, "-r")
+					ops = append(ops, WithRevision(revision))
+				}
+			} else if strings.HasPrefix(arg, "-w") {
+				if arg != "-w" {
+					user = strings.TrimPrefix(arg, "-w")
+				} else if i+1 < len(args) {
+					user = args[i+1]
+					i++
+				}
+			} else if !strings.HasPrefix(arg, "-") {
+				workingFile = arg
+			}
+		}
+
+		if workingFile == "" {
+			workingFile = "input.txt"
+		}
+
+		workingContent, ok := parts[workingFile]
+		if !ok {
+			t.Fatalf("Missing working file: %s", workingFile)
+		}
+
+		verdict, err := parsedFile.Clean(user, []byte(workingContent), ops...)
+		if err != nil {
+			t.Fatalf("Clean failed: %v", err)
+		}
+
+		checkRCS(t, expectedRCS, parsedFile.String(), options)
+
+		if verdict.Clean {
+			t.Logf("File %s is clean (matches revision %s)", workingFile, verdict.Revision)
+		} else {
+			t.Logf("File %s is dirty (does not match revision %s)", workingFile, verdict.Revision)
+		}
+		if verdict.Unlocked {
+			t.Logf("File %s unlocked", workingFile)
+		}
+	})
 }
 
 func testAccessList(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
@@ -799,6 +864,9 @@ func testParseError(t *testing.T, testName string, parts map[string]string, opti
 
 func getInputRCS(t *testing.T, parts map[string]string) string {
 	if content, ok := parts["input,v"]; ok {
+		return content
+	}
+	if content, ok := parts["input.txt,v"]; ok {
 		return content
 	}
 	if content, ok := parts["input.rcs"]; ok {
