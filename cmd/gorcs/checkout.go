@@ -13,9 +13,9 @@ import (
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
-var _ Cmd = (*Co)(nil)
+var _ Cmd = (*Checkout)(nil)
 
-type Co struct {
+type Checkout struct {
 	*RootCmd
 	Flags         *flag.FlagSet
 	revision      string
@@ -30,29 +30,29 @@ type Co struct {
 	zone          string
 	files         []string
 	SubCommands   map[string]Cmd
-	CommandAction func(c *Co) error
+	CommandAction func(c *Checkout) error
 }
 
-type UsageDataCo struct {
-	*Co
+type UsageDataCheckout struct {
+	*Checkout
 	Recursive bool
 }
 
-func (c *Co) Usage() {
-	err := executeUsage(os.Stderr, "co_usage.txt", UsageDataCo{c, false})
+func (c *Checkout) Usage() {
+	err := executeUsage(os.Stderr, "co_usage.txt", UsageDataCheckout{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Co) UsageRecursive() {
-	err := executeUsage(os.Stderr, "co_usage.txt", UsageDataCo{c, true})
+func (c *Checkout) UsageRecursive() {
+	err := executeUsage(os.Stderr, "co_usage.txt", UsageDataCheckout{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Co) Execute(args []string) error {
+func (c *Checkout) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -175,7 +175,7 @@ func (c *Co) Execute(args []string) error {
 
 	if c.CommandAction != nil {
 		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("co failed: %w", err)
+			return fmt.Errorf("checkout failed: %w", err)
 		}
 		return nil
 	}
@@ -183,11 +183,11 @@ func (c *Co) Execute(args []string) error {
 	return nil
 }
 
-func (c *RootCmd) NewCo() *Co {
-	set := flag.NewFlagSet("co", flag.ContinueOnError)
-	v := &Co{RootCmd: c, Flags: set, SubCommands: make(map[string]Cmd)}
+func (c *RootCmd) NewCheckout() *Checkout {
+	set := flag.NewFlagSet("checkout", flag.ContinueOnError)
+	v := &Checkout{RootCmd: c, Flags: set, SubCommands: make(map[string]Cmd)}
 	set.Usage = v.Usage
-	v.CommandAction = func(c *Co) error {
+	v.CommandAction = func(c *Checkout) error {
 		checkoutRevision := c.revision
 		checkoutLock := false
 		checkoutUnlock := false

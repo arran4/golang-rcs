@@ -32,7 +32,7 @@ type COVerdict struct {
 //	date: -d date to check out
 //	zone: -z zone for date parsing (e.g. "LT", "UTC", "-0700", "America/New_York")
 //	files: ... List of working files to process
-func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, files ...string) error {
+func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone, expandKeyword string, files ...string) error {
 	if lock && unlock {
 		return fmt.Errorf("cannot combine -l and -u")
 	}
@@ -43,7 +43,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDat
 		return fmt.Errorf("no files provided")
 	}
 	for _, file := range files {
-		result, err := coFile(revision, lock, unlock, user, quiet, checkoutDate, checkoutZone, file)
+		result, err := coFile(revision, lock, unlock, user, quiet, checkoutDate, checkoutZone, expandKeyword, file)
 		if err != nil {
 			return err
 		}
@@ -61,7 +61,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDat
 	return nil
 }
 
-func coFile(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, workingFile string) (COVerdict, error) {
+func coFile(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone, expandKeyword string, workingFile string) (COVerdict, error) {
 	rcsFile := workingFile
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
@@ -95,6 +95,14 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 	} else if unlock {
 		ops = append(ops, rcs.WithClearLock)
 	}
+	if expandKeyword != "" {
+		mode, err := rcs.ParseKeywordSubstitution(expandKeyword)
+		if err != nil {
+			return COVerdict{}, fmt.Errorf("invalid keyword substitution %q: %w", expandKeyword, err)
+		}
+		ops = append(ops, rcs.WithExpandKeyword(mode))
+	}
+	ops = append(ops, rcs.WithRCSFilename(rcsFile))
 
 	verdict, err := parsed.Checkout(user, ops...)
 	if err != nil {

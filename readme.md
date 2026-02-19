@@ -371,12 +371,12 @@ gorcs validate [-o output_file] [-w] [-s] [-f] [file1,v ...]
 - `-f`, `--force`: Force overwrite if output file exists.
 - `-` as input file reads from stdin.
 
-### `gorcs co`
+### `gorcs co` / `gorcs checkout`
 
 Checks out a revision from an RCS file and optionally updates lock state.
 
 ```bash
-gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-wUSER] [file ...]
+gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-kSUBST] [-wUSER] [file ...]
 ```
 
 - `-rREV`: Check out a specific revision.
@@ -384,6 +384,13 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-wUSER] [file ...]
 - `-u[REV]`: Check out and unlock the given revision (or head when omitted).
 - `-dDATE`: Check out the latest revision on the default branch (or trunk) that is on or before the specified date.
 - `-zZONE`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid zone names.
+- `-kSUBST`: Substitution mode option. Controls how keywords are expanded in the working file.
+    - `kv`: Generate `$Keyword: value $`. This is the default.
+    - `kvl`: Like `kv`, but locker is always inserted if locked.
+    - `k`: Generate `$Keyword$`.
+    - `o`: Generate the old value present in the working file just before it was checked in.
+    - `b`: Binary. Like `o`.
+    - `v`: Generate value only.
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 

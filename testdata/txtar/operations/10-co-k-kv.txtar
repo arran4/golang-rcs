@@ -37,7 +37,7 @@ $Id$
 @
 
 -- tests.txt --
-# co
+co
 
 -- expected.txt --
 This is revision 1.1
@@ -45,11 +45,11 @@ $Revision: 1.1 $
 $Date: 2020/01/01 00:00:00 $
 $Author: tester $
 $State: Exp $
-$Log: file.txt,v $
+$Log: input.txt,v $
 Revision 1.1  2020/01/01 00:00:00  tester
 r1
 
-$Id: file.txt,v 1.1 2020/01/01 00:00:00 tester Exp $
+$Id: input.txt,v 1.1 2020/01/01 00:00:00 tester Exp $
 
 -- generator.sh --
 #!/usr/bin/env bash
@@ -78,7 +78,7 @@ chmod u+w file.txt
 
 # The file.txt now has expanded keywords because ci -u expands them.
 # Let's save the RCS file as input.txt,v
-cp file.txt,v input.txt,v
+cp input.txt,v input.txt,v
 rm file.txt
 
 # Now run co with -kkv (default) to generate expected output
@@ -95,7 +95,7 @@ co checkout -kkv (default)
 $(cat input.txt,v)
 
 # -- tests.txt --
-# co
+co
 
 # -- expected.txt --
 $(cat file.txt)
