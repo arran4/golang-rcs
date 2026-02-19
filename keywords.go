@@ -67,41 +67,21 @@ func ExpandKeywords(content string, mode KeywordSubstitution, data KeywordData) 
 
 		if mode == V {
 			if keyword == "Log" {
-				// V mode for Log is not well defined in common docs, but usually V strips everything except value.
-				// For Log, the value is tricky.
-				// Assuming standard behavior: return nothing or just the message?
-				// "Generate ‘5.13’ (value only)."
-				// For Log, it might be weird.
-				// Let's assume empty for now or best effort.
+				// For -kv, the log keyword value expansion is empty/undefined in standard behavior descriptions,
+				// so we return an empty string.
 				return ""
 			}
 			return getKeywordValue(keyword, data, mode)
 		}
 
 		if keyword == "Log" {
-			// Special handling for Log
-			// It prepends the new log entry.
-			// Since we only match the keyword line, we can only replace the keyword line.
-			// Standard RCS behavior for Log is to insert the log message AFTER the keyword line.
-			// But since we are replacing the keyword line, we can append the log message to it.
-
 			// Extract filename from RCSFile for the keyword value
 			rcsParts := strings.Split(data.RCSFile, "/")
 			filename := rcsParts[len(rcsParts)-1]
 
 			logHeader := fmt.Sprintf("Revision %s  %s  %s", data.Revision, data.Date.UTC().Format("2006/01/02 15:04:05"), data.Author)
-			// Note: The format of date in log is YYYY/MM/DD HH:MM:SS
 
-			newLog := fmt.Sprintf("$Log: %s $\n%s\n%s\n", filename, logHeader, strings.TrimSuffix(data.Log, "\n"))
-
-			// We retain the original match if it had content?
-			// No, co regenerates the keyword line.
-			// But what about existing log entries?
-			// The regex only matched the first line.
-			// If we return newLog, we are replacing "$Log...$" with "$Log...$\nRevision...".
-			// The subsequent lines of the file are untouched.
-			// So we are effectively prepending.
-			return newLog
+			return fmt.Sprintf("$Log: %s $\n%s\n%s\n", filename, logHeader, strings.TrimSuffix(data.Log, "\n"))
 		}
 
 		val := getKeywordValue(keyword, data, mode)
