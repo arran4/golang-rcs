@@ -75,13 +75,11 @@ func LocksClean(revision string, unlock bool, user string, quiet bool, files ...
 			}
 		} else {
 			anyDirty = true
-			if !quiet {
-				// rcsclean usually doesn't say "dirty", it just doesn't remove it.
-				// But maybe we want to know?
-				// "rcsclean: input.txt is not clean" ??
-				// Standard rcsclean is silent about dirty files unless -n is used?
-				// I'll keep it silent matching standard, but exit code will reflect it.
-			}
+			// rcsclean usually doesn't say "dirty", it just doesn't remove it.
+			// But maybe we want to know?
+			// "rcsclean: input.txt is not clean" ??
+			// Standard rcsclean is silent about dirty files unless -n is used?
+			// I'll keep it silent matching standard, but exit code will reflect it.
 		}
 
 		if verdict.Unlocked {
