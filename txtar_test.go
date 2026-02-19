@@ -180,6 +180,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testLogMessage(t, parts, options, optionArgs, optionMessage, optionSubCommand, optionRevision, optionFiles)
 		case testName == "rlog":
 			testRLog(t, parts, options, optionArgs)
+		case testName == "rcs log":
+			testRLog(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
