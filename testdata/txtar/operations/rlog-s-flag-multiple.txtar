@@ -63,7 +63,7 @@ Initial content
 @
 
 -- tests.txt --
-# rlog
+rcs log
 
 -- expected.stdout --
 
