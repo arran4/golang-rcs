@@ -503,7 +503,7 @@ Prints information about the RCS file, similar to `rlog`. It supports filtering 
 gorcs log [-sState] [-F filter_expression] [file1,v ...]
 ```
 
-- `-s`: Filter by state. Can be specified multiple times (OR logic). Comma-separated states are also supported (e.g., `-sRel,Prod`).
+- `-s`: Filter by state. Comma-separated states are supported (e.g., `-sRel,Prod`).
 - `-F`, `--filter`: Filter by expression. Supported syntax:
   - `state=<value>` or `s=<value>`
   - `state in (<value1> <value2> ...)`

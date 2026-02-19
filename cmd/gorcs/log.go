@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 
+	"errors"
+	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
@@ -16,12 +18,11 @@ var _ Cmd = (*Log)(nil)
 type Log struct {
 	*RootCmd
 	Flags         *flag.FlagSet
+	filterStr     string
+	stateFilter   string
+	files         []string
 	SubCommands   map[string]Cmd
 	CommandAction func(c *Log) error
-
-	filter       string
-	stateFilters []string
-	files        []string
 }
 
 type UsageDataLog struct {
@@ -49,7 +50,7 @@ func (c *Log) Execute(args []string) error {
 			return cmd.Execute(args[1:])
 		}
 	}
-	remainingArgs := make([]string, 0, len(args))
+	var remainingArgs []string
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		if arg == "--" {
@@ -66,50 +67,57 @@ func (c *Log) Execute(args []string) error {
 				value = parts[1]
 				hasValue = true
 			}
-			trimmed := strings.TrimLeft(name, "-")
-			switch {
-			case trimmed == "help" || trimmed == "h":
+			trimmedName := strings.TrimLeft(name, "-")
+			switch trimmedName {
+
+			case "filterStr", "filter", "F":
+				if !hasValue {
+					if i+1 < len(args) {
+						value = args[i+1]
+						i++
+					} else {
+						return fmt.Errorf("flag %s requires a value", name)
+					}
+				}
+				c.filterStr = value
+
+			case "stateFilter", "s":
+				if !hasValue {
+					if i+1 < len(args) {
+						value = args[i+1]
+						i++
+					} else {
+						return fmt.Errorf("flag %s requires a value", name)
+					}
+				}
+				c.stateFilter = value
+			case "help", "h":
 				c.Usage()
 				return nil
-			case trimmed == "s" || strings.HasPrefix(trimmed, "s"):
-				if trimmed == "s" {
-					if !hasValue {
-						if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
-							c.stateFilters = append(c.stateFilters, args[i+1])
-							i++
-							continue
-						}
-						return fmt.Errorf("flag -s requires a value")
-					}
-					c.stateFilters = append(c.stateFilters, value)
-				} else {
-					val := strings.TrimPrefix(trimmed, "s")
-					c.stateFilters = append(c.stateFilters, val)
-				}
-			case trimmed == "F" || trimmed == "filter":
-				if !hasValue {
-					if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
-						c.filter = args[i+1]
-						i++
-						continue
-					}
-					return fmt.Errorf("flag -%s requires a value", trimmed)
-				}
-				c.filter = value
 			default:
 				return fmt.Errorf("unknown flag: %s", name)
 			}
-			continue
+		} else {
+			remainingArgs = append(remainingArgs, arg)
 		}
-		remainingArgs = append(remainingArgs, arg)
 	}
-	c.files = remainingArgs
+	// Handle vararg files
+	{
+		varArgStart := 0
+		if varArgStart > len(remainingArgs) {
+			varArgStart = len(remainingArgs)
+		}
+		varArgs := remainingArgs[varArgStart:]
+		c.files = varArgs
+	}
 
 	if c.CommandAction != nil {
-		return c.CommandAction(c)
+		if err := c.CommandAction(c); err != nil {
+			return fmt.Errorf("log failed: %w", err)
+		}
+	} else {
+		c.Usage()
 	}
-
-	c.Usage()
 
 	return nil
 }
@@ -121,10 +129,31 @@ func (c *RootCmd) NewLog() *Log {
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
+
+	set.StringVar(&v.filterStr, "filter", "", "or filter string")
+	set.StringVar(&v.filterStr, "F", "", "or filter string")
+
+	set.StringVar(&v.stateFilter, "s", "", "state filters")
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *Log) error {
-		return cli.Log(c.filter, c.stateFilters, c.files...)
+
+		err := cli.Log(c.filterStr, c.stateFilter, c.files...)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
+			}
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
+			}
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
+			}
+			return fmt.Errorf("log failed: %w", err)
+		}
+		return nil
 	}
 
 	v.SubCommands["message"] = v.NewMessage()

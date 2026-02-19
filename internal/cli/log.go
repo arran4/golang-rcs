@@ -123,9 +123,9 @@ func LogMessageList(files ...string) error {
 // Flags:
 //
 //	filterStr: -F or --filter filter string
-//	stateFilters: -s state filters
+//	stateFilter: -s state filters
 //	files: ... List of working files to process
-func Log(filterStr string, stateFilters []string, files ...string) error {
+func Log(filterStr string, stateFilter string, files ...string) error {
 	var filters []rcs.Filter
 
 	if filterStr != "" {
@@ -137,8 +137,8 @@ func Log(filterStr string, stateFilters []string, files ...string) error {
 	}
 
 	var allowedStates []string
-	for _, s := range stateFilters {
-		states := strings.Split(s, ",")
+	if stateFilter != "" {
+		states := strings.Split(stateFilter, ",")
 		for _, state := range states {
 			state = strings.TrimSpace(state)
 			if state != "" {
@@ -146,6 +146,7 @@ func Log(filterStr string, stateFilters []string, files ...string) error {
 			}
 		}
 	}
+
 	if len(allowedStates) > 0 {
 		var sFilters []rcs.Filter
 		for _, state := range allowedStates {
