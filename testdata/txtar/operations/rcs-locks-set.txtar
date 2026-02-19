@@ -1,0 +1,63 @@
+-- description.txt --
+rcs locks set
+
+-- options.conf --
+{"args": ["set", "-rev", "1.1", "-u", "tester", "input.txt,v"]}
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.1
+log
+@initial
+@
+text
+@Initial content
+@
+
+-- tests.txt --
+rcs locks
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks
+	tester:1.1; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.1
+log
+@initial
+@
+text
+@Initial content
+@

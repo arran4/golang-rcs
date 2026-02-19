@@ -158,6 +158,8 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testAccessList(t, parts, options, optionArgs)
 		case testName == "rcs clean":
 			testRCSClean(t, parts, options)
+		case testName == "rcs locks":
+			testRCSLocks(t, parts, options, optionArgs)
 		case testName == "rcs merge":
 			testRCSMerge(t, parts, options)
 		case testName == "rcs":
@@ -290,6 +292,83 @@ func testLogMessage(t *testing.T, parts map[string]string, options map[string]bo
 			default:
 				t.Fatalf("Unknown subcommand: %s", subCommand)
 			}
+		}
+	})
+}
+
+func testRCSLocks(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("rcs locks", func(t *testing.T) {
+		if len(args) == 0 {
+			t.Fatal("Missing subcommand for rcs locks")
+		}
+		subCmd := args[0]
+		remainingArgs := args[1:]
+
+		var user string
+		var revision string
+		var files []string
+
+		for i := 0; i < len(remainingArgs); i++ {
+			arg := remainingArgs[i]
+			if arg == "-u" && i+1 < len(remainingArgs) {
+				user = remainingArgs[i+1]
+				i++
+			} else if arg == "-rev" && i+1 < len(remainingArgs) {
+				revision = remainingArgs[i+1]
+				i++
+			} else if !strings.HasPrefix(arg, "-") {
+				files = append(files, arg)
+			}
+		}
+
+		if user == "" {
+			user = "tester"
+		}
+
+		if len(files) == 0 {
+			if _, ok := parts["input.txt,v"]; ok {
+				files = append(files, "input.txt,v")
+			} else if _, ok := parts["input.rcs"]; ok {
+				files = append(files, "input.rcs")
+			}
+		}
+
+		if len(files) == 0 {
+			t.Fatal("No files specified")
+		}
+
+		for _, file := range files {
+			content, ok := parts[file]
+			if !ok {
+				t.Fatalf("Missing file part: %s", file)
+			}
+
+			parsedFile, err := parseRCS(content)
+			if err != nil {
+				t.Fatalf("parseRCS failed: %v", err)
+			}
+
+			switch subCmd {
+			case "set":
+				if revision == "" {
+					t.Fatal("set requires -rev")
+				}
+				parsedFile.SetLock(user, revision)
+			case "remove":
+				if revision == "" {
+					t.Fatal("remove requires -rev")
+				}
+				parsedFile.ClearLock(user, revision)
+			default:
+				t.Fatalf("Unknown subcommand: %s", subCmd)
+			}
+
+			expectedKey := "expected.txt,v"
+			expectedContent, ok := parts[expectedKey]
+			if !ok {
+				t.Fatalf("Missing expected file: %s", expectedKey)
+			}
+			checkRCS(t, expectedContent, parsedFile.String(), options)
 		}
 	})
 }
