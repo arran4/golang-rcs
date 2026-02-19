@@ -34,7 +34,7 @@ $Author$
 @
 
 -- tests.txt --
-# co
+co
 
 -- expected.txt --
 This is revision 1.1
