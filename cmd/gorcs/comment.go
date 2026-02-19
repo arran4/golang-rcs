@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
+	"errors"
 	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
-	"errors"
 )
 
 var _ Cmd = (*Comment)(nil)
