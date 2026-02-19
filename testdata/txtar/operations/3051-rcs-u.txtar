@@ -2,7 +2,7 @@
 rcs -u unlocks revision
 
 -- options.conf --
-{"args": ["-u1.1", "input.txt"]}
+{"args": ["unlock", "-revision", "1.1", "input.txt"]}
 
 -- input.txt --
 Initial content
@@ -36,7 +36,7 @@ text
 @
 
 -- tests.txt --
-# rcs
+gorcs locks
 
 -- expected.txt,v --
 head	1.1;
