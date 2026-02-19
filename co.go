@@ -59,7 +59,7 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	lockMode := WithNoLockChange
 	var targetDate time.Time
 	var targetLocation *time.Location
-	var expandMode KeywordSubstitution = KV
+	var expandMode = KV
 	expandModeSet := false
 	var rcsFilename string
 
