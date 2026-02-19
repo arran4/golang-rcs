@@ -11,12 +11,12 @@ import (
 type KeywordSubstitution int
 
 const (
-	KV KeywordSubstitution = iota // $Keyword: value $
-	KVL                           // $Keyword: value $ (locker always inserted if locked)
-	K                             // $Keyword$
-	O                             // Old value (no substitution)
-	B                             // Binary (no substitution, like O)
-	V                             // Value only (value)
+	KV  KeywordSubstitution = iota // $Keyword: value $
+	KVL                            // $Keyword: value $ (locker always inserted if locked)
+	K                              // $Keyword$
+	O                              // Old value (no substitution)
+	B                              // Binary (no substitution, like O)
+	V                              // Value only (value)
 )
 
 // ParseKeywordSubstitution parses the substitution mode string (e.g., "kv", "kvl", "k").
