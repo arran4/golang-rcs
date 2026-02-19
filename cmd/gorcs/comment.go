@@ -1,12 +1,12 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
-	"errors"
 	"github.com/arran4/golang-rcs/cmd"
 	"github.com/arran4/golang-rcs/internal/cli"
 )
