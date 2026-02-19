@@ -1,39 +1,10 @@
 -- description.txt --
-rcs set strict locking
+rcs set non-strict locking
 
 -- options.conf --
-{"args": ["-L","input.txt"] }
+{"args": ["nonstrict", "input.txt"] }
 
 -- input.txt,v --
-head	1.1;
-access;
-symbols;
-locks;
-comment	@# @;
-
-
-1.1
-date	2020.01.01.00.00.00;	author tester;	state Exp;
-branches;
-next	;
-
-
-desc
-@@
-
-
-1.1
-log
-@r1
-@
-text
-@LOCKME
-@
-
--- tests.txt --
-rcs
-
--- expected.txt,v --
 head	1.1;
 access;
 symbols;
@@ -56,7 +27,36 @@ log
 @r1
 @
 text
-@LOCKME
+@UNLOCKME
+@
+
+-- tests.txt --
+gorcs locks
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@UNLOCKME
 @
 
 -- generator.sh --
@@ -65,32 +65,32 @@ set -euo pipefail
 export TZ=UTC LOGNAME=tester USER=tester
 unset RCSINIT
 
-OUT="20-rcs-strict.txtar"
+OUT="31-rcs-nonstrict.txtar"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 cd "$tmp"
 
-printf "LOCKME\n" > file.txt
+printf "UNLOCKME\n" > file.txt
 
-# Create initial RCS file with non-strict locking
+# Create initial RCS file with strict locking
 ci -q -i -u -m"r1" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
-rcs -q -U file.txt
+rcs -q -L file.txt
 
 # Save input state
 cp file.txt,v input.txt,v
 
 # Run the command to be tested
-rcs -L file.txt
+rcs -U file.txt
 
 # Save output state
 cp file.txt,v expected.txt,v
 
 cat > "$OLDPWD/$OUT" <<EOF
 # -- description.txt --
-rcs set strict locking
+rcs set non-strict locking
 
 # -- options.conf --
-{"args": ["-L","input.txt"] }
+{"args": ["-U","input.txt"] }
 
 # -- input.txt,v --
 $(cat input.txt,v)
