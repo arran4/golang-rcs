@@ -29,9 +29,10 @@ func CommentLeader(files []string) error {
 	return nil
 }
 
-// CommentLeaderSet sets the comment leader for the specified files.
-// Command: comment leader set
-func CommentLeaderSet(leader string, files []string) error {
+// CommentLeaderLeaderSet sets the comment leader for the specified files.
+// Command: comment leader leader-set
+// TODO: rename back to set after go-subcommand v0.0.21+
+func CommentLeaderLeaderSet(leader string, files []string) error {
 	if len(files) == 0 {
 		return fmt.Errorf("missing files")
 	}

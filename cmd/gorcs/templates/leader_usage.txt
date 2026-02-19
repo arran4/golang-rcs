@@ -1,5 +1,5 @@
 Usage: {{.CommentLeader.Comment.RootCmd.FlagSet.Name}} comment leader [flags] [files...]
 {{.CommentLeader.Flags.FlagUsages}}
 Subcommands:
-  set       set comment leader
+  leader-setset comment leader
   list      list comment leader options

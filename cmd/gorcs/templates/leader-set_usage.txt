@@ -1,0 +1,2 @@
+Usage: {{.CommentLeaderLeaderSet.CommentLeader.Comment.RootCmd.FlagSet.Name}} comment leader leader-set [flags] <leader> [files...]
+{{.CommentLeaderLeaderSet.Flags.FlagUsages}}

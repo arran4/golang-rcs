@@ -105,6 +105,7 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 
 	c.Commands["access-list"] = c.NewAccessList()
 	c.Commands["branches"] = c.NewBranches()
+	c.Commands["comment"] = c.NewComment()
 	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()
 	c.Commands["from-markdown"] = c.NewFromMarkdown()

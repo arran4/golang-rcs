@@ -144,7 +144,7 @@ func (c *Comment) NewLeader() *CommentLeader {
 	}
 	set.Usage = v.Usage
 
-	v.SubCommands["set"] = v.NewSet()
+	v.SubCommands["leader-set"] = v.NewLeaderSet()
 	v.SubCommands["list"] = v.NewList()
 
 	v.CommandAction = func(c *CommentLeader) error {
@@ -169,31 +169,31 @@ func (c *Comment) NewLeader() *CommentLeader {
 	return v
 }
 
-// Set
+// LeaderSet
 
-var _ Cmd = (*CommentLeaderSet)(nil)
+var _ Cmd = (*CommentLeaderLeaderSet)(nil)
 
-type CommentLeaderSet struct {
+type CommentLeaderLeaderSet struct {
 	*CommentLeader
 	Flags         *flag.FlagSet
 	LeaderArg     string
 	Files         []string
-	CommandAction func(c *CommentLeaderSet) error
+	CommandAction func(c *CommentLeaderLeaderSet) error
 }
 
-type UsageDataCommentLeaderSet struct {
-	*CommentLeaderSet
+type UsageDataCommentLeaderLeaderSet struct {
+	*CommentLeaderLeaderSet
 	Recursive bool
 }
 
-func (c *CommentLeaderSet) Usage() {
-	err := executeUsage(os.Stderr, "set_usage.txt", UsageDataCommentLeaderSet{c, false})
+func (c *CommentLeaderLeaderSet) Usage() {
+	err := executeUsage(os.Stderr, "leader-set_usage.txt", UsageDataCommentLeaderLeaderSet{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *CommentLeaderSet) Execute(args []string) error {
+func (c *CommentLeaderLeaderSet) Execute(args []string) error {
 	if len(args) == 0 {
 		c.Usage()
 		return nil
@@ -217,19 +217,19 @@ func (c *CommentLeaderSet) Execute(args []string) error {
 	return nil
 }
 
-func (c *CommentLeader) NewSet() *CommentLeaderSet {
-	set := flag.NewFlagSet("set", flag.ContinueOnError)
-	v := &CommentLeaderSet{
+func (c *CommentLeader) NewLeaderSet() *CommentLeaderLeaderSet {
+	set := flag.NewFlagSet("leader-set", flag.ContinueOnError)
+	v := &CommentLeaderLeaderSet{
 		CommentLeader: c,
 		Flags:         set,
 	}
 	set.Usage = v.Usage
 
-	v.CommandAction = func(c *CommentLeaderSet) error {
+	v.CommandAction = func(c *CommentLeaderLeaderSet) error {
 		if c.LeaderArg == "" {
 			return fmt.Errorf("missing leader argument")
 		}
-		err := cli.CommentLeaderSet(c.LeaderArg, c.Files)
+		err := cli.CommentLeaderLeaderSet(c.LeaderArg, c.Files)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()
@@ -242,7 +242,7 @@ func (c *CommentLeader) NewSet() *CommentLeaderSet {
 			if e, ok := err.(*cmd.ErrExitCode); ok {
 				return e
 			}
-			return fmt.Errorf("leader set failed: %w", err)
+			return fmt.Errorf("leader leader-set failed: %w", err)
 		}
 		return nil
 	}
