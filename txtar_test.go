@@ -156,14 +156,14 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testParseError(t, fullLine, parts, options)
 		case testName == "rcs access-list":
 			testAccessList(t, parts, options, optionArgs)
+		case testName == "rcs clean":
+			testRCSClean(t, parts, options)
+		case testName == "rcs merge":
+			testRCSMerge(t, parts, options)
 		case testName == "rcs":
 			testRCS(t, parts, options, optionArgs)
 		case strings.HasPrefix(testName, "rcs "):
 			testRCS(t, parts, options, optionArgs)
-		case testName == "rcs merge":
-			testRCSMerge(t, parts, options)
-		case testName == "rcs merge":
-			testRCSMerge(t, parts, options)
 		case testName == "ci":
 			testCI(t, parts, options)
 		case testName == "co":
@@ -172,10 +172,6 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSDiff(t, parts, options)
 		case testName == "rcs diff":
 			testRCSDiff(t, parts, options)
-		case testName == "rcs merge":
-			testRCSMerge(t, parts, options)
-		case testName == "rcs clean":
-			testRCSClean(t, parts, options)
 		case strings.HasPrefix(testName, "log message"):
 			testLogMessage(t, parts, options, optionArgs, optionMessage, optionSubCommand, optionRevision, optionFiles)
 		default:
@@ -386,17 +382,26 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 		}
 
 		branchName := ""
+		locks := make(map[string]string)
+		unlocks := make(map[string]string)
+
 		for i := 0; i < len(args); i++ {
 			if strings.HasPrefix(args[i], "-b") {
 				branchName = strings.TrimPrefix(args[i], "-b")
-				break
+			}
+			if strings.HasPrefix(args[i], "-l") {
+				rev := strings.TrimPrefix(args[i], "-l")
+				locks["tester"] = rev
+			}
+			if strings.HasPrefix(args[i], "-u") {
+				rev := strings.TrimPrefix(args[i], "-u")
+				unlocks["tester"] = rev
 			}
 			if i+3 < len(args) && args[i] == "branches" && args[i+1] == "default" && args[i+2] == "set" {
 				branchName = args[i+3]
-				break
 			}
 		}
-		if branchName == "" {
+		if branchName == "" && len(locks) == 0 && len(unlocks) == 0 {
 			t.Skip("unsupported rcs operation fixture")
 		}
 
@@ -405,11 +410,20 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 			t.Fatalf("ParseFile error: %v", err)
 		}
 
-		parts := strings.Split(branchName, ".")
-		if len(parts)%2 == 0 && len(parts) > 0 {
-			branchName = strings.Join(parts[:len(parts)-1], ".")
+		if branchName != "" {
+			parts := strings.Split(branchName, ".")
+			if len(parts)%2 == 0 && len(parts) > 0 {
+				branchName = strings.Join(parts[:len(parts)-1], ".")
+			}
+			parsed.Branch = branchName
 		}
-		parsed.Branch = branchName
+
+		for user, rev := range locks {
+			parsed.SetLock(user, rev)
+		}
+		for user, rev := range unlocks {
+			parsed.ClearLock(user, rev)
+		}
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
 			t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
