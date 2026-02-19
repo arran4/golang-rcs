@@ -21,6 +21,7 @@
 -- expected,v --
 head	1.7;
 locks; strict;
+comment	@@;
 
 
 

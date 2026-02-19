@@ -5,3 +5,5 @@
 /testdata/local/*,v
 /testdata/local/**/*,v
 /test.*
+/gorcs
+/gorcs.exe

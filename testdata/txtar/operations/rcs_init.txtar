@@ -11,6 +11,7 @@ rcs init
 head	;
 symbols;
 locks; strict;
+comment	@@;
 
 
 

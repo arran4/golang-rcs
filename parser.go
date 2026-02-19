@@ -423,16 +423,14 @@ func (f *File) String() string {
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
-	if f.Comment != "" {
-		commentSep := "\t"
-		if f.CommentSeparatorSpaces > 0 {
-			commentSep = strings.Repeat(" ", f.CommentSeparatorSpaces)
-		}
-		sb.WriteString("comment" + commentSep)
-		_, _ = WriteAtQuote(&sb, f.Comment)
-		sb.WriteString(";")
-		sb.WriteString(nl)
+	commentSep := "\t"
+	if f.CommentSeparatorSpaces > 0 {
+		commentSep = strings.Repeat(" ", f.CommentSeparatorSpaces)
 	}
+	sb.WriteString("comment" + commentSep)
+	_, _ = WriteAtQuote(&sb, f.Comment)
+	sb.WriteString(";")
+	sb.WriteString(nl)
 	if f.Expand != "" {
 		expandSep := "\t"
 		if f.ExpandSeparatorSpaces > 0 {
@@ -1707,4 +1705,14 @@ func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, e
 		}
 	}
 	return text, "", nil
+}
+
+// SetComment sets the comment leader for the RCS file.
+func (f *File) SetComment(comment string) {
+	f.Comment = comment
+}
+
+// GetComment returns the comment leader for the RCS file.
+func (f *File) GetComment() string {
+	return f.Comment
 }

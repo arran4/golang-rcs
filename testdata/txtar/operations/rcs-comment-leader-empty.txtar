@@ -34,13 +34,14 @@ text
 @
 
 -- tests.txt --
-rcs
+rcs comment
 
 -- expected.txt,v --
 head	1.1;
 access;
 symbols;
 locks; strict;
+comment	@@;
 
 
 1.1
@@ -100,7 +101,7 @@ $(cat input.txt)
 $(cat input.txt,v)
 
 # -- tests.txt --
-rcs
+rcs comment
 
 # -- expected.txt,v --
 $(cat file.txt,v)
