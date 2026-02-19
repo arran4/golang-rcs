@@ -1,0 +1,7 @@
+Usage of clean:
+  -r string
+	revision to check against
+  -u	unlock revision
+  -w string
+	user for lock operations
+  -q	quiet mode

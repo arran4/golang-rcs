@@ -1,0 +1,5 @@
+Usage of locks:
+  -h, -help
+	show help
+  Commands:
+    clean

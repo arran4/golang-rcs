@@ -6,7 +6,6 @@ rcs clean -r1.1 (check against specific revision)
 
 -- input.txt --
 Initial content
-
 -- input.txt,v --
 head	1.2;
 access;
