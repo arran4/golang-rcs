@@ -1,8 +1,8 @@
 -- description.txt --
-rcs -c// replaces existing comment leader
+rcs -c"REM " changes comment leader
 
 -- options.conf --
-{"args": ["-c// ", "input.txt"] }
+{"args": ["-cREM ", "input.txt"] }
 
 -- input.txt --
 content
@@ -34,14 +34,14 @@ text
 @
 
 -- tests.txt --
-rcs
+rcs comment
 
 -- expected.txt,v --
 head	1.1;
 access;
 symbols;
 locks; strict;
-comment	@// @;
+comment	@REM @;
 
 
 1.1
@@ -69,8 +69,8 @@ export TZ=UTC LOGNAME=tester USER=tester
 unset RCSINIT
 
 OUTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUT="$OUTDIR/5928-rcs-comment-leader-replace.txtar"
-TMP_OUT="$OUTDIR/.5928-rcs-comment-leader-replace.txtar.tmp.$$"
+OUT="$OUTDIR/8491-rcs-comment-leader-rem.txtar"
+TMP_OUT="$OUTDIR/.8491-rcs-comment-leader-rem.txtar.tmp.$$"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp" "$TMP_OUT"' EXIT
@@ -78,22 +78,21 @@ cd "$tmp"
 
 printf "content\n" > file.txt
 
-# setup: create 1.1 with initial comment leader #
+# setup: create 1.1
 ci -q -i -u -m"r1" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
-rcs -c"# " file.txt
 
 cp file.txt   input.txt
 cp file.txt,v input.txt,v
 
-# execution: replace with //
-rcs -c"// " file.txt
+# execution
+rcs -c"REM " file.txt
 
 cat > "$TMP_OUT" <<EOF
 # -- description.txt --
-rcs -c// replaces existing comment leader
+rcs -c"REM " changes comment leader
 
 # -- options.conf --
-{"args": ["-c// ", "input.txt"] }
+{"args": ["-cREM ", "input.txt"] }
 
 # -- input.txt --
 $(cat input.txt)
@@ -102,7 +101,7 @@ $(cat input.txt)
 $(cat input.txt,v)
 
 # -- tests.txt --
-rcs
+rcs comment
 
 # -- expected.txt,v --
 $(cat file.txt,v)

@@ -178,10 +178,51 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSClean(t, parts, options)
 		case strings.HasPrefix(testName, "log message"):
 			testLogMessage(t, parts, options, optionArgs, optionMessage, optionSubCommand, optionRevision, optionFiles)
+		case testName == "rcs comment":
+			testRCSComment(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testRCSComment(t *testing.T, parts map[string]string, _ map[string]bool, args []string) {
+	t.Run("rcs comment", func(t *testing.T) {
+		input, ok := parts["input.txt,v"]
+		if !ok {
+			t.Skip("rcs comment test type currently supports only input.txt,v fixtures")
+		}
+		expectedRCS, ok := parts["expected.txt,v"]
+		if !ok {
+			t.Skip("rcs comment test type currently supports only expected.txt,v fixtures")
+		}
+
+		comment := ""
+		hasComment := false
+		for i := 0; i < len(args); i++ {
+			if strings.HasPrefix(args[i], "-c") {
+				comment = strings.TrimPrefix(args[i], "-c")
+				hasComment = true
+				continue
+			}
+		}
+		if !hasComment {
+			t.Skip("unsupported rcs comment operation fixture")
+		}
+
+		parsed, err := parseRCS(input)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		if hasComment {
+			parsed.SetComment(comment)
+		}
+
+		if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
+			t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
 
 func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string, message, subCommand, revision string, files []string) {
@@ -389,11 +430,12 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 		for i := 0; i < len(args); i++ {
 			if strings.HasPrefix(args[i], "-b") {
 				branchName = strings.TrimPrefix(args[i], "-b")
-				break
+				continue
 			}
 			if i+3 < len(args) && args[i] == "branches" && args[i+1] == "default" && args[i+2] == "set" {
 				branchName = args[i+3]
-				break
+				i += 3
+				continue
 			}
 		}
 		if branchName == "" {
@@ -405,11 +447,13 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 			t.Fatalf("ParseFile error: %v", err)
 		}
 
-		parts := strings.Split(branchName, ".")
-		if len(parts)%2 == 0 && len(parts) > 0 {
-			branchName = strings.Join(parts[:len(parts)-1], ".")
+		if branchName != "" {
+			parts := strings.Split(branchName, ".")
+			if len(parts)%2 == 0 && len(parts) > 0 {
+				branchName = strings.Join(parts[:len(parts)-1], ".")
+			}
+			parsed.Branch = branchName
 		}
-		parsed.Branch = branchName
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
 			t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)

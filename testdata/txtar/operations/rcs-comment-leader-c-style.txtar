@@ -1,8 +1,8 @@
 -- description.txt --
-rcs -c"REM " changes comment leader
+rcs -c"/* " changes comment leader
 
 -- options.conf --
-{"args": ["-cREM ", "input.txt"] }
+{"args": ["-c/* ", "input.txt"] }
 
 -- input.txt --
 content
@@ -34,14 +34,14 @@ text
 @
 
 -- tests.txt --
-rcs
+rcs comment
 
 -- expected.txt,v --
 head	1.1;
 access;
 symbols;
 locks; strict;
-comment	@REM @;
+comment	@/* @;
 
 
 1.1
@@ -69,8 +69,8 @@ export TZ=UTC LOGNAME=tester USER=tester
 unset RCSINIT
 
 OUTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUT="$OUTDIR/8491-rcs-comment-leader-rem.txtar"
-TMP_OUT="$OUTDIR/.8491-rcs-comment-leader-rem.txtar.tmp.$$"
+OUT="$OUTDIR/9283-rcs-comment-leader-c-style.txtar"
+TMP_OUT="$OUTDIR/.9283-rcs-comment-leader-c-style.txtar.tmp.$$"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp" "$TMP_OUT"' EXIT
@@ -85,14 +85,14 @@ cp file.txt   input.txt
 cp file.txt,v input.txt,v
 
 # execution
-rcs -c"REM " file.txt
+rcs -c"/* " file.txt
 
 cat > "$TMP_OUT" <<EOF
 # -- description.txt --
-rcs -c"REM " changes comment leader
+rcs -c"/* " changes comment leader
 
 # -- options.conf --
-{"args": ["-cREM ", "input.txt"] }
+{"args": ["-c/* ", "input.txt"] }
 
 # -- input.txt --
 $(cat input.txt)
@@ -101,7 +101,7 @@ $(cat input.txt)
 $(cat input.txt,v)
 
 # -- tests.txt --
-rcs
+rcs comment
 
 # -- expected.txt,v --
 $(cat file.txt,v)
