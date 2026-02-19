@@ -394,6 +394,12 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-kSUBST] [-wUSER] [
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
+**Example:**
+
+```shell
+gorcs co -kkv file.v
+```
+
 ### `gorcs init`
 
 Creates and initializes a new RCS file.
