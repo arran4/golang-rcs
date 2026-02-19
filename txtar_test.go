@@ -179,6 +179,10 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSClean(t, parts, options)
 		case strings.HasPrefix(testName, "log message"):
 			testLogMessage(t, parts, options, optionArgs, optionMessage, optionSubCommand, optionRevision, optionFiles)
+		case strings.HasPrefix(testName, "state"):
+			testState(t, parts, options, optionArgs)
+		case strings.HasPrefix(testName, "rcs state"):
+			testState(t, parts, options, optionArgs)
 		case testName == "rlog":
 			testRLog(t, parts, options, optionArgs)
 		case testName == "rcs log":
@@ -435,9 +439,15 @@ func testLogMessage(t *testing.T, parts map[string]string, options map[string]bo
 		}
 
 		for _, file := range files {
-			content, ok := parts[file]
+			rcsFile := file
+			if !strings.HasSuffix(rcsFile, ",v") {
+				rcsFile += ",v"
+			}
+
+			content, ok := parts[rcsFile]
 			if !ok {
-				if content, ok = parts[file+",v"]; !ok {
+				content, ok = parts[file]
+				if !ok {
 					t.Fatalf("Missing file part: %s", file)
 				}
 			}
@@ -1076,4 +1086,127 @@ func stripAllWhitespace(s string) string {
 		}
 		return r
 	}, s)
+}
+
+func testState(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("state", func(t *testing.T) {
+		var subCmd string
+		var revision string
+		var state string
+		var files []string
+
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
+			switch {
+			case arg == "set":
+				subCmd = "alter"
+			case arg == "alter":
+				subCmd = "alter"
+			case arg == "get":
+				subCmd = "get"
+			case arg == "list":
+				subCmd = "ls"
+			case arg == "ls":
+				subCmd = "ls"
+			case arg == "-rev" && i+1 < len(args):
+				revision = args[i+1]
+				i++
+			case arg == "-state" && i+1 < len(args):
+				state = args[i+1]
+				i++
+			case !strings.HasPrefix(arg, "-"):
+				files = append(files, arg)
+			}
+		}
+
+		if len(files) == 0 {
+			if _, ok := parts["input.txt,v"]; ok {
+				files = append(files, "input.txt,v")
+			}
+		}
+
+		if len(files) == 0 {
+			t.Fatal("No files specified")
+		}
+
+		for _, file := range files {
+			rcsFile := file
+			if !strings.HasSuffix(rcsFile, ",v") {
+				rcsFile += ",v"
+			}
+
+			content, ok := parts[rcsFile]
+			if !ok {
+				content, ok = parts[file]
+				if !ok {
+					t.Fatalf("Missing file part: %s", file)
+				}
+			}
+			parsedFile, err := parseRCS(content)
+			if err != nil {
+				t.Fatalf("parseRCS failed: %v", err)
+			}
+
+			switch subCmd {
+			case "alter":
+				rev := revision
+				if rev == "" {
+					rev = parsedFile.Head
+				}
+				st := state
+				if st == "" {
+					st = "Exp"
+				}
+				if err := parsedFile.SetState(rev, st); err != nil {
+					t.Fatalf("SetState failed: %v", err)
+				}
+				expectedContent, ok := parts["expected.txt,v"]
+				if !ok {
+					t.Fatalf("Missing expected.txt,v")
+				}
+				checkRCS(t, expectedContent, parsedFile.String(), options)
+
+			case "get":
+				rev := revision
+				if rev == "" {
+					rev = parsedFile.Head
+				}
+				st, err := parsedFile.GetState(rev)
+				if err != nil {
+					t.Fatalf("GetState failed: %v", err)
+				}
+				expectedOut, ok := parts["expected.out"]
+				if !ok {
+					t.Fatalf("Missing expected.out")
+				}
+				if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(st)); diff != "" {
+					t.Errorf("State get mismatch (-want +got):\n%s", diff)
+				}
+
+			case "ls":
+				states := parsedFile.ListStates()
+				var sb strings.Builder
+				if len(files) > 1 {
+					fmt.Fprintf(&sb, "File: %s\n", file)
+				}
+				for _, s := range states {
+					fmt.Fprintf(&sb, "%s %s\n", s.Revision, s.State)
+				}
+				if len(files) > 1 {
+					fmt.Fprintln(&sb)
+				}
+				gotOut := sb.String()
+				expectedOut, ok := parts["expected.out"]
+				if !ok {
+					t.Fatalf("Missing expected.out")
+				}
+				if options["force unix line endings"] {
+					expectedOut = strings.ReplaceAll(expectedOut, "\r\n", "\n")
+				}
+				if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+					t.Errorf("State list mismatch (-want +got):\n%s", diff)
+				}
+			}
+		}
+	})
 }

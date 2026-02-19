@@ -1,14 +1,18 @@
 -- description.txt --
-rcs -s flag (change state, no revision)
+rcs -s flag (change state)
 
 -- options.conf --
-{"args": ["-sRel", "input.txt"]}
+{"args": ["alter", "-state", "Rel", "-rev", "1.1", "input.txt"]}
+
+-- input.txt --
+Initial content
 
 -- input.txt,v --
 head	1.1;
 access;
 symbols;
-locks; strict;
+locks
+	tester:1.1; strict;
 comment	@# @;
 
 
@@ -31,13 +35,14 @@ text
 @
 
 -- tests.txt --
-# rcs
+rcs state
 
 -- expected.txt,v --
 head	1.1;
 access;
 symbols;
-locks; strict;
+locks
+	tester:1.1; strict;
 comment	@# @;
 
 
@@ -65,25 +70,29 @@ set -euo pipefail
 export TZ=UTC LOGNAME=tester USER=tester
 unset RCSINIT
 
-OUT="2163-rcs-s-flag-no-rev.txtar"
+OUT="7654-rcs-s-flag.txtar"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 cd "$tmp"
 
 printf 'Initial content\n' > file.txt
-ci -q -i -t- -minitial -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
-# Default state is Exp
+ci -q -i -minitial -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+co -q -l file.txt
 
 cp file.txt,v input.txt,v
+cp file.txt input.txt
 
-rcs -sRel file.txt
+rcs -sRel:1.1 file.txt
 
 cat > "$OLDPWD/$OUT" <<EOF
 # -- description.txt --
-rcs -s flag (change state, no revision)
+rcs -s flag (change state)
 
 # -- options.conf --
-{"args": ["-sRel", "input.txt"]}
+{"args": ["-sRel:1.1", "input.txt"]}
+
+# -- input.txt --
+$(cat input.txt)
 
 # -- input.txt,v --
 $(cat input.txt,v)
