@@ -117,3 +117,93 @@ func LogMessageList(files ...string) error {
 	}
 	return nil
 }
+
+// Log is a subcommand `gorcs log`
+//
+// Flags:
+//
+//	filterStr: -F --filter filter string
+//	stateFilter: -s state filters
+//	files: ... List of working files to process
+func Log(filterStr string, stateFilter string, files ...string) error {
+	if len(files) > 0 && files[0] == "filter-reference" {
+		printFilterReference()
+		return nil
+	}
+
+	var filters []rcs.Filter
+
+	if filterStr != "" {
+		f, err := rcs.ParseFilter(filterStr)
+		if err != nil {
+			return fmt.Errorf("parse filter %q: %w", filterStr, err)
+		}
+		filters = append(filters, f)
+	}
+
+	var allowedStates []string
+	if stateFilter != "" {
+		states := strings.Split(stateFilter, ",")
+		for _, state := range states {
+			state = strings.TrimSpace(state)
+			if state != "" {
+				allowedStates = append(allowedStates, state)
+			}
+		}
+	}
+
+	if len(allowedStates) > 0 {
+		var sFilters []rcs.Filter
+		for _, state := range allowedStates {
+			sFilters = append(sFilters, &rcs.StateFilter{State: state})
+		}
+		filters = append(filters, &rcs.OrFilter{Filters: sFilters})
+	}
+
+	var combinedFilter rcs.Filter
+	if len(filters) > 0 {
+		combinedFilter = &rcs.AndFilter{Filters: filters}
+	}
+
+	for _, file := range files {
+		rcsFile := file
+		if !strings.HasSuffix(rcsFile, ",v") {
+			rcsFile += ",v"
+		}
+
+		f, err := os.Open(rcsFile)
+		if err != nil {
+			return fmt.Errorf("open %s: %w", rcsFile, err)
+		}
+
+		parsedFile, err := rcs.ParseFile(f)
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("close %s: %w", rcsFile, err)
+		}
+		if err != nil {
+			return fmt.Errorf("parse %s: %w", rcsFile, err)
+		}
+
+		if err := rcs.PrintRLog(os.Stdout, parsedFile, rcsFile, file, combinedFilter); err != nil {
+			return fmt.Errorf("print rlog %s: %w", rcsFile, err)
+		}
+	}
+	return nil
+}
+
+func printFilterReference() {
+	fmt.Println("Filter Reference:")
+	fmt.Println()
+	fmt.Println("Filtering allows selecting specific revisions based on criteria.")
+	fmt.Println("Syntax:")
+	fmt.Println("  state=<value>       Select revisions with the given state.")
+	fmt.Println("  s=<value>           Alias for state.")
+	fmt.Println("  state in (val ...)  Select revisions where state matches one of the values.")
+	fmt.Println("  <expr> OR <expr>    Logical OR.")
+	fmt.Println("  <expr> || <expr>    Logical OR.")
+	fmt.Println()
+	fmt.Println("Examples:")
+	fmt.Println("  state=Rel")
+	fmt.Println("  s=Exp || s=Prod")
+	fmt.Println("  state in (Rel Prod)")
+}
