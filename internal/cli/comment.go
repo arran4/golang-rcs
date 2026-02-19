@@ -9,6 +9,7 @@ import (
 )
 
 // CommentLeader processes the list of files and prints their comment leader.
+// Command: comment leader
 func CommentLeader(files []string) error {
 	if len(files) == 0 {
 		return fmt.Errorf("missing files")
@@ -29,6 +30,7 @@ func CommentLeader(files []string) error {
 }
 
 // CommentLeaderSet sets the comment leader for the specified files.
+// Command: comment leader set
 func CommentLeaderSet(leader string, files []string) error {
 	if len(files) == 0 {
 		return fmt.Errorf("missing files")
@@ -63,6 +65,7 @@ func CommentLeaderSet(leader string, files []string) error {
 }
 
 // CommentLeaderList prints common RCS comment leaders.
+// Command: comment leader list
 func CommentLeaderList() error {
 	// List common leaders
 	fmt.Println("Common RCS comment leaders:")

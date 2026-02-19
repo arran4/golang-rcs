@@ -493,6 +493,48 @@ gorcs log message list [file1,v ...]
 gorcs log message list file.v
 ```
 
+### `gorcs comment leader set`
+
+Sets the comment leader for one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs comment leader set <leader> [file1,v ...]
+```
+
+**Example:**
+
+```shell
+gorcs comment leader set "/* " file.c,v
+```
+
+### `gorcs comment leader list`
+
+Lists common RCS comment leaders.
+
+**Usage:**
+
+```shell
+gorcs comment leader list
+```
+
+### `gorcs comment leader`
+
+Prints the current comment leader for one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs comment leader [file1,v ...]
+```
+
+**Example:**
+
+```shell
+gorcs comment leader file.v
+```
+
 ## License
 
 MIT.
