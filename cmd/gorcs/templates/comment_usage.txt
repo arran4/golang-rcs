@@ -1,0 +1,4 @@
+Usage: {{.Comment.RootCmd.FlagSet.Name}} comment [flags] [subcommand]
+{{.Comment.Flags.FlagUsages}}
+Subcommands:
+  leader    manage comment leader

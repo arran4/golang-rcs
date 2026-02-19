@@ -423,14 +423,16 @@ func (f *File) String() string {
 		sb.WriteString(";")
 		sb.WriteString(nl)
 	}
-	commentSep := "\t"
-	if f.CommentSeparatorSpaces > 0 {
-		commentSep = strings.Repeat(" ", f.CommentSeparatorSpaces)
+	if f.Comment != "" {
+		commentSep := "\t"
+		if f.CommentSeparatorSpaces > 0 {
+			commentSep = strings.Repeat(" ", f.CommentSeparatorSpaces)
+		}
+		sb.WriteString("comment" + commentSep)
+		_, _ = WriteAtQuote(&sb, f.Comment)
+		sb.WriteString(";")
+		sb.WriteString(nl)
 	}
-	sb.WriteString("comment" + commentSep)
-	_, _ = WriteAtQuote(&sb, f.Comment)
-	sb.WriteString(";")
-	sb.WriteString(nl)
 	if f.Expand != "" {
 		expandSep := "\t"
 		if f.ExpandSeparatorSpaces > 0 {

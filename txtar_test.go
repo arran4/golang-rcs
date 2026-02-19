@@ -386,17 +386,25 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 		}
 
 		branchName := ""
+		comment := ""
+		hasComment := false
 		for i := 0; i < len(args); i++ {
 			if strings.HasPrefix(args[i], "-b") {
 				branchName = strings.TrimPrefix(args[i], "-b")
-				break
+				continue
+			}
+			if strings.HasPrefix(args[i], "-c") {
+				comment = strings.TrimPrefix(args[i], "-c")
+				hasComment = true
+				continue
 			}
 			if i+3 < len(args) && args[i] == "branches" && args[i+1] == "default" && args[i+2] == "set" {
 				branchName = args[i+3]
-				break
+				i += 3
+				continue
 			}
 		}
-		if branchName == "" {
+		if branchName == "" && !hasComment {
 			t.Skip("unsupported rcs operation fixture")
 		}
 
@@ -405,11 +413,17 @@ func testRCS(t *testing.T, parts map[string]string, _ map[string]bool, args []st
 			t.Fatalf("ParseFile error: %v", err)
 		}
 
-		parts := strings.Split(branchName, ".")
-		if len(parts)%2 == 0 && len(parts) > 0 {
-			branchName = strings.Join(parts[:len(parts)-1], ".")
+		if branchName != "" {
+			parts := strings.Split(branchName, ".")
+			if len(parts)%2 == 0 && len(parts) > 0 {
+				branchName = strings.Join(parts[:len(parts)-1], ".")
+			}
+			parsed.Branch = branchName
 		}
-		parsed.Branch = branchName
+
+		if hasComment {
+			parsed.SetComment(comment)
+		}
 
 		if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
 			t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
