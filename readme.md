@@ -174,13 +174,13 @@ Sets the default branch header in one or more RCS files. Provide the branch revi
 **Usage:**
 
 ```shell
-gorcs branches default set <name> [file1 file2 ...]
+gorcs branches default set -name <name> [file1 file2 ...]
 ```
 
 **Example:**
 
 ```shell
-gorcs branches default set 1.1.1.1 file.txt
+gorcs branches default set -name 1.1.1.1 file.txt
 ```
 
 ### `gorcs list-heads`
@@ -376,15 +376,15 @@ gorcs validate [-o output_file] [-w] [-s] [-f] [file1,v ...]
 Checks out a revision from an RCS file and optionally updates lock state.
 
 ```bash
-gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-wUSER] [file ...]
+gorcs co [-q] [-r <REV>] [-l[REV]] [-u[REV]] [-d <DATE>] [-z <ZONE>] [-w <USER>] [file ...]
 ```
 
-- `-rREV`: Check out a specific revision.
+- `-r <REV>`: Check out a specific revision.
 - `-l[REV]`: Check out and lock the given revision (or head when omitted).
 - `-u[REV]`: Check out and unlock the given revision (or head when omitted).
-- `-dDATE`: Check out the latest revision on the default branch (or trunk) that is on or before the specified date.
-- `-zZONE`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid zone names.
-- `-wUSER`: User to apply lock changes for (defaults to current logged in user).
+- `-d <DATE>`: Check out the latest revision on the default branch (or trunk) that is on or before the specified date.
+- `-z <ZONE>`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid zone names.
+- `-w <USER>`: User to apply lock changes for (defaults to current logged in user).
 - `-q`: Quiet mode.
 
 ### `gorcs locks`
@@ -433,16 +433,16 @@ gorcs locks clean file.txt
 Creates and initializes a new RCS file.
 
 ```bash
-gorcs init [-t[description]] [file ...]
+gorcs init [-t <description>] [file ...]
 ```
 
-- `-t[description]`: Set the initial description. If the argument starts with `-`, the rest is taken as the description string. Otherwise, it is treated as a file name to read the description from.
+- `-t <description>`: Set the initial description.
 
 
 **Example:**
 
 ```shell
-gorcs init -t-"Initial Description" file.txt
+gorcs init -t "Initial Description" file.txt
 ```
 
 ### `gorcs access-list copy`
@@ -541,10 +541,10 @@ Prints information about the RCS file, similar to `rlog`. It supports filtering 
 **Usage:**
 
 ```shell
-gorcs log [-sState] [-F filter_expression] [file1,v ...]
+gorcs log [-s <State>] [-F <filter_expression>] [file1,v ...]
 ```
 
-- `-s`: Filter by state. Comma-separated states are supported (e.g., `-sRel,Prod`).
+- `-s`: Filter by state. Comma-separated states are supported (e.g., `-s Rel,Prod`).
 - `-F`, `--filter`: Filter by expression. Supported syntax:
   - `state=<value>` or `s=<value>`
   - `state in (<value1> <value2> ...)`
@@ -553,7 +553,7 @@ gorcs log [-sState] [-F filter_expression] [file1,v ...]
 **Example:**
 
 ```shell
-gorcs log -sRel file.v
+gorcs log -s Rel file.v
 gorcs log --filter "state=Exp || state=Prod" file.v
 ```
 
