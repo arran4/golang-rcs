@@ -6,7 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/arran4/golang-rcs"
+	"github.com/arran4/golang-rcs/cmd"
+	"github.com/arran4/golang-rcs/internal/cli"
+	"errors"
 )
 
 var _ Cmd = (*Comment)(nil)
@@ -146,21 +148,20 @@ func (c *Comment) NewLeader() *CommentLeader {
 	v.SubCommands["list"] = v.NewList()
 
 	v.CommandAction = func(c *CommentLeader) error {
-		if len(c.Files) == 0 {
-			c.Usage()
-			return nil
-		}
-		for _, file := range c.Files {
-			f, err := os.Open(file)
-			if err != nil {
-				return fmt.Errorf("open %s: %w", file, err)
+		err := cli.CommentLeader(c.Files)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) || err.Error() == "missing files" {
+				c.Usage()
+				return nil
 			}
-			parsed, err := rcs.ParseFile(f)
-			_ = f.Close()
-			if err != nil {
-				return fmt.Errorf("parse %s: %w", file, err)
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
 			}
-			fmt.Printf("%s: %s\n", file, parsed.GetComment())
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
+			}
+			return fmt.Errorf("leader failed: %w", err)
 		}
 		return nil
 	}
@@ -228,34 +229,20 @@ func (c *CommentLeader) NewSet() *CommentLeaderSet {
 		if c.LeaderArg == "" {
 			return fmt.Errorf("missing leader argument")
 		}
-		if len(c.Files) == 0 {
-			return fmt.Errorf("missing files")
-		}
-		for _, filename := range c.Files {
-			// Read file
-			content, err := os.ReadFile(filename)
-			if err != nil {
-				return fmt.Errorf("read %s: %w", filename, err)
+		err := cli.CommentLeaderSet(c.LeaderArg, c.Files)
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
 			}
-			// Parse
-			parsed, err := rcs.ParseFile(strings.NewReader(string(content)))
-			if err != nil {
-				return fmt.Errorf("parse %s: %w", filename, err)
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
 			}
-			// Modify
-			parsed.SetComment(c.LeaderArg)
-			// Write back
-			// Assuming String() serializes correctly
-			newContent := parsed.String()
-			// Need to preserve permissions?
-			info, err := os.Stat(filename)
-			if err != nil {
-				return fmt.Errorf("stat %s: %w", filename, err)
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
 			}
-			err = os.WriteFile(filename, []byte(newContent), info.Mode())
-			if err != nil {
-				return fmt.Errorf("write %s: %w", filename, err)
-			}
+			return fmt.Errorf("leader set failed: %w", err)
 		}
 		return nil
 	}
@@ -307,16 +294,21 @@ func (c *CommentLeader) NewList() *CommentLeaderList {
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *CommentLeaderList) error {
-		// List common leaders
-		fmt.Println("Common RCS comment leaders:")
-		fmt.Println("  #     (Shell, Python, Ruby, etc.)")
-		fmt.Println("  /*    (C, C++, Java, etc.)")
-		fmt.Println("  //    (C++, Java, Go, etc.)")
-		fmt.Println("  ;     (Lisp, Assembly)")
-		fmt.Println("  %     (LaTeX, PostScript)")
-		fmt.Println("  --    (Haskell, Lua, SQL)")
-		fmt.Println("  REM   (BASIC, Batch)")
-		fmt.Println("  '     (Visual Basic)")
+		err := cli.CommentLeaderList()
+		if err != nil {
+			if errors.Is(err, cmd.ErrPrintHelp) {
+				c.Usage()
+				return nil
+			}
+			if errors.Is(err, cmd.ErrHelp) {
+				fmt.Fprintf(os.Stderr, "Use '%s help' for more information.\n", os.Args[0])
+				return nil
+			}
+			if e, ok := err.(*cmd.ErrExitCode); ok {
+				return e
+			}
+			return fmt.Errorf("leader list failed: %w", err)
+		}
 		return nil
 	}
 	return v
