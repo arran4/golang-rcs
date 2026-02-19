@@ -67,16 +67,16 @@ func TestGetLinesStats(t *testing.T) {
 	f := &File{
 		RevisionContents: []*RevisionContent{
 			{Revision: "1.2", Text: "full text\n"},
-			{Revision: "1.1", Text: "d1 1\n"}, // Delta for 1.1 (reverse from 1.2)
+			{Revision: "1.1", Text: "d1 1\n"},               // Delta for 1.1 (reverse from 1.2)
 			{Revision: "1.2.1.1", Text: "a1 1\nnew line\n"}, // Delta for 1.2.1.1 (forward from 1.2)
 		},
 	}
 
 	tests := []struct {
-		name     string
-		rh       *RevisionHead
-		want     string
-		wantErr  bool
+		name    string
+		rh      *RevisionHead
+		want    string
+		wantErr bool
 	}{
 		{
 			name: "trunk revision (reverse delta)",
