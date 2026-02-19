@@ -155,8 +155,8 @@ func (c *Comment) NewLeader() *CommentLeader {
 			if err != nil {
 				return fmt.Errorf("open %s: %w", file, err)
 			}
-			defer f.Close()
 			parsed, err := rcs.ParseFile(f)
+			_ = f.Close()
 			if err != nil {
 				return fmt.Errorf("parse %s: %w", file, err)
 			}
