@@ -1,0 +1,88 @@
+-- description.txt --
+co checkout -kv (value only)
+
+-- options.conf --
+{"args": ["-q", "-kv", "input.txt"] }
+
+-- input.txt,v --
+head	1.1;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@This is revision 1.1
+$Revision$
+$Date$
+$Author$
+@
+
+-- tests.txt --
+# co
+
+-- expected.txt --
+This is revision 1.1
+1.1
+2020/01/01 00:00:00
+tester
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="15-co-k-v.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+echo 'This is revision 1.1' > file.txt
+echo '$Revision$' >> file.txt
+echo '$Date$' >> file.txt
+echo '$Author$' >> file.txt
+
+# Create RCS file
+ci -q -i -u -m"r1" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+rcs -q -U file.txt
+chmod u+w file.txt
+
+# file.txt has expanded keywords ($Revision: 1.1 $ etc)
+cp file.txt,v input.txt,v
+rm file.txt
+
+# Now run co with -kv
+co -q -kv file.txt
+
+cat > "$OLDPWD/$OUT" <<EOF
+# -- description.txt --
+co checkout -kv (value only)
+
+# -- options.conf --
+{"args": ["-q", "-kv", "input.txt"] }
+
+# -- input.txt,v --
+$(cat input.txt,v)
+
+# -- tests.txt --
+# co
+
+# -- expected.txt --
+$(cat file.txt)
+EOF

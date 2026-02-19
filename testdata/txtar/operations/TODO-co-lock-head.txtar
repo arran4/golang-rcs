@@ -1,0 +1,47 @@
+-- description.txt --
+TODO: scenario not yet converted into an executable txtar test (09 co lock head).
+
+-- tests.txt --
+# TODO: add executable test assertions for this scenario.
+
+-- generator.sh --
+# 09-co-lock-head.sh
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="09-co-lock-head.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+printf "LOCKME\n" > file.txt
+
+ci -q -i -u -m"r1" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+rcs -q -U file.txt
+
+cp file.txt,v input.txt,v
+rm file.txt
+
+co -q -l file.txt
+
+cat > "$OLDPWD/$OUT" <<EOF
+# -- description.txt --
+co checkout with lock on head revision
+
+# -- options.conf --
+{"args": ["-q","-l","input.txt"] }
+
+# -- input.txt,v --
+$(cat input.txt,v)
+
+# -- tests.txt --
+co
+
+# -- expected.txt --
+$(cat file.txt)
+
+# -- expected.txt,v --
+$(cat file.txt,v)
+EOF

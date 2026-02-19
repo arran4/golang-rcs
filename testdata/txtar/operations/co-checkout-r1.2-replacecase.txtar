@@ -1,0 +1,100 @@
+-- description.txt --
+co checkout revision 1.2 replace history
+
+-- options.conf --
+{"args": ["-q","-r1.2","input.txt"] }
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@replace
+@
+text
+@NEW
+NEW2
+NEW3
+@
+
+
+1.1
+log
+@r1
+@
+text
+@d1 3
+a3 2
+OLD
+OLD2
+@
+
+-- tests.txt --
+co
+
+-- expected.txt --
+NEW
+NEW2
+NEW3
+
+-- generator.sh --
+# 07-co-checkout-r1.2-replacecase.sh
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="07-co-checkout-r1.2-replacecase.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+printf "OLD\nOLD2\n" > file.txt
+
+ci -q -i -u -m"r1" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+rcs -q -U file.txt
+chmod u+w file.txt
+printf "NEW\nNEW2\nNEW3\n" > file.txt
+ci -q -u -m"replace" -wtester -d'2020-01-02 00:00:00Z' file.txt </dev/null
+
+cp file.txt,v input.txt,v
+rm file.txt
+
+co -q -r1.2 file.txt
+
+cat > "$OLDPWD/$OUT" <<EOF
+# -- description.txt --
+co checkout revision 1.2 replace history
+
+# -- options.conf --
+{"args": ["-q","-r1.2","input.txt"] }
+
+# -- input.txt,v --
+$(cat input.txt,v)
+
+# -- tests.txt --
+co
+
+# -- expected.txt --
+$(cat file.txt)
+EOF

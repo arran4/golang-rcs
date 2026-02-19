@@ -1,0 +1,77 @@
+-- description.txt --
+ci checkin with -zLT and TZ env var
+
+-- options.conf --
+{"args": ["-q","-i","-u","-m","r1","-wtester","-z","LT","-d","2022-04-04 12:00:00","input.txt"] }
+
+-- input.txt --
+A clock unwinds its shadow into rain,
+While silver echoes fold a paper sky;
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2022.04.04.17.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@r1
+@
+text
+@A clock unwinds its shadow into rain,
+While silver echoes fold a paper sky;
+@
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+export TZ=EST5
+
+
+OUT="81-ci-date-zone.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+cat > file.txt <<'EOF'
+A clock unwinds its shadow into rain,
+While silver echoes fold a paper sky;
+EOF
+
+ci -q -i -u -m"r1" -wtester -zLT -d"2022-04-04 12:00:00" file.txt </dev/null
+
+cat > "$OLDPWD/$OUT" <<EOF
+# -- description.txt --
+ci checkin with -zLT and TZ env var
+
+# -- options.conf --
+{"args": ["-q","-i","-u","-m","r1","-wtester","-z","LT","-d","2022-04-04 12:00:00","input.txt"] }
+
+# -- input.txt --
+A clock unwinds its shadow into rain,
+While silver echoes fold a paper sky;
+
+# -- tests.txt --
+ci
+
+# -- expected.txt,v --
+$(cat file.txt,v)
+EOF
