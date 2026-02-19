@@ -2,7 +2,7 @@
 rcs -s flag (change state, no revision)
 
 -- options.conf --
-{"args": ["-sRel", "input.txt"]}
+{"args": ["alter", "-state", "Rel", "input.txt"]}
 
 -- input.txt,v --
 head	1.1;
@@ -31,7 +31,7 @@ text
 @
 
 -- tests.txt --
-# rcs
+state
 
 -- expected.txt,v --
 head	1.1;

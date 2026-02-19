@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-func TestSet_Execute(t *testing.T) {
+func TestAppend_Execute(t *testing.T) {
 
-	parent := &Default{}
-	cmd := parent.NewSet()
+	parent := &AccessList{}
+	cmd := parent.NewAppend()
 
 	called := false
-	cmd.CommandAction = func(c *Set) error {
+	cmd.CommandAction = func(c *Append) error {
 		called = true
 		return nil
 	}

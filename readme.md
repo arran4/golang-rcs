@@ -493,6 +493,64 @@ gorcs log message list [file1,v ...]
 gorcs log message list file.v
 ```
 
+### `gorcs state alter`
+
+Sets the state for a revision in one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs state alter [-state <state>] [-rev <revision>] [file1,v ...]
+```
+
+- `-state`: The new state (e.g., "Rel"). Defaults to "Exp" if not provided.
+- `-rev`: The revision to update. Defaults to the head revision if not provided.
+
+**Example:**
+
+```shell
+gorcs state alter -state Rel -rev 1.2 file.v
+gorcs state alter file.v # Resets state to Exp on head revision
+```
+
+> **Note:** This command is aliased as `alter` to avoid conflict with `branches default set` in the current implementation.
+
+### `gorcs state get`
+
+Gets the state for a revision in one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs state get [-rev <revision>] [file1,v ...]
+```
+
+- `-rev`: The revision to query. Defaults to the head revision if not provided.
+
+**Example:**
+
+```shell
+gorcs state get -rev 1.2 file.v
+```
+
+### `gorcs state ls`
+
+Lists states for all revisions in one or more RCS files.
+
+**Usage:**
+
+```shell
+gorcs state ls [file1,v ...]
+```
+
+**Example:**
+
+```shell
+gorcs state ls file.v
+```
+
+> **Note:** This command is aliased as `ls` to avoid conflict with `log message list` in the current implementation.
+
 ## License
 
 MIT.

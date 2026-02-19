@@ -7,13 +7,16 @@ import (
 	"testing"
 )
 
-func TestSet_Execute(t *testing.T) {
+func TestAccessList_Execute(t *testing.T) {
 
-	parent := &Default{}
-	cmd := parent.NewSet()
+	parent := &RootCmd{
+		FlagSet:  flag.NewFlagSet("root", flag.ContinueOnError),
+		Commands: make(map[string]Cmd),
+	}
+	cmd := parent.NewAccessList()
 
 	called := false
-	cmd.CommandAction = func(c *Set) error {
+	cmd.CommandAction = func(c *AccessList) error {
 		called = true
 		return nil
 	}

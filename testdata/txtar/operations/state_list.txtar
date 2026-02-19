@@ -1,0 +1,51 @@
+-- description.txt --
+gorcs state list
+
+-- options.conf --
+{"args": ["ls", "input.txt"]}
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Rel;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@second
+@
+text
+@Second content
+@
+
+1.1
+log
+@initial
+@
+text
+@Initial content
+@
+
+-- tests.txt --
+state
+
+-- expected.out --
+1.2 Rel
+1.1 Exp

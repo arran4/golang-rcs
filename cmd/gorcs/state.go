@@ -10,35 +10,35 @@ import (
 
 )
 
-var _ Cmd = (*Message)(nil)
+var _ Cmd = (*State)(nil)
 
-type Message struct {
-	*Log
+type State struct {
+	*RootCmd
 	Flags         *flag.FlagSet
 	SubCommands   map[string]Cmd
-	CommandAction func(c *Message) error
+	CommandAction func(c *State) error
 }
 
-type UsageDataMessage struct {
-	*Message
+type UsageDataState struct {
+	*State
 	Recursive bool
 }
 
-func (c *Message) Usage() {
-	err := executeUsage(os.Stderr, "message_usage.txt", UsageDataMessage{c, false})
+func (c *State) Usage() {
+	err := executeUsage(os.Stderr, "state_usage.txt", UsageDataState{c, false})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Message) UsageRecursive() {
-	err := executeUsage(os.Stderr, "message_usage.txt", UsageDataMessage{c, true})
+func (c *State) UsageRecursive() {
+	err := executeUsage(os.Stderr, "state_usage.txt", UsageDataState{c, true})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating usage: %s\n", err)
 	}
 }
 
-func (c *Message) Execute(args []string) error {
+func (c *State) Execute(args []string) error {
 	if len(args) > 0 {
 		if cmd, ok := c.SubCommands[args[0]]; ok {
 			return cmd.Execute(args[1:])
@@ -67,20 +67,20 @@ func (c *Message) Execute(args []string) error {
 	return nil
 }
 
-func (c *Log) NewMessage() *Message {
-	set := flag.NewFlagSet("message", flag.ContinueOnError)
-	v := &Message{
-		Log:         c,
+func (c *RootCmd) NewState() *State {
+	set := flag.NewFlagSet("state", flag.ContinueOnError)
+	v := &State{
+		RootCmd:     c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
 	set.Usage = v.Usage
 
-	v.SubCommands["change"] = v.NewChange()
+	v.SubCommands["alter"] = v.NewAlter()
 
-	v.SubCommands["list"] = v.NewList()
+	v.SubCommands["get"] = v.NewGet()
 
-	v.SubCommands["print"] = v.NewPrint()
+	v.SubCommands["ls"] = v.NewLs()
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

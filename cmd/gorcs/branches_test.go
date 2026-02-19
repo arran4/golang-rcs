@@ -7,13 +7,16 @@ import (
 	"testing"
 )
 
-func TestSet_Execute(t *testing.T) {
+func TestBranches_Execute(t *testing.T) {
 
-	parent := &Default{}
-	cmd := parent.NewSet()
+	parent := &RootCmd{
+		FlagSet:  flag.NewFlagSet("root", flag.ContinueOnError),
+		Commands: make(map[string]Cmd),
+	}
+	cmd := parent.NewBranches()
 
 	called := false
-	cmd.CommandAction = func(c *Set) error {
+	cmd.CommandAction = func(c *Branches) error {
 		called = true
 		return nil
 	}
