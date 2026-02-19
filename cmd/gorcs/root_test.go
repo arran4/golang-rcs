@@ -7,7 +7,6 @@ import (
 )
 
 func TestRoot_Execute(t *testing.T) {
-	cmd, err := NewRoot("test", "", "", "")
 	if err != nil {
 		t.Fatalf("Failed to create root command: %v", err)
 	}

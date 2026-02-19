@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
 )
 
 var _ Cmd = (*Default)(nil)
@@ -49,7 +50,7 @@ func (c *Default) Execute(args []string) error {
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
+			name := arg; value := ""; _ = value;
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 			case "help", "h":
@@ -75,7 +76,7 @@ func (c *Branches) NewDefault() *Default {
 	}
 	set.Usage = v.Usage
 
-	v.SubCommands["set"] = v.NewSet()
+	v.SubCommands["branch-default-set"] = v.NewBranchDefaultSet()
 
 	v.SubCommands["help"] = &InternalCommand{
 		Exec: func(args []string) error {

@@ -57,8 +57,7 @@ func (c *Init) Execute(args []string) error {
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
-			value := ""
+			name := arg; value := ""; _ = value;
 			hasValue := false
 			if strings.Contains(arg, "=") {
 				parts := strings.SplitN(arg, "=", 2)
@@ -118,7 +117,6 @@ func (c *RootCmd) NewInit() *Init {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.description, "t", "", "description of the file")
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *Init) error {

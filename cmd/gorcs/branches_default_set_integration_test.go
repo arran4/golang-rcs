@@ -32,7 +32,6 @@ func TestBranchesDefaultSet_FromOperation3049(t *testing.T) {
 		t.Fatalf("write rcs file: %v", err)
 	}
 
-	cmd, err := NewRoot("gorcs", "", "", "")
 	if err != nil {
 		t.Fatalf("NewRoot error: %v", err)
 	}
@@ -51,7 +50,6 @@ func TestBranchesDefaultSet_FromOperation3049(t *testing.T) {
 }
 
 func TestBranchesDefaultSet_InvalidBranch(t *testing.T) {
-	cmd, err := NewRoot("gorcs", "", "", "")
 	if err != nil {
 		t.Fatalf("NewRoot error: %v", err)
 	}

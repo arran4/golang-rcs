@@ -59,8 +59,7 @@ func (c *NormalizeRevisions) Execute(args []string) error {
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
-			value := ""
+			name := arg; value := ""; _ = value;
 			hasValue := false
 			if strings.Contains(arg, "=") {
 				parts := strings.SplitN(arg, "=", 2)

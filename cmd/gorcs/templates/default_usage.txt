@@ -2,7 +2,7 @@
 
 Subcommands:
 {{if .Recursive}}
-    branches default set                     
+    branches default branch-default-set
 {{else}}
-    set        
+    branch-default-set
 {{end}}

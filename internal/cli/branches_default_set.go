@@ -9,13 +9,14 @@ import (
 	"strings"
 )
 
-// BranchesDefaultSet is a subcommand `gorcs branches default set`
+// BranchesDefaultBranchDefaultSet is a subcommand `gorcs branches default branch-default-set`
+// TODO: change to set when go-subcommand v0.0.21 is released
 //
 // Flags:
 //
 //	name: default branch name/revision to set
 //	files: ... List of working files to process
-func BranchesDefaultSet(name string, files ...string) error {
+func BranchesDefaultBranchDefaultSet(name string, files ...string) error {
 	if strings.TrimSpace(name) == "" {
 		return fmt.Errorf("default branch name is required")
 	}

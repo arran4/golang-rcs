@@ -16,9 +16,10 @@ import (
 var _ Cmd = (*Set)(nil)
 
 type Set struct {
-	*Default
+	*Locks
 	Flags         *flag.FlagSet
-	name          string
+	revision      string
+	user          string
 	files         []string
 	SubCommands   map[string]Cmd
 	CommandAction func(c *Set) error
@@ -56,9 +57,7 @@ func (c *Set) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
-			value := ""
+		if strings.HasPrefix(arg, "-") && arg != "-" { name := arg; value := ""; _ = value;
 			hasValue := false
 			if strings.Contains(arg, "=") {
 				parts := strings.SplitN(arg, "=", 2)
@@ -69,7 +68,7 @@ func (c *Set) Execute(args []string) error {
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 
-			case "name":
+			case "revision", "rev":
 				if !hasValue {
 					if i+1 < len(args) {
 						value = args[i+1]
@@ -78,7 +77,18 @@ func (c *Set) Execute(args []string) error {
 						return fmt.Errorf("flag %s requires a value", name)
 					}
 				}
-				c.name = value
+				c.revision = value
+
+			case "user", "u":
+				if !hasValue {
+					if i+1 < len(args) {
+						value = args[i+1]
+						i++
+					} else {
+						return fmt.Errorf("flag %s requires a value", name)
+					}
+				}
+				c.user = value
 			case "help", "h":
 				c.Usage()
 				return nil
@@ -110,20 +120,20 @@ func (c *Set) Execute(args []string) error {
 	return nil
 }
 
-func (c *Default) NewSet() *Set {
+func (c *Locks) NewSet() *Set {
 	set := flag.NewFlagSet("set", flag.ContinueOnError)
 	v := &Set{
-		Default:     c,
+		Locks:       c,
 		Flags:       set,
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.name, "name", "", "default branch name/revision to set")
+
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *Set) error {
 
-		err := cli.BranchesDefaultSet(c.name, c.files...)
+		err := cli.LocksLockSet(c.revision, c.user, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

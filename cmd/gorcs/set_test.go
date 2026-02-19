@@ -3,12 +3,13 @@
 package main
 
 import (
+	"flag"
 	"testing"
 )
 
 func TestSet_Execute(t *testing.T) {
 
-	parent := &Default{}
+	parent := &Locks{}
 	cmd := parent.NewSet()
 
 	called := false

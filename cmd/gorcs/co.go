@@ -64,10 +64,7 @@ func (c *Co) Execute(args []string) error {
 			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
-			value := ""
-			hasValue := false
+		if strings.HasPrefix(arg, "-") && arg != "-" { name := arg; value := ""; _ = value; ; hasValue := false;
 			if strings.Contains(arg, "=") {
 				parts := strings.SplitN(arg, "=", 2)
 				name = parts[0]
@@ -184,7 +181,7 @@ func (c *RootCmd) NewCo() *Co {
 			checkoutUnlock = true
 			checkoutRevision = c.unlockRev
 		}
-		if c.revision != "" && (checkoutLock || checkoutUnlock) {
+		if (c.lockSet || c.unlockSet) && c.revision != "" {
 			return fmt.Errorf("cannot combine -r with -l/-u")
 		}
 		err := cli.Co(checkoutRevision, checkoutLock, checkoutUnlock, c.user, c.quiet, c.date, c.zone, c.files...)

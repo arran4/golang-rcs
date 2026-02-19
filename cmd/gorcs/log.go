@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
 )
 
 var _ Cmd = (*Log)(nil)
@@ -49,7 +50,7 @@ func (c *Log) Execute(args []string) error {
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
+			name := arg; value := ""; _ = value;
 			trimmedName := strings.TrimLeft(name, "-")
 			switch trimmedName {
 			case "help", "h":

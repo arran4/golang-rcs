@@ -58,8 +58,7 @@ func (c *Change) Execute(args []string) error {
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
-			value := ""
+			name := arg; value := ""; _ = value;
 			hasValue := false
 			if strings.Contains(arg, "=") {
 				parts := strings.SplitN(arg, "=", 2)
@@ -130,9 +129,7 @@ func (c *Message) NewChange() *Change {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.revision, "rev", "", "revision to change")
 
-	set.StringVar(&v.message, "m", "", "new log message")
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *Change) error {

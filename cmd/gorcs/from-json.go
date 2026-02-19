@@ -60,8 +60,7 @@ func (c *FromJson) Execute(args []string) error {
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
-			value := ""
+			name := arg; value := ""; _ = value;
 			hasValue := false
 			if strings.Contains(arg, "=") {
 				parts := strings.SplitN(arg, "=", 2)
@@ -143,8 +142,6 @@ func (c *RootCmd) NewFromJson() *FromJson {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.output, "output", "", "Output file path")
-	set.StringVar(&v.output, "o", "", "Output file path")
 
 	set.BoolVar(&v.force, "force", false, "Force overwrite output")
 	set.BoolVar(&v.force, "f", false, "Force overwrite output")

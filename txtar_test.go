@@ -349,7 +349,7 @@ func testRCSLocks(t *testing.T, parts map[string]string, options map[string]bool
 			}
 
 			switch subCmd {
-			case "set":
+			case "lock-set":
 				if revision == "" {
 					t.Fatal("set requires -rev")
 				}

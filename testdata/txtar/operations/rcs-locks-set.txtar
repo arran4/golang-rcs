@@ -2,7 +2,7 @@
 rcs locks set
 
 -- options.conf --
-{"args": ["set", "-rev", "1.1", "-u", "tester", "input.txt,v"]}
+{"args": ["lock-set", "-rev", "1.1", "-u", "tester", "input.txt,v"]}
 
 -- input.txt,v --
 head	1.1;

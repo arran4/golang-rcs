@@ -57,8 +57,7 @@ func (c *Print) Execute(args []string) error {
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
-			name := arg
-			value := ""
+			name := arg; value := ""; _ = value;
 			hasValue := false
 			if strings.Contains(arg, "=") {
 				parts := strings.SplitN(arg, "=", 2)
@@ -118,7 +117,6 @@ func (c *Message) NewPrint() *Print {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.revision, "rev", "", "revision to print")
 	set.Usage = v.Usage
 
 	v.CommandAction = func(c *Print) error {
