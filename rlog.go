@@ -11,36 +11,44 @@ import (
 
 // PrintRLog prints the RCS file information in rlog format.
 func PrintRLog(w io.Writer, f *File, filename string, workingFilename string, filter Filter) error {
-	fmt.Fprintf(w, "RCS file: %s\n", filename)
-	fmt.Fprintf(w, "Working file: %s\n", workingFilename)
-	fmt.Fprintf(w, "head: %s\n", f.Head)
-	fmt.Fprintf(w, "branch: %s\n", f.Branch)
+	var err error
+	printf := func(format string, a ...interface{}) {
+		if err != nil {
+			return
+		}
+		_, err = fmt.Fprintf(w, format, a...)
+	}
+
+	printf("RCS file: %s\n", filename)
+	printf("Working file: %s\n", workingFilename)
+	printf("head: %s\n", f.Head)
+	printf("branch: %s\n", f.Branch)
 
 	locksStr := ""
 	if f.Strict {
 		locksStr = "strict"
 	}
-	fmt.Fprintf(w, "locks: %s", locksStr)
+	printf("locks: %s", locksStr)
 	for _, l := range f.Locks {
-		fmt.Fprintf(w, "\n\t%s: %s", l.User, l.Revision)
+		printf("\n\t%s: %s", l.User, l.Revision)
 	}
-	fmt.Fprintf(w, "\n")
+	printf("\n")
 
-	fmt.Fprintf(w, "access list:\n")
+	printf("access list:\n")
 	for _, user := range f.AccessUsers {
-		fmt.Fprintf(w, "\t%s\n", user)
+		printf("\t%s\n", user)
 	}
 
-	fmt.Fprintf(w, "symbolic names:\n")
+	printf("symbolic names:\n")
 	for _, sym := range f.Symbols {
-		fmt.Fprintf(w, "\t%s: %s\n", sym.Name, sym.Revision)
+		printf("\t%s: %s\n", sym.Name, sym.Revision)
 	}
 
 	expand := f.Expand
 	if expand == "" {
 		expand = "kv"
 	}
-	fmt.Fprintf(w, "keyword substitution: %s\n", expand)
+	printf("keyword substitution: %s\n", expand)
 
 	var revisionsToPrint []*RevisionHead
 	for _, rh := range f.RevisionHeads {
@@ -49,44 +57,45 @@ func PrintRLog(w io.Writer, f *File, filename string, workingFilename string, fi
 		}
 	}
 
-	fmt.Fprintf(w, "total revisions: %d;\tselected revisions: %d\n", len(f.RevisionHeads), len(revisionsToPrint))
-	fmt.Fprintf(w, "description:\n%s", f.Description)
+	printf("total revisions: %d;\tselected revisions: %d\n", len(f.RevisionHeads), len(revisionsToPrint))
+	printf("description:\n%s", f.Description)
 
 	for _, rh := range revisionsToPrint {
-		fmt.Fprintf(w, "----------------------------\n")
-		fmt.Fprintf(w, "revision %s\n", rh.Revision)
+		printf("----------------------------\n")
+		printf("revision %s\n", rh.Revision)
 
 		dateStr := string(rh.Date)
-		t, err := ParseDate(dateStr, time.Time{}, nil)
-		if err == nil {
+		t, e := ParseDate(dateStr, time.Time{}, nil)
+		if e == nil {
 			dateStr = t.Format("2006/01/02 15:04:05")
 		}
 
-		fmt.Fprintf(w, "date: %s;  author: %s;  state: %s;", dateStr, rh.Author, rh.State)
+		printf("date: %s;  author: %s;  state: %s;", dateStr, rh.Author, rh.State)
 
 		// Calculate lines stats
-		linesStats, err := getLinesStats(f, rh)
-		if err == nil && linesStats != "" {
-			fmt.Fprintf(w, "%s", linesStats)
+		linesStats, e := getLinesStats(f, rh)
+		if e == nil && linesStats != "" {
+			printf("%s", linesStats)
 		}
 
 		if len(rh.Branches) > 0 {
-			fmt.Fprintf(w, "  branches:")
+			printf("  branches:")
 			for _, b := range rh.Branches {
-				fmt.Fprintf(w, " %s;", b)
+				printf(" %s;", b)
 			}
 		}
 		// next field is typically not shown in default rlog output unless verbose/debug
 
-		fmt.Fprintf(w, "\n")
+		printf("\n")
 
-		logMsg, err := f.GetLogMessage(string(rh.Revision))
-		if err == nil {
-			fmt.Fprintf(w, "%s\n", logMsg)
+		logMsg, e := f.GetLogMessage(string(rh.Revision))
+		if e == nil {
+			printf("%s\n", logMsg)
 		}
 	}
-	fmt.Fprintf(w, "=============================================================================\n")
-	return nil
+	printf("=============================================================================\n")
+
+	return err
 }
 
 func getLinesStats(f *File, rh *RevisionHead) (string, error) {
