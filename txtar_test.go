@@ -178,10 +178,105 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 			testRCSClean(t, parts, options)
 		case strings.HasPrefix(testName, "log message"):
 			testLogMessage(t, parts, options, optionArgs, optionMessage, optionSubCommand, optionRevision, optionFiles)
+		case testName == "rlog":
+			testRLog(t, parts, options, optionArgs)
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
 	}
+}
+
+func testRLog(t *testing.T, parts map[string]string, options map[string]bool, args []string) {
+	t.Run("rlog", func(t *testing.T) {
+		inputRCS := getInputRCS(t, parts)
+		expectedOut, ok := parts["expected.stdout"]
+		if !ok {
+			if expectedOut, ok = parts["expected.out"]; !ok {
+				t.Fatal("Missing expected.stdout or expected.out")
+			}
+		}
+
+		parsedFile, err := parseRCS(inputRCS)
+		if err != nil {
+			t.Fatalf("ParseFile error: %v", err)
+		}
+
+		var filterStr string
+		var stateFilters []string
+
+		for i := 0; i < len(args); i++ {
+			arg := args[i]
+			if strings.HasPrefix(arg, "-s") {
+				val := strings.TrimPrefix(arg, "-s")
+				if val == "" {
+					if i+1 < len(args) {
+						stateFilters = append(stateFilters, args[i+1])
+						i++
+					}
+				} else {
+					stateFilters = append(stateFilters, val)
+				}
+			} else if strings.HasPrefix(arg, "--filter=") {
+				filterStr = strings.TrimPrefix(arg, "--filter=")
+			} else if arg == "-F" || arg == "--filter" {
+				if i+1 < len(args) {
+					filterStr = args[i+1]
+					i++
+				}
+			} else if strings.HasPrefix(arg, "-F") {
+				filterStr = strings.TrimPrefix(arg, "-F")
+			}
+		}
+
+		var filters []Filter
+		if filterStr != "" {
+			f, err := ParseFilter(filterStr)
+			if err != nil {
+				t.Fatalf("ParseFilter error: %v", err)
+			}
+			filters = append(filters, f)
+		}
+
+		var allowedStates []string
+		for _, s := range stateFilters {
+			states := strings.Split(s, ",")
+			for _, state := range states {
+				state = strings.TrimSpace(state)
+				if state != "" {
+					allowedStates = append(allowedStates, state)
+				}
+			}
+		}
+		if len(allowedStates) > 0 {
+			var sFilters []Filter
+			for _, state := range allowedStates {
+				sFilters = append(sFilters, &StateFilter{State: state})
+			}
+			filters = append(filters, &OrFilter{Filters: sFilters})
+		}
+
+		var combinedFilter Filter
+		if len(filters) > 0 {
+			combinedFilter = &AndFilter{Filters: filters}
+		}
+
+		var sb strings.Builder
+		// Assuming filename "input.txt,v" and working filename "input.txt" as per test convention
+		err = PrintRLog(&sb, parsedFile, "input.txt,v", "input.txt", combinedFilter)
+		if err != nil {
+			t.Fatalf("PrintRLog error: %v", err)
+		}
+
+		gotOut := sb.String()
+
+		if options["force unix line endings"] {
+			expectedOut = strings.ReplaceAll(expectedOut, "\r\n", "\n")
+		}
+
+		if diff := cmp.Diff(strings.TrimSpace(expectedOut), strings.TrimSpace(gotOut)); diff != "" {
+			t.Errorf("rlog mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
 
 func testLogMessage(t *testing.T, parts map[string]string, options map[string]bool, args []string, message, subCommand, revision string, files []string) {

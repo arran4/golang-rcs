@@ -493,6 +493,29 @@ gorcs log message list [file1,v ...]
 gorcs log message list file.v
 ```
 
+### `gorcs log`
+
+Prints information about the RCS file, similar to `rlog`. It supports filtering revisions by state and other criteria.
+
+**Usage:**
+
+```shell
+gorcs log [-sState] [-F filter_expression] [file1,v ...]
+```
+
+- `-s`: Filter by state. Can be specified multiple times (OR logic). Comma-separated states are also supported (e.g., `-sRel,Prod`).
+- `-F`, `--filter`: Filter by expression. Supported syntax:
+  - `state=<value>` or `s=<value>`
+  - `state in (<value1> <value2> ...)`
+  - `expression OR expression` or `expression || expression`
+
+**Example:**
+
+```shell
+gorcs log -sRel file.v
+gorcs log --filter "state=Exp || state=Prod" file.v
+```
+
 ## License
 
 MIT.

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/arran4/golang-rcs/internal/cli"
 )
 
 var _ Cmd = (*Log)(nil)
@@ -16,6 +18,10 @@ type Log struct {
 	Flags         *flag.FlagSet
 	SubCommands   map[string]Cmd
 	CommandAction func(c *Log) error
+
+	filter       string
+	stateFilters []string
+	files        []string
 }
 
 type UsageDataLog struct {
@@ -43,22 +49,64 @@ func (c *Log) Execute(args []string) error {
 			return cmd.Execute(args[1:])
 		}
 	}
+	remainingArgs := make([]string, 0, len(args))
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		if arg == "--" {
+			remainingArgs = append(remainingArgs, args[i+1:]...)
 			break
 		}
 		if strings.HasPrefix(arg, "-") && arg != "-" {
 			name := arg
-			trimmedName := strings.TrimLeft(name, "-")
-			switch trimmedName {
-			case "help", "h":
+			value := ""
+			hasValue := false
+			if strings.Contains(arg, "=") {
+				parts := strings.SplitN(arg, "=", 2)
+				name = parts[0]
+				value = parts[1]
+				hasValue = true
+			}
+			trimmed := strings.TrimLeft(name, "-")
+			switch {
+			case trimmed == "help" || trimmed == "h":
 				c.Usage()
 				return nil
+			case trimmed == "s" || strings.HasPrefix(trimmed, "s"):
+				if trimmed == "s" {
+					if !hasValue {
+						if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+							c.stateFilters = append(c.stateFilters, args[i+1])
+							i++
+							continue
+						}
+						return fmt.Errorf("flag -s requires a value")
+					}
+					c.stateFilters = append(c.stateFilters, value)
+				} else {
+					val := strings.TrimPrefix(trimmed, "s")
+					c.stateFilters = append(c.stateFilters, val)
+				}
+			case trimmed == "F" || trimmed == "filter":
+				if !hasValue {
+					if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+						c.filter = args[i+1]
+						i++
+						continue
+					}
+					return fmt.Errorf("flag -%s requires a value", trimmed)
+				}
+				c.filter = value
 			default:
 				return fmt.Errorf("unknown flag: %s", name)
 			}
+			continue
 		}
+		remainingArgs = append(remainingArgs, arg)
+	}
+	c.files = remainingArgs
+
+	if c.CommandAction != nil {
+		return c.CommandAction(c)
 	}
 
 	c.Usage()
@@ -74,6 +122,10 @@ func (c *RootCmd) NewLog() *Log {
 		SubCommands: make(map[string]Cmd),
 	}
 	set.Usage = v.Usage
+
+	v.CommandAction = func(c *Log) error {
+		return cli.Log(c.filter, c.stateFilters, c.files...)
+	}
 
 	v.SubCommands["message"] = v.NewMessage()
 

@@ -117,3 +117,70 @@ func LogMessageList(files ...string) error {
 	}
 	return nil
 }
+
+// Log is a subcommand `gorcs log`
+//
+// Flags:
+//
+//	filterStr: -F or --filter filter string
+//	stateFilters: -s state filters
+//	files: ... List of working files to process
+func Log(filterStr string, stateFilters []string, files ...string) error {
+	var filters []rcs.Filter
+
+	if filterStr != "" {
+		f, err := rcs.ParseFilter(filterStr)
+		if err != nil {
+			return fmt.Errorf("parse filter %q: %w", filterStr, err)
+		}
+		filters = append(filters, f)
+	}
+
+	var allowedStates []string
+	for _, s := range stateFilters {
+		states := strings.Split(s, ",")
+		for _, state := range states {
+			state = strings.TrimSpace(state)
+			if state != "" {
+				allowedStates = append(allowedStates, state)
+			}
+		}
+	}
+	if len(allowedStates) > 0 {
+		var sFilters []rcs.Filter
+		for _, state := range allowedStates {
+			sFilters = append(sFilters, &rcs.StateFilter{State: state})
+		}
+		filters = append(filters, &rcs.OrFilter{Filters: sFilters})
+	}
+
+	var combinedFilter rcs.Filter
+	if len(filters) > 0 {
+		combinedFilter = &rcs.AndFilter{Filters: filters}
+	}
+
+	for _, file := range files {
+		rcsFile := file
+		if !strings.HasSuffix(rcsFile, ",v") {
+			rcsFile += ",v"
+		}
+
+		f, err := os.Open(rcsFile)
+		if err != nil {
+			return fmt.Errorf("open %s: %w", rcsFile, err)
+		}
+
+		parsedFile, err := rcs.ParseFile(f)
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("close %s: %w", rcsFile, err)
+		}
+		if err != nil {
+			return fmt.Errorf("parse %s: %w", rcsFile, err)
+		}
+
+		if err := rcs.PrintRLog(os.Stdout, parsedFile, rcsFile, file, combinedFilter); err != nil {
+			return fmt.Errorf("print rlog %s: %w", rcsFile, err)
+		}
+	}
+	return nil
+}
