@@ -75,6 +75,8 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "    %s\n", "access-list append")
 	fmt.Fprintf(os.Stderr, "    %s\n", "access-list copy")
 	fmt.Fprintf(os.Stderr, "    %s\n", "branches")
+	fmt.Fprintf(os.Stderr, "    %s\n", "checkout")
+	fmt.Fprintf(os.Stderr, "    %s\n", "co")
 	fmt.Fprintf(os.Stderr, "    %s\n", "branches default")
 	fmt.Fprintf(os.Stderr, "    %s\n", "branches default set")
 	fmt.Fprintf(os.Stderr, "    %s\n", "format")
@@ -105,6 +107,8 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 
 	c.Commands["access-list"] = c.NewAccessList()
 	c.Commands["branches"] = c.NewBranches()
+	c.Commands["checkout"] = c.NewCheckout()
+	c.Commands["co"] = c.NewCo()
 	c.Commands["format"] = c.NewFormat()
 	c.Commands["from-json"] = c.NewFromJson()
 	c.Commands["from-markdown"] = c.NewFromMarkdown()

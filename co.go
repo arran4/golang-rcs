@@ -3,6 +3,7 @@ package rcs
 import (
 	"fmt"
 	"io"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -37,6 +38,10 @@ type WithLocation struct {
 	*time.Location
 }
 
+type WithExpandKeyword KeywordSubstitution
+
+type WithRCSFilename string
+
 // Checkout resolves revision content and applies lock changes to the file.
 //
 // Options:
@@ -45,6 +50,8 @@ type WithLocation struct {
 //   - WithTimeZoneOffset(int) sets the timezone offset (in seconds) for parsing revision dates
 //   - WithLocation(*time.Location) sets the location for parsing revision dates
 //   - WithSetLock / WithClearLock controls lock mutation
+//   - WithExpandKeyword(KeywordSubstitution) sets the keyword substitution mode
+//   - WithRCSFilename(string) sets the RCS filename used for keyword expansion
 func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	if file == nil {
 		return nil, fmt.Errorf("nil file")
@@ -53,6 +60,8 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 	lockMode := WithNoLockChange
 	var targetDate time.Time
 	var targetLocation *time.Location
+	expandMode := KV
+	rcsFilename := ""
 
 	for _, op := range ops {
 		switch v := op.(type) {
@@ -66,6 +75,10 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 			targetLocation = time.FixedZone("", int(v))
 		case WithLocation:
 			targetLocation = v.Location
+		case WithExpandKeyword:
+			expandMode = KeywordSubstitution(v)
+		case WithRCSFilename:
+			rcsFilename = string(v)
 		default:
 			return nil, fmt.Errorf("unsupported checkout option type %T", op)
 		}
@@ -112,7 +125,72 @@ func (file *File) Checkout(user string, ops ...any) (*COVerdict, error) {
 		return nil, fmt.Errorf("invalid lock mode %d", lockMode)
 	}
 
+	if expandMode != O && expandMode != B {
+		rh, err := file.GetRevisionHead(revision)
+		if err != nil {
+			return nil, fmt.Errorf("get revision head %s: %w", revision, err)
+		}
+		rc, err := file.GetRevisionContent(revision)
+		if err != nil {
+			return nil, fmt.Errorf("get revision content %s: %w", revision, err)
+		}
+
+		locker := ""
+		// KV: locker inserted only if being locked (ci -l, co -l).
+		// KVL: locker inserted if locked.
+		isLocked := false
+		lockedByUser := ""
+		for _, l := range file.Locks {
+			if l.Revision == revision {
+				isLocked = true
+				lockedByUser = l.User
+				break
+			}
+		}
+
+		if expandMode == KVL && isLocked {
+			locker = lockedByUser
+		} else if expandMode == KV && lockMode == WithSetLock {
+			locker = user
+		}
+
+		revDate, err := ParseDate(string(rh.Date), time.Time{}, time.UTC)
+		if err != nil {
+			return nil, fmt.Errorf("parse date for revision %s: %w", revision, err)
+		}
+
+		kd := KeywordData{
+			Revision: revision,
+			Date:     revDate,
+			Author:   string(rh.Author),
+			State:    string(rh.State),
+			Locker:   locker,
+			Log:      rc.Log,
+			RCSFile:  filepath.Base(rcsFilename),
+			Source:   rcsFilename, // Simplified, maybe needs full path?
+		}
+		v.Content = ExpandKeywords(content, kd, expandMode)
+	}
+
 	return v, nil
+}
+
+func (file *File) GetRevisionHead(revision string) (*RevisionHead, error) {
+	for _, rh := range file.RevisionHeads {
+		if rh.Revision.String() == revision {
+			return rh, nil
+		}
+	}
+	return nil, fmt.Errorf("revision head %s not found", revision)
+}
+
+func (file *File) GetRevisionContent(revision string) (*RevisionContent, error) {
+	for _, rc := range file.RevisionContents {
+		if rc.Revision == revision {
+			return rc, nil
+		}
+	}
+	return nil, fmt.Errorf("revision content %s not found", revision)
 }
 
 func (file *File) resolveRevisionByDate(startRev string, targetDate time.Time, defaultZone *time.Location) (string, error) {
