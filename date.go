@@ -60,9 +60,6 @@ func ParseDate(input string, now time.Time, defaultZone *time.Location) (time.Ti
 		// Try parsing in targetZone
 		t, err := time.ParseInLocation(layout.layout, input, targetZone)
 		if err == nil {
-			if layout.fields&FieldZone != 0 {
-				t = fixLegacyZone(t)
-			}
 			return applyDefaults(t, now, layout.fields, targetZone), nil
 		}
 	}
@@ -71,7 +68,7 @@ func ParseDate(input string, now time.Time, defaultZone *time.Location) (time.Ti
 }
 
 // Common legacy time zone abbreviations and their offsets in seconds.
-var legacyZones = map[string]int{
+var LegacyZones = map[string]int{
 	"PST":  -8 * 3600,
 	"PDT":  -7 * 3600,
 	"MST":  -7 * 3600,
@@ -89,11 +86,11 @@ var legacyZones = map[string]int{
 	"JST":  9 * 3600,
 }
 
-// fixLegacyZone attempts to correct the time zone offset for known legacy abbreviations
+// AdjustLegacyZone attempts to correct the time zone offset for known legacy abbreviations
 // that time.Parse might not recognize (returning offset 0).
-func fixLegacyZone(t time.Time) time.Time {
+func AdjustLegacyZone(t time.Time) time.Time {
 	name, offset := t.Zone()
-	if expected, ok := legacyZones[name]; ok {
+	if expected, ok := LegacyZones[name]; ok {
 		// If parsed offset is 0, it likely means the zone was unknown to time.Parse.
 		// We replace it with a FixedZone with the correct offset.
 		if offset == 0 {

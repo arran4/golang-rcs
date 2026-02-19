@@ -27,6 +27,7 @@ type Co struct {
 	user          string
 	date          string
 	zone          string
+	legacyDates   bool
 	files         []string
 	SubCommands   map[string]Cmd
 	CommandAction func(c *Co) error
@@ -117,6 +118,8 @@ func (c *Co) Execute(args []string) error {
 				} else {
 					c.zone = strings.TrimPrefix(trimmed, "z")
 				}
+			case trimmed == "legacy-zones":
+				c.legacyDates = true
 			case trimmed == "r" || strings.HasPrefix(trimmed, "r"):
 				if trimmed == "r" {
 					if !hasValue {
@@ -187,7 +190,7 @@ func (c *RootCmd) NewCo() *Co {
 		if c.revision != "" && (checkoutLock || checkoutUnlock) {
 			return fmt.Errorf("cannot combine -r with -l/-u")
 		}
-		err := cli.Co(checkoutRevision, checkoutLock, checkoutUnlock, c.user, c.quiet, c.date, c.zone, c.files...)
+		err := cli.Co(checkoutRevision, checkoutLock, checkoutUnlock, c.user, c.quiet, c.date, c.zone, c.legacyDates, c.files...)
 		if err != nil {
 			if errors.Is(err, cmd.ErrPrintHelp) {
 				c.Usage()

@@ -31,8 +31,9 @@ type COVerdict struct {
 //	quiet: -q suppress status output
 //	date: -d date to check out
 //	zone: -z zone for date parsing (e.g. "LT", "UTC", "-0700", "America/New_York")
+//	legacy: -legacy-zones parse legacy timezones like PST/PDT even if system doesn't recognize them
 //	files: ... List of working files to process
-func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, files ...string) error {
+func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, legacyDates bool, files ...string) error {
 	if lock && unlock {
 		return fmt.Errorf("cannot combine -l and -u")
 	}
@@ -43,7 +44,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDat
 		return fmt.Errorf("no files provided")
 	}
 	for _, file := range files {
-		result, err := coFile(revision, lock, unlock, user, quiet, checkoutDate, checkoutZone, file)
+		result, err := coFile(revision, lock, unlock, user, quiet, checkoutDate, checkoutZone, legacyDates, file)
 		if err != nil {
 			return err
 		}
@@ -61,7 +62,7 @@ func Co(revision string, lock, unlock bool, user string, quiet bool, checkoutDat
 	return nil
 }
 
-func coFile(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, workingFile string) (COVerdict, error) {
+func coFile(revision string, lock, unlock bool, user string, quiet bool, checkoutDate, checkoutZone string, legacyDates bool, workingFile string) (COVerdict, error) {
 	rcsFile := workingFile
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
@@ -87,6 +88,9 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 		t, err := rcs.ParseDate(checkoutDate, time.Now(), zone)
 		if err != nil {
 			return COVerdict{}, fmt.Errorf("invalid date %q: %w", checkoutDate, err)
+		}
+		if legacyDates {
+			t = rcs.AdjustLegacyZone(t)
 		}
 		ops = append(ops, rcs.WithDate(t))
 	}

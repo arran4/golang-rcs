@@ -103,20 +103,6 @@ func TestParseDate(t *testing.T) {
 			want:      time.Date(2018, 4, 20, 0, 0, 0, 0, time.UTC),
 			checkZone: true,
 		},
-		{
-			name:  "date(1) (Thu Jan 11 20:00:00 PST 1990)",
-			input: "Thu Jan 11 20:00:00 PST 1990",
-			// Expect: 1990-01-11 20:00:00 PST (-0800)
-			want:      time.Date(1990, 1, 11, 20, 0, 0, 0, time.FixedZone("PST", -8*3600)),
-			checkZone: false,
-		},
-		{
-			name:  "WET (12-January-1990, 04:00 WET)",
-			input: "12-January-1990, 04:00 WET",
-			// Expect: 1990-01-12 04:00:00 WET (+0000)
-			want:      time.Date(1990, 1, 12, 4, 0, 0, 0, time.FixedZone("WET", 0)),
-			checkZone: false,
-		},
 	}
 
 	for _, tt := range tests {
@@ -138,6 +124,46 @@ func TestParseDate(t *testing.T) {
 				if o1 != o2 {
 					t.Errorf("ParseDate() zone offset = %v, want %v", o1, o2)
 				}
+			}
+		})
+	}
+}
+
+func TestAdjustLegacyZone(t *testing.T) {
+	now := time.Now()
+	tests := []struct {
+		name  string
+		input string
+		want  time.Time
+	}{
+		{
+			name:  "date(1) (Thu Jan 11 20:00:00 PST 1990)",
+			input: "Thu Jan 11 20:00:00 PST 1990",
+			// Expect: 1990-01-11 20:00:00 PST (-0800)
+			want: time.Date(1990, 1, 11, 20, 0, 0, 0, time.FixedZone("PST", -8*3600)),
+		},
+		{
+			name:  "WET (12-January-1990, 04:00 WET)",
+			input: "12-January-1990, 04:00 WET",
+			// Expect: 1990-01-12 04:00:00 WET (+0000)
+			want: time.Date(1990, 1, 12, 4, 0, 0, 0, time.FixedZone("WET", 0)),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			parsed, err := ParseDate(tt.input, now, nil)
+			if err != nil {
+				t.Fatalf("ParseDate failed: %v", err)
+			}
+			got := AdjustLegacyZone(parsed)
+			if !got.Equal(tt.want) {
+				t.Errorf("AdjustLegacyZone() = %v, want %v", got, tt.want)
+			}
+			_, offset := got.Zone()
+			_, wantOffset := tt.want.Zone()
+			if offset != wantOffset {
+				t.Errorf("Offset mismatch: got %v, want %v", offset, wantOffset)
 			}
 		})
 	}
