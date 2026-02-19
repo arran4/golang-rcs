@@ -13,7 +13,7 @@ Subcommands:
     usage        Print this usage message
 
 Flags:
-    --filter, -F string   or filter string
+    --filter, -F string   filter string
     -s string             state filters
 
 Positional Arguments:

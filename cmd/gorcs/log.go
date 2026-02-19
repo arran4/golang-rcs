@@ -130,8 +130,8 @@ func (c *RootCmd) NewLog() *Log {
 		SubCommands: make(map[string]Cmd),
 	}
 
-	set.StringVar(&v.filterStr, "filter", "", "or filter string")
-	set.StringVar(&v.filterStr, "F", "", "or filter string")
+	set.StringVar(&v.filterStr, "filter", "", "filter string")
+	set.StringVar(&v.filterStr, "F", "", "filter string")
 
 	set.StringVar(&v.stateFilter, "s", "", "state filters")
 	set.Usage = v.Usage

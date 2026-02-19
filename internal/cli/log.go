@@ -122,7 +122,7 @@ func LogMessageList(files ...string) error {
 //
 // Flags:
 //
-//	filterStr: -F or --filter filter string
+//	filterStr: -F --filter filter string
 //	stateFilter: -s state filters
 //	files: ... List of working files to process
 func Log(filterStr string, stateFilter string, files ...string) error {
