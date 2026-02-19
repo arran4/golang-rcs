@@ -19,7 +19,7 @@ type COVerdict struct {
 	CheckedOutLen int
 }
 
-// Co performs checkout operations over one or more working files.
+// Co is a command `gorcs co`
 //
 // Flags:
 //

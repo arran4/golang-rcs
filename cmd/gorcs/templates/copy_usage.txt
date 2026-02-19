@@ -5,7 +5,7 @@ Subcommands:
     usage        Print this usage message
 
 Flags:
-    --from-file string
+    --from string       Source RCS file to copy access list from
 
 Positional Arguments:
     toFiles

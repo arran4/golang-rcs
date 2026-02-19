@@ -12,10 +12,10 @@ import (
 //
 //	from: -from Source RCS file to copy access list from
 //	files: ... List of working files/RCS files to update
-func AccessListCopy(fromFile string, toFiles ...string) error {
-	fromF, err := OpenFile(fromFile, false)
+func AccessListCopy(from string, toFiles ...string) error {
+	fromF, err := OpenFile(from, false)
 	if err != nil {
-		return fmt.Errorf("error opening from file %s: %w", fromFile, err)
+		return fmt.Errorf("error opening from file %s: %w", from, err)
 	}
 	defer func() {
 		_ = fromF.Close()
@@ -23,7 +23,7 @@ func AccessListCopy(fromFile string, toFiles ...string) error {
 
 	fromParsed, err := rcs.ParseFile(fromF)
 	if err != nil {
-		return fmt.Errorf("error parsing from file %s: %w", fromFile, err)
+		return fmt.Errorf("error parsing from file %s: %w", from, err)
 	}
 
 	for _, toFile := range toFiles {

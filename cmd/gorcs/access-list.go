@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// TODO manual fix pending go-subcommand v0.0.21 or greater
+
 var _ Cmd = (*AccessList)(nil)
 
 type AccessList struct {

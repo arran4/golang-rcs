@@ -8,7 +8,7 @@ import (
 	rcs "github.com/arran4/golang-rcs"
 )
 
-// Init initializes new RCS files.
+// Init is a command `gorcs init`
 //
 // Flags:
 //

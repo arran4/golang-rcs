@@ -8,13 +8,13 @@ import (
 
 // TODO manual fix pending go-subcommand v0.0.21 or greater
 
-func TestSet_Execute(t *testing.T) {
+func TestCopy_Execute(t *testing.T) {
 
-	parent := &Default{}
-	cmd := parent.NewSet()
+	parent := &AccessList{}
+	cmd := parent.NewCopy()
 
 	called := false
-	cmd.CommandAction = func(c *Set) error {
+	cmd.CommandAction = func(c *Copy) error {
 		called = true
 		return nil
 	}

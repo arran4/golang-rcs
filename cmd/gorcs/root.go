@@ -11,6 +11,8 @@ import (
 	"github.com/arran4/golang-rcs/cmd/gorcs/templates"
 )
 
+// TODO manual fix pending go-subcommand v0.0.21 or greater
+
 type Cmd interface {
 	Execute(args []string) error
 	Usage()
@@ -103,6 +105,8 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	c.Commands["normalize-revisions"] = c.NewNormalizeRevisions()
 	c.Commands["to-json"] = c.NewToJson()
 	c.Commands["validate"] = c.NewValidate()
+	c.Commands["co"] = c.NewCo()
+	c.Commands["init"] = c.NewInit()
 	c.Commands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
 			for _, arg := range args {

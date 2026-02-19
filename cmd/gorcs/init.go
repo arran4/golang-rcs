@@ -13,6 +13,8 @@ import (
 	"github.com/arran4/golang-rcs/internal/cli"
 )
 
+// TODO manual fix pending go-subcommand v0.0.21 or greater
+
 var _ Cmd = (*Init)(nil)
 
 type Init struct {
