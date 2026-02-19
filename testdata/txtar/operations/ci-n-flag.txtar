@@ -1,0 +1,77 @@
+-- description.txt --
+ci with -n flag (assign symbolic name)
+
+-- options.conf --
+{"args": ["-q","-i","-u","-m","initial checkin","-nTAG","-wtester","-d","2021-01-01 00:00:00Z","input.txt"] }
+
+-- input.txt --
+This is a test for the -n flag.
+Assigning a symbolic name on initial checkin.
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols
+	TAG:1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2021.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@initial checkin
+@
+text
+@This is a test for the -n flag.
+Assigning a symbolic name on initial checkin.
+@
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUT="50-ci-n-flag.txtar"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+cat > file.txt <<'EOF'
+This is a test for the -n flag.
+Assigning a symbolic name on initial checkin.
+EOF
+
+# Execute ci with -nTAG
+ci -q -i -u -m"initial checkin" -nTAG -wtester -d'2021-01-01 00:00:00Z' file.txt </dev/null
+
+cat > "$OLDPWD/$OUT" <<EOF
+# -- description.txt --
+ci with -n flag (assign symbolic name)
+
+# -- options.conf --
+{"args": ["-q","-i","-u","-m","initial checkin","-nTAG","-wtester","-d","2021-01-01 00:00:00Z","input.txt"] }
+
+# -- input.txt --
+This is a test for the -n flag.
+Assigning a symbolic name on initial checkin.
+
+# -- tests.txt --
+ci
+
+# -- expected.txt,v --
+$(cat file.txt,v)
+EOF

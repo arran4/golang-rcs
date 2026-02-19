@@ -1,0 +1,77 @@
+-- description.txt --
+ci checkin with quotes in message
+
+-- options.conf --
+{"args": ["-q","-i","-u","-m","Message with 'quotes' and spaces","-wtester","-d","2020-01-01 00:00:00Z","input.txt"] }
+
+-- input.txt --
+File with quoted message test.
+
+-- tests.txt --
+ci
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Message with 'quotes' and spaces
+@
+text
+@File with quoted message test.
+@
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+OUTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUT="$OUTDIR/29-ci-msg-quotes.txtar"
+TMP_OUT="$OUTDIR/.29-ci-msg-quotes.txtar.tmp.$$"
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp" "$TMP_OUT"' EXIT
+cd "$tmp"
+
+cat > file.txt <<'EOF'
+File with quoted message test.
+EOF
+
+# execution
+ci -q -i -u -m"Message with 'quotes' and spaces" -wtester -d'2020-01-01 00:00:00Z' file.txt </dev/null
+
+cat > "$TMP_OUT" <<EOF
+# -- description.txt --
+ci checkin with quotes in message
+
+# -- options.conf --
+{"args": ["-q","-i","-u","-m","Message with 'quotes' and spaces","-wtester","-d","2020-01-01 00:00:00Z","input.txt"] }
+
+# -- input.txt --
+File with quoted message test.
+
+# -- tests.txt --
+ci
+
+# -- expected.txt,v --
+$(cat file.txt,v)
+EOF
+
+mv -f "$TMP_OUT" "$OUT"
