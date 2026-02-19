@@ -103,6 +103,20 @@ func TestParseDate(t *testing.T) {
 			want:      time.Date(2018, 4, 20, 0, 0, 0, 0, time.UTC),
 			checkZone: true,
 		},
+		{
+			name:  "date(1) (Thu Jan 11 20:00:00 PST 1990)",
+			input: "Thu Jan 11 20:00:00 PST 1990",
+			// Expect: 1990-01-11 20:00:00 PST (-0800)
+			want:      time.Date(1990, 1, 11, 20, 0, 0, 0, time.FixedZone("PST", -8*3600)),
+			checkZone: false,
+		},
+		{
+			name:  "WET (12-January-1990, 04:00 WET)",
+			input: "12-January-1990, 04:00 WET",
+			// Expect: 1990-01-12 04:00:00 WET (+0000)
+			want:      time.Date(1990, 1, 12, 4, 0, 0, 0, time.FixedZone("WET", 0)),
+			checkZone: false,
+		},
 	}
 
 	for _, tt := range tests {
