@@ -385,7 +385,16 @@ gorcs co [-q] [-rREV | -l[REV] | -u[REV]] [-dDATE] [-zZONE] [-wUSER] [-kSUBST] [
 - `-dDATE`: Check out the latest revision on the default branch (or trunk) that is on or before the specified date.
 - `-zZONE`: Specify the timezone for the date parsing (e.g., "LT", "UTC", "-0700", "America/New_York"). Defaults to UTC. See [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid zone names.
 - `-wUSER`: User to apply lock changes for (defaults to current logged in user).
-- `-kSUBST`: Keyword substitution mode. Values: `kv` (default), `kvl`, `k`, `o`, `b`, `v`.
+- `-kSUBST`: Keyword substitution mode.
+
+| Mode | Description | Example Output |
+| :--- | :--- | :--- |
+| `kv` | Keyword and value (default). | `$Revision: 1.1 $` |
+| `kvl`| Like `kv`, but always shows locker if locked. | `$Revision: 1.1 $$Locker: user $` |
+| `k`  | Keyword only. | `$Revision$` |
+| `o`  | Old string (no substitution). | `$Revision: 1.0 $` (previous value) |
+| `b`  | Binary mode (like `o`). | `$Revision: 1.0 $` |
+| `v`  | Value only. | `1.1` |
 - `-q`: Quiet mode.
 
 ### `gorcs init`
