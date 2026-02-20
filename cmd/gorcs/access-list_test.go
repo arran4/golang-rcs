@@ -7,23 +7,21 @@ import (
 	"testing"
 )
 
-func TestNormalizeRevisions_Execute(t *testing.T) {
+func TestAccessList_Execute(t *testing.T) {
 
 	parent := &RootCmd{
 		FlagSet:  flag.NewFlagSet("root", flag.ContinueOnError),
 		Commands: make(map[string]Cmd),
 	}
-	cmd := parent.NewNormalizeRevisions()
+	cmd := parent.NewAccessList()
 
 	called := false
-	cmd.CommandAction = func(c *NormalizeRevisions) error {
+	cmd.CommandAction = func(c *AccessList) error {
 		called = true
 		return nil
 	}
 
 	args := []string{}
-	args = append(args, "--padCommits")
-	args = append(args, "--useMmap")
 
 	err := cmd.Execute(args)
 	if err != nil {
@@ -33,10 +31,4 @@ func TestNormalizeRevisions_Execute(t *testing.T) {
 		t.Error("CommandAction was not called")
 	}
 
-	if cmd.padCommits != true {
-		t.Errorf("Expected padCommits to be true, got '%v'", cmd.padCommits)
-	}
-	if cmd.useMmap != true {
-		t.Errorf("Expected useMmap to be true, got '%v'", cmd.useMmap)
-	}
 }

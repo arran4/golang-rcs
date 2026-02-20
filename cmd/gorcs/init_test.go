@@ -7,25 +7,23 @@ import (
 	"testing"
 )
 
-func TestFromJson_Execute(t *testing.T) {
+func TestInit_Execute(t *testing.T) {
 
 	parent := &RootCmd{
 		FlagSet:  flag.NewFlagSet("root", flag.ContinueOnError),
 		Commands: make(map[string]Cmd),
 	}
-	cmd := parent.NewFromJson()
+	cmd := parent.NewInit()
 
 	called := false
-	cmd.CommandAction = func(c *FromJson) error {
+	cmd.CommandAction = func(c *Init) error {
 		called = true
 		return nil
 	}
 
 	args := []string{}
-	args = append(args, "--output")
+	args = append(args, "--description")
 	args = append(args, "test")
-	args = append(args, "--force")
-	args = append(args, "--useMmap")
 
 	err := cmd.Execute(args)
 	if err != nil {
@@ -35,13 +33,7 @@ func TestFromJson_Execute(t *testing.T) {
 		t.Error("CommandAction was not called")
 	}
 
-	if cmd.output != "test" {
-		t.Errorf("Expected output to be 'test', got '%v'", cmd.output)
-	}
-	if cmd.force != true {
-		t.Errorf("Expected force to be true, got '%v'", cmd.force)
-	}
-	if cmd.useMmap != true {
-		t.Errorf("Expected useMmap to be true, got '%v'", cmd.useMmap)
+	if cmd.description != "test" {
+		t.Errorf("Expected description to be 'test', got '%v'", cmd.description)
 	}
 }

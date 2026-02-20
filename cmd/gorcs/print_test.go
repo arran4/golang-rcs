@@ -7,19 +7,19 @@ import (
 	"testing"
 )
 
-func TestSet_Execute(t *testing.T) {
+func TestPrint_Execute(t *testing.T) {
 
-	parent := &Default{}
-	cmd := parent.NewSet()
+	parent := &Message{}
+	cmd := parent.NewPrint()
 
 	called := false
-	cmd.CommandAction = func(c *Set) error {
+	cmd.CommandAction = func(c *Print) error {
 		called = true
 		return nil
 	}
 
 	args := []string{}
-	args = append(args, "--name")
+	args = append(args, "--revision")
 	args = append(args, "test")
 
 	err := cmd.Execute(args)
@@ -30,7 +30,7 @@ func TestSet_Execute(t *testing.T) {
 		t.Error("CommandAction was not called")
 	}
 
-	if cmd.name != "test" {
-		t.Errorf("Expected name to be 'test', got '%v'", cmd.name)
+	if cmd.revision != "test" {
+		t.Errorf("Expected revision to be 'test', got '%v'", cmd.revision)
 	}
 }

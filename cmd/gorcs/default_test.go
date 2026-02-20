@@ -7,20 +7,18 @@ import (
 	"testing"
 )
 
-func TestSet_Execute(t *testing.T) {
+func TestDefault_Execute(t *testing.T) {
 
-	parent := &Default{}
-	cmd := parent.NewSet()
+	parent := &Branches{}
+	cmd := parent.NewDefault()
 
 	called := false
-	cmd.CommandAction = func(c *Set) error {
+	cmd.CommandAction = func(c *Default) error {
 		called = true
 		return nil
 	}
 
 	args := []string{}
-	args = append(args, "--name")
-	args = append(args, "test")
 
 	err := cmd.Execute(args)
 	if err != nil {
@@ -30,7 +28,4 @@ func TestSet_Execute(t *testing.T) {
 		t.Error("CommandAction was not called")
 	}
 
-	if cmd.name != "test" {
-		t.Errorf("Expected name to be 'test', got '%v'", cmd.name)
-	}
 }
