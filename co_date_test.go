@@ -76,3 +76,27 @@ func TestCheckout_WithDate(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckout_WithDatePrefersMostRecentTimestampOverRevisionNumber(t *testing.T) {
+	f := &File{
+		Head: "1.3",
+		RevisionHeads: []*RevisionHead{
+			{Revision: "1.3", Date: "2020.01.01.00.00.00", NextRevision: "1.2"},
+			{Revision: "1.2", Date: "2022.01.01.00.00.00", NextRevision: "1.1"},
+			{Revision: "1.1", Date: "2021.01.01.00.00.00", NextRevision: ""},
+		},
+		RevisionContents: []*RevisionContent{
+			{Revision: "1.3", Text: "HEAD\n"},
+			{Revision: "1.2", Text: "d1 1\na1 1\nMIDDLE\n"},
+			{Revision: "1.1", Text: "d1 1\na1 1\nOLD\n"},
+		},
+	}
+
+	verdict, err := f.Checkout("user", WithDate(time.Date(2021, 6, 1, 0, 0, 0, 0, time.UTC)))
+	if err != nil {
+		t.Fatalf("Checkout() error = %v", err)
+	}
+	if verdict.Revision != "1.1" {
+		t.Fatalf("Checkout() revision = %q, want %q", verdict.Revision, "1.1")
+	}
+}
