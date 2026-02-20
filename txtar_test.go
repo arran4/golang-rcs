@@ -112,17 +112,15 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 
 	scanner := bufio.NewScanner(strings.NewReader(testContent))
 	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
+		testName, ok := parseTestName(scanner.Text())
+		if !ok {
 			continue
 		}
-		// Strip markdown list markers
-		line = strings.TrimPrefix(line, "* ")
-		line = strings.TrimPrefix(line, "- ")
+		line := testName
 
 		// Split by comma for multiple tests on one line?
 		testLine := strings.SplitN(line, ":", 2)
-		testName := testLine[0]
+		testName = testLine[0]
 
 		testName = strings.TrimSpace(testName)
 		if testName == "" {
@@ -192,6 +190,49 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		default:
 			t.Errorf("Unknown test type: %q", testName)
 		}
+	}
+}
+
+func parseTestName(raw string) (string, bool) {
+	line := strings.TrimSpace(raw)
+	if line == "" || strings.HasPrefix(line, "#") {
+		return "", false
+	}
+	// Strip markdown list markers
+	line = strings.TrimPrefix(line, "* ")
+	line = strings.TrimPrefix(line, "- ")
+	line = strings.TrimSpace(line)
+	if line == "" || strings.HasPrefix(line, "#") {
+		return "", false
+	}
+	return line, true
+}
+
+func TestParseTestName(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		out  string
+		ok   bool
+	}{
+		{name: "plain", in: "rcs", out: "rcs", ok: true},
+		{name: "whitespace", in: "  rcs  ", out: "rcs", ok: true},
+		{name: "markdown bullet", in: "- rcs", out: "rcs", ok: true},
+		{name: "commented todo", in: "# rcs", ok: false},
+		{name: "commented bullet", in: "- # rcs", ok: false},
+		{name: "blank", in: "   ", ok: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, ok := parseTestName(tc.in)
+			if ok != tc.ok {
+				t.Fatalf("ok mismatch: got %v want %v", ok, tc.ok)
+			}
+			if got != tc.out {
+				t.Fatalf("out mismatch: got %q want %q", got, tc.out)
+			}
+		})
 	}
 }
 

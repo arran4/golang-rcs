@@ -1,0 +1,129 @@
+-- description.txt --
+co lock should fail for concurrent local edits without -f
+
+-- options.conf --
+{"args": ["-q", "-l", "input.txt"]}
+
+-- input.txt --
+locally edited content
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@repo head content
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+repo base content
+@
+
+-- tests.txt --
+# co
+
+-- expected.err --
+co: writable input.txt exists; checkout aborted
+
+-- expected.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@repo head content
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+repo base content
+@
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+# Generates and verifies co -l denial with writable modified file.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+printf 'repo base content\n' > input.txt
+ci -q -i -t- -mr1.1 -wtester -d'2020-01-01 00:00:00Z' input.txt </dev/null
+co -q -l input.txt
+printf 'repo head content\n' > input.txt
+ci -q -mr1.2 -wtester -d'2020-01-02 00:00:00Z' input.txt </dev/null
+
+printf 'locally edited content\n' > input.txt
+chmod u+w input.txt
+
+if co -q -l input.txt 2>err.txt; then
+  echo "expected failure but command succeeded" >&2
+  exit 1
+fi
+
+cat err.txt
+cp input.txt,v after.txt,v
+
+echo "verify stderr and unchanged RCS file"
+

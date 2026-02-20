@@ -1,0 +1,114 @@
+-- description.txt --
+rcs access-list copy mirrors source exactly, including empty access list
+
+-- options.conf --
+{"args": ["copy", "-from", "source.txt,v", "input.txt,v"]}
+
+-- source.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@source
+@
+text
+@Source content
+@
+
+-- input.txt,v --
+head	1.1;
+access
+	alice
+	bob
+	charlie;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@target
+@
+text
+@Target content
+@
+
+-- tests.txt --
+# rcs access-list
+
+-- expected.txt,v --
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@target
+@
+text
+@Target content
+@
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+# Generates and verifies access list copy from empty source clears target.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+echo "Source content" > source.txt
+ci -q -i -t- -msource -wtester -d'2020-01-01 00:00:00Z' source.txt </dev/null
+
+echo "Target content" > input.txt
+ci -q -i -t- -mtarget -wtester -d'2020-01-01 00:00:00Z' input.txt </dev/null
+rcs -aalice,bob,charlie input.txt
+
+cp input.txt,v before.txt,v
+rcs -Asource.txt input.txt
+cp input.txt,v after.txt,v
+
+echo "verify target access list was cleared to match source"
+

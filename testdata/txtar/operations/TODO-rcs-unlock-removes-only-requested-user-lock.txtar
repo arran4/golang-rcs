@@ -1,0 +1,126 @@
+-- description.txt --
+rcs unlock removes only the current user's lock for the selected revision
+
+-- options.conf --
+{"args": ["unlock", "-revision", "1.2", "input.txt"]}
+
+-- input.txt --
+trunk r1.2
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks
+	tester:1.2
+	alice:1.2
+	bob:1.1; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@trunk r1.2
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+trunk r1.1
+@
+
+-- tests.txt --
+# gorcs locks
+
+-- expected.txt,v --
+head	1.2;
+access;
+symbols;
+locks
+	alice:1.2
+	bob:1.1; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@trunk r1.2
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+trunk r1.1
+@
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+# Generates and verifies unlock removes only current user lock.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+printf 'trunk r1.1\n' > input.txt
+ci -q -i -t- -mr1.1 -wtester -d'2020-01-01 00:00:00Z' input.txt </dev/null
+co -q -l input.txt
+printf 'trunk r1.2\n' > input.txt
+ci -q -mr1.2 -wtester -d'2020-01-02 00:00:00Z' input.txt </dev/null
+
+perl -0pi -e 's/locks; strict;/locks\n\ttester:1.2\n\talice:1.2\n\tbob:1.1; strict;/' input.txt,v
+cp input.txt,v before.txt,v
+
+rcs -u1.2 input.txt
+cp input.txt,v after.txt,v
+
+echo "verify only tester:1.2 lock was removed"
+
