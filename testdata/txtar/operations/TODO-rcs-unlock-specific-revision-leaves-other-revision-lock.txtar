@@ -132,3 +132,33 @@ text
 a1 1
 base content
 @
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+# Generates and verifies revision-specific unlock does not clear other locks.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+printf 'base content\n' > input.txt
+ci -q -i -t-multi-revision\ locking\ scenario -mr1.1 -wtester -d'2020-01-01 00:00:00Z' input.txt </dev/null
+co -q -l input.txt
+printf 'middle content\n' > input.txt
+ci -q -mr1.2 -wtester -d'2020-01-02 00:00:00Z' input.txt </dev/null
+co -q -l1.1 input.txt
+co -q -l1.2 input.txt
+printf 'tip content\n' > input.txt
+ci -q -mr1.3 -wtester -d'2020-01-03 00:00:00Z' input.txt </dev/null
+rcs -nREL_1_2:1.2 input.txt
+perl -0pi -e 's/locks\n\ttester:1.2;/locks\n\ttester:1.2\n\ttester:1.1\n\talice:1.3; strict;/' input.txt,v
+
+cp input.txt,v before.txt,v
+rcs -u1.2 input.txt
+cp input.txt,v after.txt,v
+
+echo "verify tester:1.1 and alice:1.3 locks remain"
+

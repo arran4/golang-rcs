@@ -87,3 +87,28 @@ log
 text
 @Target content
 @
+
+-- generator.sh --
+#!/usr/bin/env bash
+set -euo pipefail
+export TZ=UTC LOGNAME=tester USER=tester
+unset RCSINIT
+
+# Generates and verifies access list copy from empty source clears target.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+echo "Source content" > source.txt
+ci -q -i -t- -msource -wtester -d'2020-01-01 00:00:00Z' source.txt </dev/null
+
+echo "Target content" > input.txt
+ci -q -i -t- -mtarget -wtester -d'2020-01-01 00:00:00Z' input.txt </dev/null
+rcs -aalice,bob,charlie input.txt
+
+cp input.txt,v before.txt,v
+rcs -Asource.txt input.txt
+cp input.txt,v after.txt,v
+
+echo "verify target access list was cleared to match source"
+
