@@ -1,0 +1,98 @@
+-- description.txt --
+co lock should fail for concurrent local edits without -f
+
+-- options.conf --
+{"args": ["-q", "-l", "input.txt"]}
+
+-- input.txt --
+locally edited content
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@repo head content
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+repo base content
+@
+
+-- tests.txt --
+# co
+
+-- expected.err --
+co: writable input.txt exists; checkout aborted
+
+-- expected.txt,v --
+head	1.2;
+access;
+symbols;
+locks;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@repo head content
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+repo base content
+@

@@ -1,0 +1,100 @@
+-- description.txt --
+rcs unlock removes only the current user's lock for the selected revision
+
+-- options.conf --
+{"args": ["unlock", "-revision", "1.2", "input.txt"]}
+
+-- input.txt --
+trunk r1.2
+
+-- input.txt,v --
+head	1.2;
+access;
+symbols;
+locks
+	tester:1.2
+	alice:1.2
+	bob:1.1; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@trunk r1.2
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+trunk r1.1
+@
+
+-- tests.txt --
+# gorcs locks
+
+-- expected.txt,v --
+head	1.2;
+access;
+symbols;
+locks
+	alice:1.2
+	bob:1.1; strict;
+comment	@# @;
+
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@r1.2
+@
+text
+@trunk r1.2
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+trunk r1.1
+@

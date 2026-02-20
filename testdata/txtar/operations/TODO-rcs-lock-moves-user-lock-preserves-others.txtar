@@ -1,0 +1,133 @@
+-- description.txt --
+rcs lock moves existing user lock to requested revision without affecting other users
+
+-- options.conf --
+{"args": ["lock", "-revision", "1.3", "input.txt"]}
+
+-- input.txt --
+trunk r1.3
+
+-- input.txt,v --
+head	1.3;
+access alice tester;
+symbols;
+locks
+	tester:1.1
+	alice:1.2; strict;
+comment	@# @;
+
+
+1.3
+date	2020.01.03.00.00.00;	author tester;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.3
+log
+@r1.3
+@
+text
+@trunk r1.3
+@
+
+
+1.2
+log
+@r1.2
+@
+text
+@d1 1
+a1 1
+trunk r1.2
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+trunk r1.1
+@
+
+-- tests.txt --
+# gorcs locks
+
+-- expected.txt,v --
+head	1.3;
+access alice tester;
+symbols;
+locks
+	tester:1.3
+	alice:1.2; strict;
+comment	@# @;
+
+
+1.3
+date	2020.01.03.00.00.00;	author tester;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2020.01.02.00.00.00;	author tester;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2020.01.01.00.00.00;	author tester;	state Exp;
+branches;
+next	;
+
+
+desc
+@desc
+@
+
+
+1.3
+log
+@r1.3
+@
+text
+@trunk r1.3
+@
+
+
+1.2
+log
+@r1.2
+@
+text
+@d1 1
+a1 1
+trunk r1.2
+@
+
+
+1.1
+log
+@r1.1
+@
+text
+@d1 1
+a1 1
+trunk r1.1
+@
