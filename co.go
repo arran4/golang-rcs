@@ -144,8 +144,9 @@ func (file *File) resolveRevisionByDate(startRev string, targetDate time.Time, d
 		}
 	}
 
-	// Find the revision with highest revision number that is <= targetDate
+	// Find the most recent revision by timestamp that is <= targetDate.
 	var bestRev string
+	var bestTime time.Time
 
 	for _, rh := range chain {
 		// Parse date (RCS file dates are UTC usually, or whatever is stored)
@@ -157,16 +158,12 @@ func (file *File) resolveRevisionByDate(startRev string, targetDate time.Time, d
 			return "", fmt.Errorf("invalid date in revision %q: %w", rh.Revision, err)
 		}
 
-		if !t.After(targetDate) {
-			// Candidate
-			if bestRev == "" {
-				bestRev = rh.Revision.String()
-			} else {
-				// Compare revisions
-				if compareRevisions(rh.Revision.String(), bestRev) > 0 {
-					bestRev = rh.Revision.String()
-				}
-			}
+		if t.After(targetDate) {
+			continue
+		}
+		if bestRev == "" || t.After(bestTime) || (t.Equal(bestTime) && compareRevisions(rh.Revision.String(), bestRev) > 0) {
+			bestRev = rh.Revision.String()
+			bestTime = t
 		}
 	}
 
