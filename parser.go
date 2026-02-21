@@ -73,7 +73,19 @@ func (h *RevisionHead) StringWithNewLine(nl string) string {
 	if h.AuthorStateSpacingSpaces > 0 {
 		authorStateSep = strings.Repeat(" ", h.AuthorStateSpacingSpaces)
 	}
-	fmt.Fprintf(&sb, "date%s%s;%sauthor %s;%sstate %s;%s", dateSep, h.Date, dateAuthorSep, h.Author, authorStateSep, h.State, nl)
+	sb.WriteString("date")
+	sb.WriteString(dateSep)
+	sb.WriteString(string(h.Date))
+	sb.WriteString(";")
+	sb.WriteString(dateAuthorSep)
+	sb.WriteString("author ")
+	sb.WriteString(string(h.Author))
+	sb.WriteString(";")
+	sb.WriteString(authorStateSep)
+	sb.WriteString("state ")
+	sb.WriteString(string(h.State))
+	sb.WriteString(";")
+	sb.WriteString(nl)
 	sb.WriteString("branches")
 	if len(h.Branches) > 0 {
 		branchSep := nl + "\t"

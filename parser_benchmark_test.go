@@ -61,3 +61,40 @@ func BenchmarkStringer_Usage_WriteAtQuote(b *testing.B) {
 		sb.WriteString("suffix")
 	}
 }
+
+func BenchmarkRevisionHeadStringWithNewLine(b *testing.B) {
+	rh := &RevisionHead{
+		Revision:     "1.1",
+		Date:         "2023.10.26.12.00.00",
+		Author:       "user",
+		State:        "Exp",
+		Branches:     []Num{"1.1.1.1"},
+		NextRevision: "1.2",
+	}
+	nl := "\n"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = rh.StringWithNewLine(nl)
+	}
+}
+
+func BenchmarkRevisionHeadStringWithNewLine_Spaces(b *testing.B) {
+	rh := &RevisionHead{
+		RevisionHeadFormattingOptions: RevisionHeadFormattingOptions{
+			DateSeparatorSpaces:      2,
+			DateAuthorSpacingSpaces:  3,
+			AuthorStateSpacingSpaces: 4,
+		},
+		Revision:     "1.1",
+		Date:         "2023.10.26.12.00.00",
+		Author:       "user",
+		State:        "Exp",
+		Branches:     []Num{"1.1.1.1"},
+		NextRevision: "1.2",
+	}
+	nl := "\n"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = rh.StringWithNewLine(nl)
+	}
+}
