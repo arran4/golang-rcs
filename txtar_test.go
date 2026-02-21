@@ -746,7 +746,6 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			}
 		}
 
-
 		verdict, err := parsed.Checkout(user, ops...)
 		if err != nil {
 			t.Fatalf("Checkout failed: %v", err)
