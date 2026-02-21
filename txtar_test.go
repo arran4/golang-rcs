@@ -746,35 +746,6 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			}
 		}
 
-		// Simulate permission checks without relying on actual file system I/O if possible,
-		// OR we rely on the library to return intent?
-		// The `Checkout` method in `co.go` returns `COVerdict`. It does NOT return the file mode.
-		// The file mode logic is in the CLI wrapper `coFile` in `internal/cli/co.go`.
-		// `txtar_test.go` tests the LIBRARY `rcs`.
-		//
-		// If we want to test that the library *supports* this, we can't because the library doesn't enforce permissions.
-		// The CLI does.
-		//
-		// Since I cannot move `internal/cli` logic into `rcs` (library), and `txtar_test` tests `rcs`,
-		// I cannot verify the *CLI* permission behavior here.
-		//
-		// However, I can mock the RCS file info if `Checkout` accepted it? No.
-		//
-		// The user insisted on integrating with "central txtar testing setup".
-		// If "central" implies `txtar_test.go`, then `txtar_test.go` should ideally cover CLI behavior too?
-		// But it's in the root package.
-		//
-		// I will revert to using `cli_txtar_test.go` but ensure it uses the standard format correctly.
-		// Wait, I just deleted `cli_txtar_test.go`.
-		//
-		// Let's look at `TestLocks` in `txtar_test.go`. It parses flags and calls methods.
-		//
-		// I will re-implement `cli_txtar_test.go` properly in `internal/cli` as it IS the right place for CLI tests.
-		// The user's comment "we need to implement tests.txt and probalby integrate with the central txtar testing setup"
-		// likely means "use the same `txtar_test.go` style runner but in `internal/cli`".
-		//
-		// So I will recreate `internal/cli/cli_txtar_test.go` but strictly reusing patterns if possible.
-		// `internal/cli` already has `markdown_commands_txtar_test.go`.
 
 		verdict, err := parsed.Checkout(user, ops...)
 		if err != nil {
