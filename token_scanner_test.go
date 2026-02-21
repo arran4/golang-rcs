@@ -334,3 +334,150 @@ func TestScanTokenAuthor(t *testing.T) {
 		})
 	}
 }
+
+func TestScanLockIdOrStrings(t *testing.T) {
+	type args struct {
+		s    *Scanner
+		strs []string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantId    string
+		wantMatch string
+		wantErr   bool
+	}{
+		{
+			name: "Match keyword",
+			args: args{
+				s:    NewScanner(strings.NewReader("keyword")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "",
+			wantMatch: "keyword",
+			wantErr:   false,
+		},
+		{
+			name: "Match lock ID",
+			args: args{
+				s:    NewScanner(strings.NewReader("user:1.1")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "user",
+			wantMatch: "",
+			wantErr:   false,
+		},
+		{
+			name: "Match nothing",
+			args: args{
+				s:    NewScanner(strings.NewReader("other")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "",
+			wantMatch: "",
+			wantErr:   true,
+		},
+		{
+			name: "Empty input",
+			args: args{
+				s:    NewScanner(strings.NewReader("")),
+				strs: []string{"keyword"},
+			},
+			wantId:    "",
+			wantMatch: "",
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotId, gotMatch, err := ScanLockIdOrStrings(tt.args.s, tt.args.strs...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ScanLockIdOrStrings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotId != tt.wantId {
+				t.Errorf("ScanLockIdOrStrings() gotId = %v, want %v", gotId, tt.wantId)
+			}
+			if gotMatch != tt.wantMatch {
+				t.Errorf("ScanLockIdOrStrings() gotMatch = %v, want %v", gotMatch, tt.wantMatch)
+			}
+		})
+	}
+}
+
+func TestParseAtQuotedString(t *testing.T) {
+	type args struct {
+		s *Scanner
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Base @ String",
+			args: args{
+				s: NewScanner(strings.NewReader("@# @")),
+			},
+			want:    "# ",
+			wantErr: false,
+		},
+		{
+			name: "Double @@ For literal",
+			args: args{
+				s: NewScanner(strings.NewReader("@ @@ @")),
+			},
+			want:    " @ ",
+			wantErr: false,
+		},
+		{
+			name: "New lines are fine",
+			args: args{
+				s: NewScanner(strings.NewReader("@Hello\nyou@")),
+			},
+			want:    "Hello\nyou",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseAtQuotedString(tt.args.s)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseAtQuotedString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ParseAtQuotedString() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseAtQuotedString_Errors(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr string
+	}{
+		{
+			name:    "Missing start quote",
+			input:   "no quote",
+			wantErr: "open quote: looking for \"@\"",
+		},
+		{
+			name:    "Missing end quote",
+			input:   "@start quote",
+			wantErr: "looking for \"@\"", // ScanUntilStrings returns ScanNotFound at EOF
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewScanner(strings.NewReader(tt.input))
+			_, err := ParseAtQuotedString(s)
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("ParseAtQuotedString() error = %v, wantErr containing %q", err, tt.wantErr)
+			}
+		})
+	}
+}

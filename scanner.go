@@ -8,6 +8,7 @@ import (
 	"io"
 	"math"
 	"strings"
+	"unicode"
 )
 
 type Scanner struct {
@@ -200,4 +201,143 @@ func IsNotFound(err error) bool {
 	e1 := ScanNotFound{}
 	e2 := ScanUntilNotFound{}
 	return errors.As(err, &e1) || errors.As(err, &e2)
+}
+
+func ScanWhiteSpace(s *Scanner, minimum int) error {
+	return ScanRunesUntil(s, minimum, func(i []byte) bool {
+		return !unicode.IsSpace(bytes.Runes(i)[0])
+	}, "whitespace")
+}
+
+func ScanUntilNewLine(s *Scanner) error {
+	return ScanUntilStrings(s, "\r\n", "\n")
+}
+
+func ScanUntilFieldTerminator(s *Scanner) error {
+	return ScanUntilStrings(s, ";")
+}
+
+func ScanRunesUntil(s *Scanner, minimum int, until func([]byte) bool, name string) (err error) {
+	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		err = nil
+		adv := 0
+		for {
+			if !atEOF && adv >= len(data) {
+				return 0, nil, nil
+			}
+			a, t, err := bufio.ScanRunes(data[adv:], atEOF)
+			if err != nil {
+				return 0, nil, err
+			}
+			if a == 0 && t == nil {
+				if atEOF {
+					if minimum > 0 && minimum > adv {
+						break
+					}
+					f := data[:adv]
+					return adv, f, nil
+				}
+				return 0, nil, nil
+			}
+			if until(t) {
+				if minimum > 0 && minimum > adv {
+					break
+				}
+				// STOP and return what we have so far
+				f := data[:adv]
+				return adv, f, nil
+			}
+			adv += a
+		}
+		err = ScanUntilNotFound{
+			Until: name,
+			Pos:   *s.pos,
+			Found: string(data),
+		}
+		return 0, []byte{}, nil
+	})
+	if !s.Scan() {
+		if s.Err() != nil {
+			return s.Err()
+		}
+		if err != nil {
+			return err
+		}
+		return ScanUntilNotFound{
+			Until: name,
+			Pos:   *s.pos,
+			Found: "",
+		}
+	}
+	return
+}
+
+func ScanFieldTerminator(s *Scanner) error {
+	return ScanStrings(s, ";")
+}
+
+func ScanNewLine(s *Scanner, orEof bool) error {
+	if orEof {
+		return ScanStrings(s, "\r\n", "\n", "")
+	}
+	return ScanStrings(s, "\r\n", "\n")
+}
+
+func ScanStrings(s *Scanner, strs ...string) (err error) {
+	return s.ScanMatch(strs...)
+}
+
+type ErrEOF struct{ error }
+
+func (e ErrEOF) Error() string {
+	return "EOF:" + e.error.Error()
+}
+
+func IsEOFError(err error) bool {
+	var eofErr ErrEOF
+	isEof := errors.As(err, &eofErr)
+	return isEof
+}
+
+func ScanUntilStrings(s *Scanner, strs ...string) (err error) {
+	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		bestIdx := -1
+		for _, ss := range strs {
+			if len(ss) == 0 {
+				continue
+			}
+			idx := bytes.Index(data, []byte(ss))
+			if idx >= 0 {
+				if bestIdx == -1 || idx < bestIdx {
+					bestIdx = idx
+				}
+			}
+		}
+		if bestIdx >= 0 {
+			return bestIdx, data[:bestIdx], nil
+		}
+		if atEOF {
+			err = ErrEOF{ScanNotFound{
+				LookingFor: strs,
+				Pos:        *s.pos,
+				Found:      string(data),
+			}}
+			return 0, []byte{}, nil
+		}
+		return 0, nil, nil
+	})
+	if !s.Scan() {
+		if s.Err() != nil {
+			return s.Err()
+		}
+		if err != nil {
+			return err
+		}
+		return ScanNotFound{
+			LookingFor: strs,
+			Pos:        *s.pos,
+			Found:      "",
+		}
+	}
+	return err
 }

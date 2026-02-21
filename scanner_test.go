@@ -1,8 +1,13 @@
 package rcs
 
 import (
-	"github.com/google/go-cmp/cmp"
+	"bytes"
+	"errors"
+	"fmt"
+	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func Test_scanFound(t *testing.T) {
@@ -122,6 +127,337 @@ func TestNewScanner(t *testing.T) {
 			got := NewScanner(nil)
 			if got.pos.Line != 1 {
 				t.Errorf("Wrong line number")
+			}
+		})
+	}
+}
+
+func TestScanNewLine(t *testing.T) {
+	type args struct {
+		s *Scanner
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Scans a unix new Line",
+			args: args{
+				s: NewScanner(strings.NewReader("\n")),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Scans a windows new Line",
+			args: args{
+				s: NewScanner(strings.NewReader("\r\n")),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Fails to scan nothing",
+			args: args{
+				s: NewScanner(strings.NewReader("")),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Fails to scan non new Line data",
+			args: args{
+				s: NewScanner(strings.NewReader("asdfasdfasdf")),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanNewLine(tt.args.s, false); (err != nil) != tt.wantErr {
+				t.Errorf("ScanNewLine() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestScanStrings(t *testing.T) {
+	type args struct {
+		s    *Scanner
+		strs []string
+	}
+	tests := []struct {
+		name     string
+		expected string
+		args     args
+		wantErr  bool
+	}{
+		{
+			name:     "Scans a word before a space",
+			expected: "This",
+			args: args{
+				s:    NewScanner(strings.NewReader("This is a word")),
+				strs: []string{"This"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
+				t.Errorf("ScanStrings() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got := tt.args.s.Text(); got != tt.expected {
+				t.Errorf("ScanRunesUntil() s.Text() = %v, want s.Text() %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestScanUntilNewLine(t *testing.T) {
+	type args struct {
+		s *Scanner
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantErr  bool
+		expected string
+	}{
+		{
+			name:     "Scans a word before a space",
+			expected: "This is",
+			args: args{
+				s: NewScanner(strings.NewReader("This is\n a word")),
+			},
+			wantErr: false,
+		},
+		{
+			name:     "No new Line no result",
+			expected: "",
+			args: args{
+				s: NewScanner(strings.NewReader("This is a word")),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanUntilNewLine(tt.args.s); (err != nil) != tt.wantErr {
+				t.Errorf("ScanUntilNewLine() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got := tt.args.s.Text(); got != tt.expected {
+				t.Errorf("ScanRunesUntil() s.Text() = %v, want s.Text() %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestScanUntilStrings(t *testing.T) {
+	type args struct {
+		s    *Scanner
+		strs []string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantErr  bool
+		expected string
+	}{
+		{
+			name:     "Scans until a word",
+			expected: "This is a ",
+			args: args{
+				s:    NewScanner(strings.NewReader("This is a word")),
+				strs: []string{"word"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanUntilStrings(tt.args.s, tt.args.strs...); (err != nil) != tt.wantErr {
+				t.Errorf("ScanUntilStrings() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got := tt.args.s.Text(); got != tt.expected {
+				t.Errorf("ScanRunesUntil() s.Text() = %v, want s.Text() %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestScanWhiteSpace(t *testing.T) {
+	type args struct {
+		s       *Scanner
+		minimum int
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantErr  bool
+		expected string
+	}{
+		{
+			name:     "Scans until a word",
+			expected: " ",
+			args: args{
+				s:       NewScanner(strings.NewReader(" word")),
+				minimum: 1,
+			},
+			wantErr: false,
+		},
+		{
+			name:     "Minimum fails it",
+			expected: "",
+			args: args{
+				s:       NewScanner(strings.NewReader(" word")),
+				minimum: 2,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanWhiteSpace(tt.args.s, tt.args.minimum); (err != nil) != tt.wantErr {
+				t.Errorf("ScanWhiteSpace() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got := tt.args.s.Text(); got != tt.expected {
+				t.Errorf("ScanRunesUntil() s.Text() = %v, want s.Text() %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestIsNotFound(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{
+			name: "random error isn't",
+			err:  errors.New("hi"),
+			want: false,
+		},
+		{
+			name: "ScanNotFound error is",
+			err:  ScanNotFound{LookingFor: []string{"123", "123"}},
+			want: true,
+		},
+		{
+			name: "Nested ScanNotFound error is",
+			err:  fmt.Errorf("hi: %w", ScanNotFound{LookingFor: []string{"123", "123"}}),
+			want: true,
+		},
+		{
+			name: "ScanUntilNotFound error is",
+			err:  ScanUntilNotFound{Until: "sadf"},
+			want: true,
+		},
+		{
+			name: "Nested ScanUntilNotFound error is",
+			err:  fmt.Errorf("hi: %w", ScanUntilNotFound{Until: "123"}),
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsNotFound(tt.err); got != tt.want {
+				t.Errorf("IsNotFound() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestScanFieldTerminator(t *testing.T) {
+	type args struct {
+		s *Scanner
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy path",
+			args: args{
+				s: NewScanner(strings.NewReader(";")),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanFieldTerminator(tt.args.s); (err != nil) != tt.wantErr {
+				t.Errorf("ScanFieldTerminator() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestScanRunesUntil(t *testing.T) {
+	type args struct {
+		s       *Scanner
+		minimum int
+		until   func([]byte) bool
+		name    string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantErr  bool
+		wantText string
+	}{
+		{
+			name: "Happy path",
+			args: args{
+				s:       NewScanner(strings.NewReader("let's scan to ... here: ; but no further")),
+				minimum: 1,
+				until: func(i []byte) bool {
+					return bytes.EqualFold(i, []byte(";"))
+				},
+				name: ";",
+			},
+			wantText: "let's scan to ... here: ",
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanRunesUntil(tt.args.s, tt.args.minimum, tt.args.until, tt.args.name); (err != nil) != tt.wantErr {
+				t.Errorf("ScanRunesUntil() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if diff := cmp.Diff(tt.args.s.Text(), tt.wantText); diff != "" {
+				t.Errorf("ScanRunesUntil() %s", diff)
+			}
+		})
+	}
+}
+
+func TestScanUntilFieldTerminator(t *testing.T) {
+	type args struct {
+		s *Scanner
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantErr  bool
+		wantText string
+	}{
+		{
+			name: "Happy path",
+			args: args{
+				s: NewScanner(strings.NewReader("let's scan to ... here: ; but no further")),
+			},
+			wantText: "let's scan to ... here: ",
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ScanUntilFieldTerminator(tt.args.s); (err != nil) != tt.wantErr {
+				t.Errorf("ScanUntilFieldTerminator() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if diff := cmp.Diff(tt.args.s.Text(), tt.wantText); diff != "" {
+				t.Errorf("ScanUntilFieldTerminator() %s", diff)
 			}
 		})
 	}

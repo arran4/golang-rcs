@@ -1,10 +1,10 @@
 package rcs
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -60,92 +60,6 @@ func ScanTokenNum(s *Scanner) (string, error) {
 		return "", err
 	}
 	return s.Text(), nil
-}
-
-type PhraseValue interface {
-	fmt.Stringer
-	Raw() string
-}
-
-type SimpleString string
-
-func (s SimpleString) String() string {
-	return string(s)
-}
-
-func (s SimpleString) Raw() string {
-	return string(s)
-}
-
-type QuotedString string
-
-func (s QuotedString) String() string {
-	return "@" + strings.ReplaceAll(string(s), "@", "@@") + "@"
-}
-
-func (s QuotedString) Raw() string {
-	return string(s)
-}
-
-type PhraseValues []PhraseValue
-
-func (p PhraseValues) Format() {
-	for i, v := range p {
-		raw := v.Raw()
-		valid := true
-		if len(raw) == 0 {
-			valid = false
-		} else {
-			for _, r := range raw {
-				if !isIdChar(r) && r != '.' {
-					valid = false
-					break
-				}
-			}
-		}
-
-		if valid {
-			// If it is valid ID, prefer SimpleString
-			if _, ok := v.(SimpleString); !ok {
-				p[i] = SimpleString(raw)
-			}
-		} else {
-			// If it is invalid ID, must be QuotedString
-			if _, ok := v.(QuotedString); !ok {
-				p[i] = QuotedString(raw)
-			}
-		}
-	}
-}
-
-type DateTime string
-
-func (dt DateTime) String() string {
-	return string(dt)
-}
-
-// DateTime returns the date.Time representation of the DateTime string.
-// It tries to parse using DateFormat and DateFormatTruncated.
-func (dt DateTime) DateTime() (time.Time, error) {
-	return ParseDate(string(dt), time.Time{}, nil)
-}
-
-type Num string
-
-func (n Num) String() string {
-	return string(n)
-}
-
-type ID string
-
-func (i ID) String() string {
-	return string(i)
-}
-
-type Sym string
-
-func (s Sym) String() string {
-	return string(s)
 }
 
 func ScanTokenId(s *Scanner) (string, error) {
@@ -232,4 +146,98 @@ func ScanTokenAuthor(s *Scanner) (string, error) {
 		return "", err
 	}
 	return s.Text(), nil
+}
+
+func ParseAtQuotedString(s *Scanner) (string, error) {
+	if err := ScanStrings(s, "@"); err != nil {
+		return "", fmt.Errorf("open quote: %v", err)
+	}
+	return ParseAtQuotedStringBody(s)
+}
+
+func ParseAtQuotedStringBody(s *Scanner) (string, error) {
+	sb := &strings.Builder{}
+	for {
+		if err := ScanUntilStrings(s, "@"); err != nil {
+			return "", err
+		}
+		sb.WriteString(s.Text())
+		if err := ScanStrings(s, "@@", "@"); err != nil {
+			return "", err
+		}
+		nt := s.Text()
+		switch nt {
+		case "@@":
+			sb.WriteString("@")
+		case "@":
+			return sb.String(), nil
+		default:
+			return "", fmt.Errorf("unexpected token %q", nt)
+		}
+	}
+}
+
+func ScanLockIdOrStrings(s *Scanner, strs ...string) (id string, match string, err error) {
+	s.Split(func(data []byte, atEOF bool) (int, []byte, error) {
+		// Check strings first
+		for _, ss := range strs {
+			if len(ss) == 0 {
+				continue
+			}
+			if len(data) < len(ss) {
+				if atEOF {
+					if bytes.Equal(data, []byte(ss)) {
+						return len(data), data, nil
+					}
+					// mismatch or partial mismatch at EOF
+				} else {
+					if bytes.HasPrefix([]byte(ss), data) {
+						// potential partial match
+						return 0, nil, nil
+					}
+				}
+			} else {
+				if bytes.HasPrefix(data, []byte(ss)) {
+					return len(ss), data[:len(ss)], nil
+				}
+			}
+		}
+
+		// Check Lock ID
+		for i, b := range data {
+			if b == ':' {
+				if i == 0 {
+					return 0, nil, ErrEmptyId
+				}
+				return i, data[:i], nil
+			}
+			switch b {
+			case ' ', '\t', '\n', '\r', ';':
+				return 0, nil, bufio.ErrFinalToken
+			}
+		}
+
+		if atEOF {
+			return 0, nil, nil
+		}
+		return 0, nil, nil
+	})
+
+	if !s.Scan() {
+		if s.Err() != nil {
+			return "", "", s.Err()
+		}
+		return "", "", ScanNotFound{
+			LookingFor: append(strs, "lock_id"),
+			Pos:        *s.pos,
+			Found:      "",
+		}
+	}
+	text := s.Text()
+	for _, ss := range strs {
+		if text == ss {
+			return "", text, nil
+		}
+	}
+	return text, "", nil
 }
