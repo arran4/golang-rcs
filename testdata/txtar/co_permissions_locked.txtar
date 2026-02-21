@@ -26,7 +26,7 @@ text
 co: -l -w user input
 -- options.conf --
 {
-    "rcs_mode": "0600"
+    "rcs_file_perm": "0600"
 }
 -- expected.mode --
 0600

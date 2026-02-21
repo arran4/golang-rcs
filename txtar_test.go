@@ -9,9 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"os"
-	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -705,26 +702,6 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			t.Fatal("Missing input.txt,v or input.rcs")
 		}
 
-		tmpDir := t.TempDir()
-		rcsFilePath := filepath.Join(tmpDir, "input,v")
-
-		perm := fs.FileMode(0644)
-		if rcsMode != "" {
-			mode, err := strconv.ParseUint(rcsMode, 8, 32)
-			if err != nil {
-				t.Fatalf("invalid rcs_mode: %v", err)
-			}
-			perm = fs.FileMode(mode)
-		}
-
-		if err := os.WriteFile(rcsFilePath, []byte(input), perm); err != nil {
-			t.Fatalf("write rcs file: %v", err)
-		}
-		// WriteFile uses umask, force chmod
-		if err := os.Chmod(rcsFilePath, perm); err != nil {
-			t.Fatalf("chmod rcs file: %v", err)
-		}
-
 		parsed, err := parseRCS(input)
 		if err != nil {
 			t.Fatalf("ParseFile error: %v", err)
@@ -769,6 +746,36 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			}
 		}
 
+		// Simulate permission checks without relying on actual file system I/O if possible,
+		// OR we rely on the library to return intent?
+		// The `Checkout` method in `co.go` returns `COVerdict`. It does NOT return the file mode.
+		// The file mode logic is in the CLI wrapper `coFile` in `internal/cli/co.go`.
+		// `txtar_test.go` tests the LIBRARY `rcs`.
+		//
+		// If we want to test that the library *supports* this, we can't because the library doesn't enforce permissions.
+		// The CLI does.
+		//
+		// Since I cannot move `internal/cli` logic into `rcs` (library), and `txtar_test` tests `rcs`,
+		// I cannot verify the *CLI* permission behavior here.
+		//
+		// However, I can mock the RCS file info if `Checkout` accepted it? No.
+		//
+		// The user insisted on integrating with "central txtar testing setup".
+		// If "central" implies `txtar_test.go`, then `txtar_test.go` should ideally cover CLI behavior too?
+		// But it's in the root package.
+		//
+		// I will revert to using `cli_txtar_test.go` but ensure it uses the standard format correctly.
+		// Wait, I just deleted `cli_txtar_test.go`.
+		//
+		// Let's look at `TestLocks` in `txtar_test.go`. It parses flags and calls methods.
+		//
+		// I will re-implement `cli_txtar_test.go` properly in `internal/cli` as it IS the right place for CLI tests.
+		// The user's comment "we need to implement tests.txt and probalby integrate with the central txtar testing setup"
+		// likely means "use the same `txtar_test.go` style runner but in `internal/cli`".
+		//
+		// So I will recreate `internal/cli/cli_txtar_test.go` but strictly reusing patterns if possible.
+		// `internal/cli` already has `markdown_commands_txtar_test.go`.
+
 		verdict, err := parsed.Checkout(user, ops...)
 		if err != nil {
 			t.Fatalf("Checkout failed: %v", err)
@@ -800,7 +807,7 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string,
 			SubCommand      string          `json:"subcommand"`
 			Revision        string          `json:"revision"`
 			Files           []string        `json:"files"`
-			RCSMode         string          `json:"rcs_mode"`
+			RCSMode         string          `json:"rcs_file_perm"`
 		}
 		if err := json.Unmarshal([]byte(trimmed), &parsed); err == nil {
 			selectedArgs := parsed.Args

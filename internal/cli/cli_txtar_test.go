@@ -44,7 +44,7 @@ func runCliTest(t *testing.T, path string) {
 
 	// Parse options.conf
 	var opts struct {
-		RCSMode string `json:"rcs_mode"` // Octal string
+		RCSMode string `json:"rcs_file_perm"` // Octal string
 	}
 
 	// Parse tests.txt for args
