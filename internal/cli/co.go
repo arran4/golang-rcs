@@ -70,7 +70,7 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 	if err != nil {
 		return COVerdict{}, fmt.Errorf("open %s: %w", rcsFile, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	parsed, err := rcs.ParseFile(f)
 	if err != nil {
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
