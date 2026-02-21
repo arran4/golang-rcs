@@ -71,6 +71,13 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 		return COVerdict{}, fmt.Errorf("open %s: %w", rcsFile, err)
 	}
 	defer func() { _ = f.Close() }()
+
+	rcsStat, err := os.Stat(rcsFile)
+	if err != nil {
+		return COVerdict{}, fmt.Errorf("stat %s: %w", rcsFile, err)
+	}
+	rcsMode := rcsStat.Mode()
+
 	parsed, err := rcs.ParseFile(f)
 	if err != nil {
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
@@ -102,11 +109,22 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 		return COVerdict{}, fmt.Errorf("co %s: %w", rcsFile, err)
 	}
 
-	if err := os.WriteFile(workingFile, []byte(verdict.Content), 0644); err != nil {
+	perm := rcsMode.Perm()
+	if isLockedBy(parsed, user, verdict.Revision) {
+		perm |= 0200
+	} else {
+		perm &= ^os.FileMode(0222)
+	}
+
+	if err := os.WriteFile(workingFile, []byte(verdict.Content), perm); err != nil {
 		return COVerdict{}, fmt.Errorf("write %s: %w", workingFile, err)
 	}
+	if err := os.Chmod(workingFile, perm); err != nil {
+		return COVerdict{}, fmt.Errorf("chmod %s: %w", workingFile, err)
+	}
+
 	if verdict.FileModified {
-		if err := os.WriteFile(rcsFile, []byte(parsed.String()), 0644); err != nil {
+		if err := os.WriteFile(rcsFile, []byte(parsed.String()), rcsMode.Perm()); err != nil {
 			return COVerdict{}, fmt.Errorf("write %s: %w", rcsFile, err)
 		}
 	}
@@ -119,6 +137,15 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 		LockCleared:   verdict.LockCleared,
 		CheckedOutLen: len(verdict.Content),
 	}, nil
+}
+
+func isLockedBy(f *rcs.File, user, revision string) bool {
+	for _, l := range f.Locks {
+		if l.User == user && l.Revision == revision {
+			return true
+		}
+	}
+	return false
 }
 
 func currentLoggedInUser() string {

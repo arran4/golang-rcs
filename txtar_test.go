@@ -90,13 +90,13 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 	// options.conf / options.json
 	options := make(map[string]bool)
 	optionArgs := []string{}
-	var optionMessage, optionSubCommand, optionRevision string
+	var optionMessage, optionSubCommand, optionRevision, optionRCSMode string
 	var optionFiles []string
 	if optContent, ok := parts["options.conf"]; ok {
-		parseOptions(optContent, options, &optionArgs, &optionMessage, &optionSubCommand, &optionRevision, &optionFiles)
+		parseOptions(optContent, options, &optionArgs, &optionMessage, &optionSubCommand, &optionRevision, &optionFiles, &optionRCSMode)
 	}
 	if optContent, ok := parts["options.json"]; ok {
-		parseOptions(optContent, options, &optionArgs, &optionMessage, &optionSubCommand, &optionRevision, &optionFiles)
+		parseOptions(optContent, options, &optionArgs, &optionMessage, &optionSubCommand, &optionRevision, &optionFiles, &optionRCSMode)
 	}
 
 	// tests.txt or tests.md
@@ -166,7 +166,7 @@ func runTest(t *testing.T, fsys fs.FS, filename string) {
 		case testName == "ci":
 			testCI(t, parts, options)
 		case testName == "co":
-			testCO(t, parts, options, optionArgs)
+			testCO(t, parts, options, optionArgs, optionRCSMode)
 		case testName == "rcsdiff":
 			testRCSDiff(t, parts, options)
 		case testName == "rcs diff":
@@ -691,17 +691,16 @@ func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
 	t.Skip("ci test type not implemented yet")
 }
 
-func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []string) {
+func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []string, rcsMode string) {
 	t.Run("co", func(t *testing.T) {
 		input, ok := parts["input.txt,v"]
 		if !ok {
-			t.Fatal("Missing input.txt,v")
+			// Fallback for permission test
+			input, ok = parts["input.rcs"]
 		}
-		expectedWorking, ok := parts["expected.txt"]
 		if !ok {
-			t.Fatal("Missing expected.txt")
+			t.Fatal("Missing input.txt,v or input.rcs")
 		}
-		expectedRCS, hasExpectedRCS := parts["expected.txt,v"]
 
 		parsed, err := parseRCS(input)
 		if err != nil {
@@ -752,11 +751,13 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 			t.Fatalf("Checkout failed: %v", err)
 		}
 
-		if diff := cmp.Diff(strings.TrimSpace(expectedWorking), strings.TrimSpace(verdict.Content)); diff != "" {
-			t.Fatalf("working file mismatch (-want +got):\n%s", diff)
+		if expectedWorking, ok := parts["expected.txt"]; ok {
+			if diff := cmp.Diff(strings.TrimSpace(expectedWorking), strings.TrimSpace(verdict.Content)); diff != "" {
+				t.Fatalf("working file mismatch (-want +got):\n%s", diff)
+			}
 		}
 
-		if hasExpectedRCS {
+		if expectedRCS, hasExpectedRCS := parts["expected.txt,v"]; hasExpectedRCS {
 			if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(parsed.String())); diff != "" {
 				t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
 			}
@@ -764,7 +765,7 @@ func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []str
 	})
 }
 
-func parseOptions(content string, options map[string]bool, optionArgs *[]string, message, subCommand, revision *string, files *[]string) {
+func parseOptions(content string, options map[string]bool, optionArgs *[]string, message, subCommand, revision *string, files *[]string, rcsMode *string) {
 	trimmed := strings.TrimSpace(content)
 	if strings.HasPrefix(trimmed, "{") {
 		var parsed struct {
@@ -776,6 +777,7 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string,
 			SubCommand      string          `json:"subcommand"`
 			Revision        string          `json:"revision"`
 			Files           []string        `json:"files"`
+			RCSMode         string          `json:"rcs_file_perm"`
 		}
 		if err := json.Unmarshal([]byte(trimmed), &parsed); err == nil {
 			selectedArgs := parsed.Args
@@ -802,6 +804,9 @@ func parseOptions(content string, options map[string]bool, optionArgs *[]string,
 			}
 			if len(parsed.Files) > 0 {
 				*files = append((*files)[:0], parsed.Files...)
+			}
+			if parsed.RCSMode != "" {
+				*rcsMode = parsed.RCSMode
 			}
 			return
 		}
