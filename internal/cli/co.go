@@ -79,7 +79,7 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 	}
 	rcsMode := rcsStat.Mode()
 
-	parsed, err := rcs.ParseFile(r)
+	parsed, err := rcs.ParseFile(f)
 	if err != nil {
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
 	}
