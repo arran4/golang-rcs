@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -40,13 +41,13 @@ text
 	if err := os.WriteFile(rcsFile, []byte(rcsContent), 0600); err != nil {
 		t.Fatalf("failed to write rcs file: %v", err)
 	}
-    // Force permissions just in case WriteFile was affected by umask
-    if err := os.Chmod(rcsFile, 0600); err != nil {
-        t.Fatalf("failed to chmod rcs file: %v", err)
-    }
+	// Force permissions just in case WriteFile was affected by umask
+	if err := os.Chmod(rcsFile, 0600); err != nil {
+		t.Fatalf("failed to chmod rcs file: %v", err)
+	}
 
 	// Run Co command
-    // We check out without locking.
+	// We check out without locking.
 	if err := Co("", false, false, "user", true, "", "", filepath.Join(tmpDir, "testfile")); err != nil {
 		t.Fatalf("Co failed: %v", err)
 	}
@@ -59,20 +60,23 @@ text
 	}
 
 	mode := fi.Mode().Perm()
-    t.Logf("Output file mode: %o", mode)
+	t.Logf("Output file mode: %o", mode)
 
 	// Vulnerability check:
 	// If source is 0600, output should not be world readable (0644 or 0444).
-	if mode&0004 != 0 {
-		t.Errorf("Security Vulnerability: Output file is world-readable (mode %o), source was 0600", mode)
+	if runtime.GOOS != "windows" {
+		if mode&0004 != 0 {
+			t.Errorf("Security Vulnerability: Output file is world-readable (mode %o), source was 0600", mode)
+		}
+		if mode&0040 != 0 {
+			t.Errorf("Security Vulnerability: Output file is group-readable (mode %o), source was 0600", mode)
+		}
 	}
-    if mode&0040 != 0 {
-        t.Errorf("Security Vulnerability: Output file is group-readable (mode %o), source was 0600", mode)
-    }
 
-    // Functionality check (RCS behavior):
-    // Should be read-only if not locked.
-    if mode&0200 != 0 {
-        t.Errorf("Output file is writable (mode %o), but was not locked", mode)
-    }
+	// Functionality check (RCS behavior):
+	// Should be read-only if not locked.
+	// On Windows, read-only is 0444, writable is 0666. 0200 bit controls write access.
+	if mode&0200 != 0 {
+		t.Errorf("Output file is writable (mode %o), but was not locked", mode)
+	}
 }
