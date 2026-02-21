@@ -51,11 +51,12 @@ func runCliTest(t *testing.T, path string) {
 	var testCommands []string
 
 	for _, f := range archive.Files {
-		if f.Name == "options.conf" || f.Name == "options.json" {
+		switch f.Name {
+		case "options.conf", "options.json":
 			if err := json.Unmarshal(f.Data, &opts); err != nil {
 				t.Fatalf("json unmarshal options: %v", err)
 			}
-		} else if f.Name == "tests.txt" {
+		case "tests.txt":
 			lines := strings.Split(string(f.Data), "\n")
 			for _, line := range lines {
 				line = strings.TrimSpace(line)
