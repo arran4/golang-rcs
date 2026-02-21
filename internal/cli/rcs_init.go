@@ -43,7 +43,7 @@ func initFile(description, workingFile string) error {
 		f.Description = description
 	}
 
-	if err := os.WriteFile(rcsFile, []byte(f.String()), 0444); err != nil {
+	if err := os.WriteFile(rcsFile, []byte(f.String()), 0600); err != nil {
 		return fmt.Errorf("write %s: %w", rcsFile, err)
 	}
 
