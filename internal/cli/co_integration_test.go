@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -15,7 +16,9 @@ func TestCoIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		_ = os.RemoveAll(tempDir)
+	}()
 
 	workFile := filepath.Join(tempDir, "workfile")
 	rcsFile := workFile + ",v"
@@ -61,8 +64,11 @@ func TestCoIntegration(t *testing.T) {
 	}
 	// Check perm
 	mode := info.Mode().Perm()
-	if mode&0004 != 0 {
-		t.Errorf("RCS file is world-readable: %o", mode)
+	// On Windows, 0600 might not prevent world readability as intended by mode bits.
+	if runtime.GOOS != "windows" {
+		if mode&0004 != 0 {
+			t.Errorf("RCS file is world-readable: %o", mode)
+		}
 	}
 	if mode&0200 == 0 {
 		t.Errorf("RCS file is not writable by owner: %o", mode)
@@ -92,7 +98,9 @@ func TestCoIntegration(t *testing.T) {
 	}
 	mode = info.Mode().Perm()
 
-	if mode&0004 != 0 {
-		t.Errorf("RCS file became world-readable after Co: %o", mode)
+	if runtime.GOOS != "windows" {
+		if mode&0004 != 0 {
+			t.Errorf("RCS file became world-readable after Co: %o", mode)
+		}
 	}
 }

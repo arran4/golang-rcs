@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -11,7 +12,9 @@ func TestInitPermissions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		_ = os.RemoveAll(tempDir)
+	}()
 
 	workFile := filepath.Join(tempDir, "testfile")
 	// Create dummy work file
@@ -32,7 +35,9 @@ func TestInitPermissions(t *testing.T) {
 
 	mode := info.Mode().Perm()
 	// We expect this to fail if we consider 0444 insecure
-	if mode&0004 != 0 {
-		t.Errorf("RCS file is world-readable: %o", mode)
+	if runtime.GOOS != "windows" {
+		if mode&0004 != 0 {
+			t.Errorf("RCS file is world-readable: %o", mode)
+		}
 	}
 }
