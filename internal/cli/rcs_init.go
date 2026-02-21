@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	rcs "github.com/arran4/golang-rcs"
@@ -43,7 +44,14 @@ func initFile(description, workingFile string) error {
 		f.Description = description
 	}
 
-	if err := os.WriteFile(rcsFile, []byte(f.String()), 0600); err != nil {
+	mode := os.FileMode(0600)
+	if envMode := os.Getenv("GORCS_INIT_MODE"); envMode != "" {
+		if m, err := strconv.ParseUint(envMode, 8, 32); err == nil {
+			mode = os.FileMode(m)
+		}
+	}
+
+	if err := os.WriteFile(rcsFile, []byte(f.String()), mode); err != nil {
 		return fmt.Errorf("write %s: %w", rcsFile, err)
 	}
 
