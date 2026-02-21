@@ -66,11 +66,12 @@ func coFile(revision string, lock, unlock bool, user string, quiet bool, checkou
 	if !strings.HasSuffix(rcsFile, ",v") {
 		rcsFile += ",v"
 	}
-	b, err := os.ReadFile(rcsFile)
+	f, err := os.Open(rcsFile)
 	if err != nil {
-		return COVerdict{}, fmt.Errorf("read %s: %w", rcsFile, err)
+		return COVerdict{}, fmt.Errorf("open %s: %w", rcsFile, err)
 	}
-	parsed, err := rcs.ParseFile(strings.NewReader(string(b)))
+	defer f.Close()
+	parsed, err := rcs.ParseFile(f)
 	if err != nil {
 		return COVerdict{}, fmt.Errorf("parse %s: %w", rcsFile, err)
 	}
