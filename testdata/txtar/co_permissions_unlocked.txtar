@@ -23,10 +23,11 @@ text
 @content
 @
 -- tests.txt --
-co: -w user input
+co
 -- options.conf --
 {
-    "rcs_file_perm": "0600"
+    "rcs_file_perm": "0600",
+    "args": ["-w", "user", "input"]
 }
 -- expected.mode --
 0400
