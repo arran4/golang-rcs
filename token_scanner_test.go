@@ -303,3 +303,34 @@ func TestScanTokenWord(t *testing.T) {
 		})
 	}
 }
+
+func TestScanTokenAuthor(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    string
+		wantErr bool
+	}{
+		{"Quoted author", "@author@", "author", false},
+		{"Quoted author with @", "@aut@@hor@", "aut@hor", false},
+		{"Unquoted author", "author;", "author", false},
+		{"Unquoted author with space", "author name;", "author name", false},
+		{"Empty quoted author", "@@", "", false},
+		{"Empty unquoted author", ";", "", true},
+		{"Missing end quote", "@author", "", true},
+		{"Valid unquoted stops at ;", "john.doe;next", "john.doe", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewScanner(strings.NewReader(tt.input))
+			got, err := ScanTokenAuthor(s)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ScanTokenAuthor() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ScanTokenAuthor() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
