@@ -345,20 +345,3 @@ func (file *File) ClearLock(user, revision string) bool {
 	file.Locks = out
 	return changed
 }
-
-// Type aliases to expose diff package types in rcs package.
-
-type EdDiff = diff.EdDiff
-type EdDiffCommand = diff.EdDiffCommand
-type Delete = diff.Delete
-type Add = diff.Add
-type LineReader = diff.LineReader
-type LineWriter = diff.LineWriter
-
-// GenerateEdDiffFromLines delegates to the diff package.
-func GenerateEdDiffFromLines(from []string, to []string) (EdDiff, error) {
-	return diff.Generate(from, to)
-}
-
-// ParseEdDiff delegates to the diff package.
-var ParseEdDiff = diff.ParseEdDiff
