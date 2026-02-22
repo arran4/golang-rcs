@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+const DateFormat = "2006.01.02.15.04.05"
 const DateFormatTruncated = "06.01.02.15.04.05"
 
 // ParseDate parses a date string according to RCS date formats.
