@@ -10,6 +10,7 @@ import (
 
 	"github.com/arran4/golang-rcs/diff"
 	_ "github.com/arran4/golang-rcs/diff/hashline"
+	_ "github.com/arran4/golang-rcs/diff/znkr_diff"
 )
 
 // GenerateRandomLines generates random lines using a local random source for reproducibility in benchmarks.
@@ -119,7 +120,7 @@ func TestBenchmarkReport(t *testing.T) {
 		t.Skip("skipping benchmark report in short mode")
 	}
 
-	algos := []string{"lcs", "hashline"}
+	algos := []string{"lcs", "hashline", "znkr"}
 	sizes := []int{100, 1000, 5000, 10000} // LCS might fail/timeout on 10000 depending on implementation efficiency
 
 	for _, algoName := range algos {
@@ -170,7 +171,7 @@ func TestBenchmarkReport_Repetitive(t *testing.T) {
 		t.Skip("skipping benchmark report in short mode")
 	}
 
-	algos := []string{"lcs", "hashline"}
+	algos := []string{"lcs", "hashline", "znkr"}
 	sizes := []int{100, 1000, 5000} // Repetitive might be better handled by HashLine
 
 	for _, algoName := range algos {
