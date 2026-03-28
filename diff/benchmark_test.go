@@ -10,6 +10,7 @@ import (
 
 	"github.com/arran4/golang-rcs/diff"
 	_ "github.com/arran4/golang-rcs/diff/hashline"
+	_ "github.com/arran4/golang-rcs/diff/znkr_diff"
 )
 
 // GenerateRandomLines generates random lines using a local random source for reproducibility in benchmarks.
@@ -119,7 +120,7 @@ func TestBenchmarkReport(t *testing.T) {
 		t.Skip("skipping benchmark report in short mode")
 	}
 
-	algos := []string{"lcs", "hashline"}
+	algos := []string{"lcs", "hashline", "znkr"}
 	sizes := []int{100, 1000, 5000, 10000} // LCS might fail/timeout on 10000 depending on implementation efficiency
 
 	for _, algoName := range algos {
@@ -170,7 +171,7 @@ func TestBenchmarkReport_Repetitive(t *testing.T) {
 		t.Skip("skipping benchmark report in short mode")
 	}
 
-	algos := []string{"lcs", "hashline"}
+	algos := []string{"lcs", "hashline", "znkr"}
 	sizes := []int{100, 1000, 5000} // Repetitive might be better handled by HashLine
 
 	for _, algoName := range algos {
@@ -216,6 +217,107 @@ func TestBenchmarkReport_Repetitive(t *testing.T) {
 			diffSize := len(edDiff)
 
 			fmt.Printf("%d\t%d\t%.2f\t%d\n", size, duration.Milliseconds(), alloc, diffSize)
+		}
+	}
+}
+
+// GenerateTrickyLines creates a challenging dataset with many small shifting blocks,
+// repetitions, and scattered inserts/deletes to test diff algorithm robustness.
+func GenerateTrickyLines(n int) []string {
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
+	// Create a base template with repeating patterns
+	pattern := []string{"start", "header", "body1", "body2", "footer", "end"}
+
+	lines := make([]string, 0, n)
+	for i := 0; len(lines) < n; i++ {
+		lines = append(lines, pattern[i%len(pattern)])
+		// Occasionally insert random noise or modify the block
+		if r.Float32() < 0.15 {
+			lines = append(lines, fmt.Sprintf("noise_%d", r.Intn(100)))
+		}
+	}
+
+	// Ensure we return exactly n
+	if len(lines) > n {
+		return lines[:n]
+	}
+	return lines
+}
+
+func TestBenchmarkReport_Tricky(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping benchmark report in short mode")
+	}
+
+	algos := []string{"lcs", "hashline", "znkr"}
+	sizes := []int{100, 1000, 5000} // Skip 10k due to LCS
+
+	for _, algoName := range algos {
+		fmt.Printf("\nAlgorithm (Tricky): %s\n", algoName)
+		fmt.Printf("Size\tTime(ms)\tAlloc(MB)\tEdDiff Size\tAdded Lines\n")
+		algo, err := diff.GetAlgorithm(algoName)
+		if err != nil {
+			t.Fatalf("algorithm %s not found: %v", algoName, err)
+		}
+
+		for _, size := range sizes {
+			lines1 := GenerateTrickyLines(size)
+
+			// Modify 'lines1' heavily to create 'lines2'
+			src := rand.NewSource(time.Now().UnixNano())
+			r := rand.New(src)
+
+			lines2 := make([]string, 0, size)
+			for i := 0; i < len(lines1); i++ {
+				// 10% chance to delete
+				if r.Float32() < 0.10 {
+					continue
+				}
+
+				// 10% chance to modify
+				if r.Float32() < 0.10 {
+					lines2 = append(lines2, "MODIFIED_LINE")
+					continue
+				}
+
+				lines2 = append(lines2, lines1[i])
+
+				// 5% chance to insert random block
+				if r.Float32() < 0.05 {
+					for j := 0; j < 5; j++ {
+						lines2 = append(lines2, "NEW_BLOCK_DATA")
+					}
+				}
+			}
+
+			// Force GC before measurement
+			runtime.GC()
+			var m1, m2 runtime.MemStats
+			runtime.ReadMemStats(&m1)
+
+			start := time.Now()
+			edDiff, err := algo(lines1, lines2)
+			duration := time.Since(start)
+
+			runtime.ReadMemStats(&m2)
+			if err != nil {
+				t.Fatalf("algorithm failed: %v", err)
+			}
+
+			alloc := float64(m2.TotalAlloc-m1.TotalAlloc) / 1024 / 1024
+
+			// Measure output size (number of command instructions vs number of strings added)
+			diffCmdsSize := len(edDiff)
+			addedLines := 0
+			for _, cmd := range edDiff {
+				if addCmd, ok := cmd.(diff.Add); ok {
+					addedLines += len(addCmd.Lines)
+				}
+			}
+
+			fmt.Printf("%d\t%d\t%.2f\t%d\t\t%d\n", size, duration.Milliseconds(), alloc, diffCmdsSize, addedLines)
 		}
 	}
 }
