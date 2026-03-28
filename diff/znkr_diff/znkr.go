@@ -41,9 +41,18 @@ func GenerateEdDiffFromLines(from []string, to []string) (rcsdiff.EdDiff, error)
 
 	currFromPos := 0
 
+	// Track the position before the current block of edits (inserts/deletes)
+	// so that adds and deletes in the same gap use the correct base line.
+	inEditBlock := false
+	blockStartPos := 0
+
 	for _, edit := range edits {
 		switch edit.Op {
 		case znkrdiff.Delete:
+			if !inEditBlock {
+				blockStartPos = currFromPos
+				inEditBlock = true
+			}
 			if !inDel {
 				delStart = currFromPos + 1
 				inDel = true
@@ -52,18 +61,22 @@ func GenerateEdDiffFromLines(from []string, to []string) (rcsdiff.EdDiff, error)
 			currFromPos++
 
 		case znkrdiff.Insert:
+			if !inEditBlock {
+				blockStartPos = currFromPos
+				inEditBlock = true
+			}
 			if !inAdd {
-				addStart = currFromPos
+				addStart = blockStartPos // Use the position before any deletes in this block
 				inAdd = true
 			}
 			addLines = append(addLines, edit.Y)
 
 		case znkrdiff.Match:
 			// Order is important for test assertions (Add then Delete)
-			// But for znkr, it doesn't matter since Apply will just take them.
 			commitAdd()
 			commitDel()
 			currFromPos++
+			inEditBlock = false
 		}
 	}
 
