@@ -71,3 +71,47 @@ func TestFileContent_Get_LoaderError(t *testing.T) {
 		t.Errorf("expected nil bytes, got %v", b)
 	}
 }
+
+func TestFileContent_Segment(t *testing.T) {
+	expectedBytes := []byte("hello world")
+	fc := &FileContent{
+		loader: func() (io.ReadCloser, error) {
+			return &mockReadCloser{bytes.NewReader(expectedBytes)}, nil
+		},
+	}
+
+	tests := []struct {
+		name     string
+		offset   int64
+		length   int64
+		expected []byte
+	}{
+		{"full segment", 0, 11, []byte("hello world")},
+		{"partial segment", 0, 5, []byte("hello")},
+		{"middle segment", 6, 5, []byte("world")},
+		{"out of bounds length", 6, 10, []byte("world")},
+		{"out of bounds offset", 20, 5, []byte{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fco := fc.Segment(tt.offset, tt.length)
+			b, err := fco.Get()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !bytes.Equal(b, tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, b)
+			}
+
+			// Test caching of the segment
+			b2, err := fco.Get()
+			if err != nil {
+				t.Fatalf("unexpected error on second get: %v", err)
+			}
+			if !bytes.Equal(b2, tt.expected) {
+				t.Errorf("expected %q on second get, got %q", tt.expected, b2)
+			}
+		})
+	}
+}

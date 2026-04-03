@@ -1,6 +1,7 @@
 package rcs
 
 import (
+	"bytes"
 	"io"
 	"sync"
 	"weak"
@@ -31,6 +32,32 @@ func (f *FileContent) Get() ([]byte, error) {
 		return nil, err
 	}
 
-	f.weakPtr = weak.Make(&b)
-	return b, nil
+	bp := &b
+	f.weakPtr = weak.Make(bp)
+	return *bp, nil
+}
+
+// Segment creates a new FileContent that represents a segment of the current FileContent.
+// This allows for memory-efficient lazy loading of file segments, as the child FileContent
+// will allocate its own smaller slice, allowing the larger parent slice to be garbage collected.
+func (f *FileContent) Segment(offset, length int64) *FileContent {
+	return &FileContent{
+		loader: func() (io.ReadCloser, error) {
+			b, err := f.Get()
+			if err != nil {
+				return nil, err
+			}
+			if offset >= int64(len(b)) {
+				return io.NopCloser(bytes.NewReader(nil)), nil
+			}
+			end := offset + length
+			if end > int64(len(b)) {
+				end = int64(len(b))
+			}
+			// When the child FileContent reads from this reader, it will allocate a new []byte.
+			// After the read is complete, the parent's full []byte `b` will no longer be referenced
+			// strongly by this segment loader, allowing the GC to reclaim the memory if there are no other strong references.
+			return io.NopCloser(bytes.NewReader(b[offset:end])), nil
+		},
+	}
 }
