@@ -23,13 +23,19 @@ go get github.com/arran4/golang-rcs
 
 ### Tool
 
-To install the `gorcs` tool for use on the command line:
+### GitHub Releases
+Download binaries from: https://github.com/arran4/golang-rcs/releases
 
+### Go install
 ```bash
 go install github.com/arran4/golang-rcs/cmd/gorcs@latest
 ```
 
-Alternatively, you can download the latest binary from the [Releases](https://github.com/arran4/golang-rcs/releases) page. Binaries are available for Windows, macOS (Darwin), and Linux (amd64, arm, arm64, 386). Packages are also available in formats: apk, deb, rpm, termux.deb, and archlinux.
+### Native packages
+- Debian/Ubuntu (`.deb`): see Releases assets
+- RPM (`.rpm`): see Releases assets
+- Alpine (`.apk`): see Releases assets
+- Arch (`.pkg.tar.zst` or repo): see Releases assets
 
 ## Usage
 
