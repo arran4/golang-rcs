@@ -7,6 +7,8 @@ This project was created to fill a gap in the Go ecosystem for handling RCS file
 ## Features
 
 - **Parse RCS Files:** Read RCS files into structured Go objects.
+- **Checkin Revisions:** Create new trunk revisions with `File.Checkin()` — initial, normal, force, explicit trunk revision (`N.M`), and lock/unlock with strict-lock enforcement.
+- **Checkout Revisions:** Check out revisions with `File.Checkout()` and lock management.
 - **Inspect Revisions:** Access revision metadata like author, date, state, and commit messages.
 - **Read Content:** Retrieve the log messages and raw text content of revisions.
 - **Handle Metadata:** Parse headers, descriptions, locks, strict locking, access lists, symbols, and other RCS metadata.
@@ -105,6 +107,28 @@ You can also modify the parsed structure and serialize it back to an RCS file st
 	// Print back to stdout (or file)
 	fmt.Println(rcsFile.String())
 ```
+
+### Checkin (creating new revisions)
+
+```go
+	// Check in a new revision with lock
+	verdict, err := rcsFile.Checkin("jules", "Fix typo in header", newText,
+		rcs.WithSetLock,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("New revision: %s\n", verdict.Revision)
+```
+
+Options: `WithRevision("1.5")`, `WithDate(t)`, `WithState("Rel")`,
+`WithForce{}`, `WithSetLock`, `WithClearLock`, `WithInitial{}`.
+
+Scope: checkin currently targets the **trunk** only — branch revisions (e.g.
+`1.1.1.1`) are rejected. When a strict-locking archive is used, the caller must
+hold the lock on the head revision. Stored text is normalized to end with a
+trailing newline. See the `gorcs ci` command section for the full list of
+limitations.
 
 ## Data Structures
 
@@ -388,6 +412,37 @@ gorcs validate [-o output_file] [-w] [-s] [-f] [file1,v ...]
 - `-s`, `--stdout`: Force output to stdout.
 - `-f`, `--force`: Force overwrite if output file exists.
 - `-` as input file reads from stdin.
+
+### `gorcs ci`
+
+> **Note:** File modifications are beta.
+
+Checks in a revision to an RCS file.
+
+```bash
+gorcs ci [-q] [-l[REV]] [-u[REV]] [-r <REV>] [-f[REV]] [-m <MSG>] [-w <USER>] [-s <STATE>] [-d <DATE>] [-z <ZONE>] [file ...]
+```
+
+- `-l[REV]`: Check in and lock — keep working file writable.
+- `-u[REV]`: Check in and unlock — keep working file read-only.
+- `-r <REV>`: Set the revision number explicitly (e.g., `-r1.5`).
+- `-f[REV]`: Force checkin even when text is unchanged from head.
+- `-m <MSG>`: Log message for the new revision.
+- `-w <USER>`: Override author name (defaults to current user).
+- `-s <STATE>`: Set revision state (Exp, Stab, Rel, ...).
+- `-d <DATE>`: Override checkin date.
+- `-z <ZONE>`: Timezone for date parsing.
+- `-q`: Quiet mode.
+
+Without `-l` or `-u`, the working file is removed after checkin (traditional RCS behavior).
+
+**Limitations:**
+
+- Text is normalized to end with a trailing newline. Checking in a file that
+  lacks a final newline appends one and prints a warning; byte-exact
+  preservation of files without a trailing newline is not currently supported.
+- Only trunk revisions (`N.M`) are supported. Explicit branch checkins
+  (e.g. `-r1.1.1.1`) are rejected.
 
 ### `gorcs co`
 
