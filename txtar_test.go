@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/tools/txtar"
@@ -687,8 +688,154 @@ func testRCSMerge(t *testing.T, parts map[string]string, options map[string]bool
 	t.Skip("rcs merge test type not implemented yet")
 }
 
+// parseCIArgs converts CLI-style flag strings into Checkin option values.
+// Returns the user, log message, whether initial mode is forced, and the
+// option slice for Checkin.
+func parseCIArgs(t *testing.T, optionArgs []string, defaultInitial bool) (string, string, bool, []any) {
+	t.Helper()
+	user := "tester"
+	ops := make([]any, 0, 4)
+	logMsg := ""
+	initial := defaultInitial
+
+	nextVal := func(arg, prefix string, i int) (string, int) {
+		v := strings.TrimPrefix(arg, prefix)
+		if v != "" {
+			return v, 0
+		}
+		if i+1 < len(optionArgs) {
+			return optionArgs[i+1], 1
+		}
+		return "", 0
+	}
+
+	for i := 0; i < len(optionArgs); i++ {
+		arg := optionArgs[i]
+		if !strings.HasPrefix(arg, "-") {
+			continue
+		}
+		switch {
+		case arg == "-q":
+			continue
+		case arg == "-i":
+			initial = true
+		case strings.HasPrefix(arg, "-w"):
+			v, skip := nextVal(arg, "-w", i)
+			i += skip
+			if v != "" {
+				user = v
+			}
+		case strings.HasPrefix(arg, "-m"):
+			v, skip := nextVal(arg, "-m", i)
+			i += skip
+			logMsg = v
+		case strings.HasPrefix(arg, "-r"):
+			v, skip := nextVal(arg, "-r", i)
+			i += skip
+			if v != "" {
+				ops = append(ops, WithRevision(v))
+			}
+		case strings.HasPrefix(arg, "-d"):
+			v, skip := nextVal(arg, "-d", i)
+			i += skip
+			if v != "" {
+				t2, err := ParseDate(v, time.Now(), time.UTC)
+				if err != nil {
+					t2, err = time.Parse("2006-01-02 15:04:05Z", v)
+				}
+				if err != nil {
+					t2, err = time.Parse(time.RFC3339, v)
+				}
+				if err != nil {
+					t.Fatalf("parse date %q: %v", v, err)
+				}
+				ops = append(ops, WithDate(t2))
+			}
+		case strings.HasPrefix(arg, "-s"):
+			v, skip := nextVal(arg, "-s", i)
+			i += skip
+			if v != "" {
+				ops = append(ops, WithState(v))
+			}
+		case strings.HasPrefix(arg, "-l"):
+			v := strings.TrimPrefix(arg, "-l")
+			if v != "" {
+				ops = append(ops, WithRevision(v))
+			}
+			ops = append(ops, WithSetLock)
+		case strings.HasPrefix(arg, "-u"):
+			v := strings.TrimPrefix(arg, "-u")
+			if v != "" {
+				ops = append(ops, WithRevision(v))
+			}
+			ops = append(ops, WithClearLock)
+		case strings.HasPrefix(arg, "-f"):
+			v := strings.TrimPrefix(arg, "-f")
+			if v != "" {
+				ops = append(ops, WithRevision(v))
+			}
+			ops = append(ops, WithForce{})
+		case strings.HasPrefix(arg, "-k"):
+			t.Skipf("unsupported ci flag: %s", arg)
+		case strings.HasPrefix(arg, "-n") || strings.HasPrefix(arg, "-N"):
+			t.Skipf("unsupported ci flag: %s", arg)
+		case strings.HasPrefix(arg, "-M") || strings.HasPrefix(arg, "-T"):
+			t.Skipf("unsupported ci flag: %s", arg)
+		}
+	}
+
+	if initial {
+		ops = append(ops, WithInitial{})
+	}
+
+	return user, logMsg, initial, ops
+}
+
 func testCI(t *testing.T, parts map[string]string, options map[string]bool) {
-	t.Skip("ci test type not implemented yet")
+	t.Run("ci", func(t *testing.T) {
+		if strings.Contains(t.Name(), "TODO-") {
+			t.Skip("TODO test — not yet implemented")
+		}
+
+		optionArgs := []string{}
+		var msg, subCmd, rev, rcsMode string
+		var files []string
+		if optContent, ok := parts["options.conf"]; ok {
+			parseOptions(optContent, options, &optionArgs, &msg, &subCmd, &rev, &files, &rcsMode)
+		}
+
+		var parsed *File
+		if inputRCS, ok := parts["input.txt,v"]; ok {
+			var err error
+			parsed, err = parseRCS(inputRCS)
+			if err != nil {
+				t.Fatalf("ParseFile error: %v", err)
+			}
+		} else {
+			parsed = NewFile()
+		}
+
+		inputText, ok := parts["input.txt"]
+		if !ok {
+			t.Fatal("Missing input.txt")
+		}
+		inputText = strings.TrimSuffix(inputText, "\n")
+
+		initial := parsed.Head == ""
+		user, logMsg, _, ops := parseCIArgs(t, optionArgs, initial)
+
+		_, err := parsed.Checkin(user, logMsg, inputText, ops...)
+		if err != nil {
+			t.Fatalf("Checkin failed: %v", err)
+		}
+
+		if expectedRCS, ok := parts["expected.txt,v"]; ok {
+			got := parsed.String()
+			if diff := cmp.Diff(strings.TrimSpace(expectedRCS), strings.TrimSpace(got)); diff != "" {
+				t.Fatalf("RCS file mismatch (-want +got):\n%s", diff)
+			}
+		}
+	})
 }
 
 func testCO(t *testing.T, parts map[string]string, _ map[string]bool, args []string, rcsMode string) {

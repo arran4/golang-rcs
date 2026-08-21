@@ -7,6 +7,8 @@ ci append change producing 1.2
 -- input.txt --
 A
 B
+C
+D
 
 -- input.txt,v --
 head	1.1;
