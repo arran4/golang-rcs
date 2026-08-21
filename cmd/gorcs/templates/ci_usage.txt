@@ -1,0 +1,17 @@
+Usage: gorcs ci [flags...] [files...]
+
+Subcommands:
+  help	show help
+  usage	show usage
+
+Flags:
+  -q	quiet
+  -r rev	set the revision number
+  -l[rev]	check in and lock (keep working file writable)
+  -u[rev]	check in and unlock (keep working file read-only)
+  -f[rev]	force checkin even if unchanged
+  -m msg	log message
+  -w user	override author name
+  -s state	set revision state (Exp, Stab, Rel, ...)
+  -d date	override checkin date
+  -z zone	timezone for date parsing
