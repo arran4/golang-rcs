@@ -50,3 +50,5 @@ nfpms:
     release: 1
     section: default
     priority: extra
+release:
+  prerelease: auto

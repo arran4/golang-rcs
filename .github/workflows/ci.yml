@@ -18,8 +18,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, closed]
     branches: [main, master]
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       mode:
@@ -66,7 +64,6 @@ permissions:
   checks: write
   packages: write
   security-events: write
-  actions: write
 
 jobs:
   route:
@@ -76,8 +73,6 @@ jobs:
       run_code_checks: ${{ steps.route.outputs.run_code_checks }}
       run_pr_meta_checks: ${{ steps.route.outputs.run_pr_meta_checks }}
       run_cleanup: ${{ steps.route.outputs.run_cleanup }}
-      run_release: ${{ steps.route.outputs.run_release }}
-      run_post_release: ${{ steps.route.outputs.run_post_release }}
       is_monthly: ${{ steps.route.outputs.is_monthly }}
       is_nightly: ${{ steps.route.outputs.is_nightly }}
     steps:
@@ -90,7 +85,6 @@ jobs:
           run_pr_meta_checks=false
           run_cleanup=false
           run_release=false
-          run_post_release=false
           is_monthly=false
           is_nightly=false
 
@@ -114,7 +108,6 @@ jobs:
               fi
               ;;
             release)
-              run_post_release=true
               ;;
             workflow_dispatch)
               run_code_checks=true
@@ -151,7 +144,6 @@ jobs:
           echo "run_pr_meta_checks=$run_pr_meta_checks" >> "$GITHUB_OUTPUT"
           echo "run_cleanup=$run_cleanup" >> "$GITHUB_OUTPUT"
           echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
-          echo "run_post_release=$run_post_release" >> "$GITHUB_OUTPUT"
           echo "is_monthly=$is_monthly" >> "$GITHUB_OUTPUT"
           echo "is_nightly=$is_nightly" >> "$GITHUB_OUTPUT"
 
@@ -172,7 +164,7 @@ jobs:
       has_dart_or_flutter_tests: ${{ steps.detect.outputs.has_dart_or_flutter_tests }}
       has_packaging: ${{ steps.detect.outputs.has_packaging }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - id: detect
         shell: bash
@@ -206,7 +198,7 @@ jobs:
     if: ${{ needs.route.outputs.run_cleanup != 'true' && (needs.route.outputs.is_nightly == 'true' || needs.route.outputs.is_monthly == 'true') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -219,7 +211,7 @@ jobs:
     if: ${{ needs.discover.outputs.profile == 'public' && github.event_name == 'pull_request' && github.event.action != 'closed' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v5
 
   golangci:
     name: lint
@@ -227,12 +219,12 @@ jobs:
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
 
@@ -246,8 +238,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -260,8 +252,8 @@ jobs:
     if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' && needs.discover.outputs.profile == 'public' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -275,9 +267,9 @@ jobs:
       needs.route.outputs.run_release == 'true' &&
       needs.route.result == 'success' &&
       needs.discover.result == 'success' &&
-      (needs.discover.outputs.has_go != 'true' || needs.golangci.result == 'success' || needs.golangci.result == 'skipped') &&
+      (needs.discover.outputs.has_go != 'true' || needs.golangci.result == 'success') &&
       (needs.discover.outputs.has_go != 'true' || needs.go-test.result == 'success') &&
-      (needs.discover.outputs.has_go != 'true' || needs.go-vet.result == 'success' || needs.go-vet.result == 'skipped')
+      (needs.discover.outputs.has_go != 'true' || needs.go-vet.result == 'success' || (needs.discover.outputs.profile != 'public' && needs.go-vet.result == 'skipped'))
     runs-on: ubuntu-latest
     steps:
       - run: echo "All required language checks passed."
@@ -290,7 +282,7 @@ jobs:
     outputs:
       release_tag: ${{ steps.tag.outputs.release_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup git-tag-inc
@@ -361,12 +353,12 @@ jobs:
     if: ${{ !failure() && !cancelled() && needs.route.outputs.run_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
       actions: write
+      contents: write
     outputs:
       release_tag: ${{ steps.export.outputs.release_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -430,15 +422,15 @@ jobs:
       contents: write
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: '~> v2'
@@ -454,8 +446,8 @@ jobs:
     if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Run go fmt
@@ -481,11 +473,11 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Go (if needed)
         if: ${{ needs.discover.outputs.has_go == 'true' }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
 
@@ -533,7 +525,7 @@ jobs:
     if: ${{ needs.route.outputs.run_cleanup == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PARENT_PR: ${{ github.event.pull_request.number }}
