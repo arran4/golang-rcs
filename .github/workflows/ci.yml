@@ -58,12 +58,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
-  discussions: write
-  pull-requests: write
-  checks: write
-  packages: write
-  security-events: write
+  contents: read
 
 jobs:
   route:
@@ -73,6 +68,7 @@ jobs:
       run_code_checks: ${{ steps.route.outputs.run_code_checks }}
       run_pr_meta_checks: ${{ steps.route.outputs.run_pr_meta_checks }}
       run_cleanup: ${{ steps.route.outputs.run_cleanup }}
+      run_release: ${{ steps.route.outputs.run_release }}
       is_monthly: ${{ steps.route.outputs.is_monthly }}
       is_nightly: ${{ steps.route.outputs.is_nightly }}
     steps:
@@ -91,7 +87,7 @@ jobs:
           case "${{ github.event_name }}" in
             push)
               run_code_checks=true
-              if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+              if [[ "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
                 run_release=true
               fi
               ;;
@@ -115,8 +111,8 @@ jobs:
                 run_release=true
               fi
               if [[ "${{ inputs.mode }}" == "publish-tag" ]]; then
-                if [[ "${{ github.ref_type }}" != "tag" ]] || ! ([[ "${{ github.ref }}" =~ ^refs/tags/v.* ]] || [[ "${{ github.ref }}" =~ ^refs/tags/test-.* ]]); then
-                  echo "publish-tag mode requires an eligible tag context (e.g. refs/tags/v* or refs/tags/test-*)" >&2
+                if [[ "${{ github.ref_type }}" != "tag" ]] || ! [[ "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
+                  echo "publish-tag mode requires an eligible tag context (e.g. refs/tags/v*)" >&2
                   exit 1
                 fi
                 run_release=true
@@ -445,6 +441,9 @@ jobs:
     needs: [route, discover]
     if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -472,6 +471,9 @@ jobs:
     needs: [route, discover]
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
 
@@ -524,6 +526,9 @@ jobs:
     needs: [route]
     if: ${{ needs.route.outputs.run_cleanup == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
       - env:

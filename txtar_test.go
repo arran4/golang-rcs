@@ -959,7 +959,7 @@ func testNewRCS(t *testing.T, parts map[string]string, options map[string]bool, 
 			if strings.HasPrefix(arg, "-t") {
 				if arg == "-t" {
 					if i+1 < len(args) {
-						i++
+						// i++
 						// TODO read file?
 						// f.Description = args[i]
 						t.Skip("reading file from -t arg not implemented in test runner")
