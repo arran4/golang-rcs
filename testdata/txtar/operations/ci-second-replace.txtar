@@ -5,9 +5,9 @@ ci replace-all producing 1.2
 {"args": ["-q","-u","-m","replace-all","-wtester","-d","2020-01-02 00:00:00Z","input.txt"] }
 
 -- input.txt --
-ONE
-TWO
-THREE
+ALPHA
+BETA
+GAMMA
 
 -- input.txt,v --
 head	1.1;

@@ -5,3 +5,4 @@
 /testdata/local/*,v
 /testdata/local/**/*,v
 /test.*
+/cover.out

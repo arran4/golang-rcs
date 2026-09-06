@@ -274,7 +274,10 @@ func applyDelta(from, delta string) (string, error) {
 	if err := ed.Apply(r, w); err != nil {
 		return "", err
 	}
-	return strings.Join(w.lines, "\n") + trailingNewline(from), nil
+	if len(w.lines) == 0 {
+		return "", nil
+	}
+	return strings.Join(w.lines, "\n") + "\n", nil
 }
 
 func splitLines(s string) []string {
@@ -286,13 +289,6 @@ func splitLines(s string) []string {
 		lines = lines[:len(lines)-1]
 	}
 	return lines
-}
-
-func trailingNewline(s string) string {
-	if strings.HasSuffix(s, "\n") {
-		return "\n"
-	}
-	return ""
 }
 
 type lineReader struct {
